@@ -10,15 +10,19 @@ MotorTask::~MotorTask() {}
 
 
 // BLDC motor & driver instance
-BLDCMotor motor = BLDCMotor(7, 8);
+BLDCMotor motor = BLDCMotor(7);
 BLDCDriver6PWM driver = BLDCDriver6PWM(27, 26, 25, 33, 32, 13);
 
 TlvSensor tlv = TlvSensor();
 
 
 Commander command = Commander(Serial);
-void doMotor(char* cmd) { command.motor(&motor, cmd); }
 
+
+float detents = 36;
+
+void doMotor(char* cmd) { command.motor(&motor, cmd); }
+void doDetents(char* cmd) { command.scalar(&detents, cmd); }
 
 void MotorTask::run() {
     driver.voltage_power_supply = 5;
@@ -30,102 +34,49 @@ void MotorTask::run() {
 
     motor.linkDriver(&driver);
 
-    motor.current_limit = 0.6;
+    motor.controller = MotionControlType::torque;
+    motor.voltage_limit = 5;
     motor.linkSensor(&tlv);
 
-    motor.LPF_angle = 0.01;
-
-    motor.LPF_velocity.Tf = 0.05;
-
-    motor.PID_velocity.P = 0.2;
+    // Not actually using the velocity loop; but I'm using those PID variables
+    // because SimpleFOC studio supports updating them easily over serial for tuning.
+    motor.PID_velocity.P = 4;
     motor.PID_velocity.I = 0;
-    motor.PID_velocity.D = 0;
-    motor.PID_velocity.output_ramp = 1000;
+    motor.PID_velocity.D = 0.04;
+    motor.PID_velocity.output_ramp = 10000;
+    motor.PID_velocity.limit = 10;
 
-    motor.P_angle.P = 0.1;
-    motor.P_angle.I = 0;
-    motor.P_angle.D = 0;
 
     motor.init();
 
 
+    motor.initFOC(-0.2, Direction::CW);
 
-
-    // float pp_search_voltage = 2; // maximum power_supply_voltage/2
-    // float pp_search_angle = 28*PI; // search electrical angle to turn
-
-    // // move motor to the electrical angle 0
-    // motor.controller = MotionControlType::angle_openloop;
-    // motor.voltage_limit=pp_search_voltage;
-    // motor.move(0);
-    // _delay(1000);
-    // // read the sensor angle
-    // tlv.update();
-    // float angle_begin = tlv.getAngle();
-    // _delay(50);
-
-    // // move the motor slowly to the electrical angle pp_search_angle
-    // float motor_angle = 0;
-    // while(motor_angle <= pp_search_angle){
-    //   motor_angle += 0.01f;
-    //   tlv.update(); // keep track of the overflow
-    //   motor.move(motor_angle);
-    // }
-    // _delay(1000);
-    // // read the sensor value for 180
-    // tlv.update(); 
-    // float angle_end = tlv.getAngle();
-    // _delay(50);
-    // // turn off the motor
-    // motor.move(0);
-    // _delay(1000);
-
-    // // calculate the pole pair number
-    // int pp = round((pp_search_angle)/(angle_end-angle_begin));
-
-    // Serial.print(F("Estimated PP : "));
-    // Serial.println(pp);
-    // Serial.println(F("PP = Electrical angle / Encoder angle "));
-    // Serial.print(pp_search_angle*180/PI);
-    // Serial.print(F("/"));
-    // Serial.print((angle_end-angle_begin)*180/PI);
-    // Serial.print(F(" = "));
-    // Serial.println((pp_search_angle)/(angle_end-angle_begin));
-    // Serial.println();
-
-
-    // // a bit of monitoring the result
-    // if(pp <= 0 ){
-    //   Serial.println(F("PP number cannot be negative"));
-    //   Serial.println(F(" - Try changing the search_voltage value or motor/sensor configuration."));
-    //   return;
-    // }else if(pp > 30){
-    //   Serial.println(F("PP number very high, possible error."));
-    // }else{
-    //   Serial.println(F("If PP is estimated well your motor should turn now!"));
-    //   Serial.println(F(" - If it is not moving try to relaunch the program!"));
-    //   Serial.println(F(" - You can also try to adjust the target voltage using serial terminal!"));
-    // }
-
-
-
-
-
-    motor.initFOC(0.602, Direction::CW);
-
-
-    // add the motor to the commander interface
-    // The letter (here 'M') you will provide to the SimpleFOCStudio
     command.add('M', &doMotor, "foo");
-    // tell the motor to use the monitoring
+    command.add('D', &doDetents, "Detents");
     motor.useMonitoring(Serial);
     motor.monitor_downsample = 0; // disable monitor at first - optional
 
+    float attract_angle = 0;
+
+    disableCore0WDT();
+
     while (1) {
-        motor.move();
         motor.loopFOC();
+
+        if (fabs(detents) < 0.01) {
+            motor.move(0);
+            display_task_.set_angle(motor.shaft_angle);
+        } else {
+            float detent_angle = 2*PI/detents;
+
+            float error = (attract_angle - motor.shaft_angle);
+            motor.move(motor.PID_velocity(error));
+
+            attract_angle = round(motor.shaft_angle/detent_angle)*detent_angle;
+            display_task_.set_angle(attract_angle);
+        }
         motor.monitor();
         command.run();
-        display_task_.set_angle(motor.shaft_angle);
     }
 }
