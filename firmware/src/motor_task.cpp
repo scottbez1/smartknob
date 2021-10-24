@@ -3,6 +3,15 @@
 #include "motor_task.h"
 #include "tlv_sensor.h"
 
+template <typename T> T CLAMP(const T& value, const T& low, const T& high) 
+{
+  return value < low ? low : (value > high ? high : value); 
+}
+
+static const float DEAD_ZONE_DETENT_PERCENT = 0.2;
+static const float DEAD_ZONE_RAD = 3 * _PI / 180;
+
+
 MotorTask::MotorTask(const uint8_t task_core, DisplayTask& display_task) : Task{"Motor", 8192, 1, task_core}, display_task_(display_task) {
 }
 
@@ -57,24 +66,54 @@ void MotorTask::run() {
     motor.useMonitoring(Serial);
     motor.monitor_downsample = 0; // disable monitor at first - optional
 
-    float attract_angle = 0;
-
     disableCore0WDT();
 
+    float current_detent_center = motor.shaft_angle;
+
+    int min = 0;
+    int max = 255;
+    int value = 0;
+
+
     while (1) {
+
         motor.loopFOC();
 
         if (fabs(detents) < 0.01) {
             motor.move(0);
             display_task_.set_angle(motor.shaft_angle);
+            current_detent_center = motor.shaft_angle;
         } else {
-            float detent_angle = 2*PI/detents;
+            float detent_width = 2*PI/detents;
 
-            float error = (attract_angle - motor.shaft_angle);
-            motor.move(motor.PID_velocity(error));
+            // if (millis() - last > 500) {
+            //     last = millis();
+            //     current_detent_center += detent_width;
+            // }
 
-            attract_angle = round(motor.shaft_angle/detent_angle)*detent_angle;
-            display_task_.set_angle(attract_angle);
+            float angle_to_detent_center = motor.shaft_angle - current_detent_center;
+            if (angle_to_detent_center > detent_width * 1.2 && value > min) {
+                current_detent_center += detent_width;
+                angle_to_detent_center -= detent_width;
+                value--;
+            } else if (angle_to_detent_center < -detent_width * 1.2 && value < max) {
+                current_detent_center -= detent_width;
+                angle_to_detent_center += detent_width;
+                value++;
+            }
+
+            float dead_zone = CLAMP(
+                angle_to_detent_center,
+                fmaxf(-detent_width*DEAD_ZONE_DETENT_PERCENT, -DEAD_ZONE_RAD),
+                fminf(detent_width*DEAD_ZONE_DETENT_PERCENT, DEAD_ZONE_RAD));
+            
+            if (fabsf(motor.shaft_velocity) > 20) {
+                motor.move(0);
+            } else {
+                motor.move(motor.PID_velocity(-angle_to_detent_center + dead_zone));
+            }
+
+            display_task_.set_angle(-value * PI / 180);
         }
         motor.monitor();
         command.run();

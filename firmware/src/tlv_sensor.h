@@ -20,4 +20,5 @@ class TlvSensor : public Sensor {
         Tlv493d tlv_ = Tlv493d();
         float x_;
         float y_;
+        uint32_t last_update_;
 };

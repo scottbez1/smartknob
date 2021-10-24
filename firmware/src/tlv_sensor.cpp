@@ -1,6 +1,6 @@
 #include "tlv_sensor.h"
 
-static const float ALPHA = 0.1;
+static const float ALPHA = 0.05;
 
 TlvSensor::TlvSensor() {}
 
@@ -12,9 +12,13 @@ void TlvSensor::init() {
 }
 
 float TlvSensor::getSensorAngle() {
-    tlv_.updateData();
-    x_ = tlv_.getX() * ALPHA + x_ * (1-ALPHA);
-    y_ = tlv_.getY() * ALPHA + y_ * (1-ALPHA);
+    uint32_t now = micros();
+    if (now - last_update_ > 100) {
+      tlv_.updateData();
+      x_ = tlv_.getX() * ALPHA + x_ * (1-ALPHA);
+      y_ = tlv_.getY() * ALPHA + y_ * (1-ALPHA);
+      last_update_ = now;
+    }
     float rad = atan2f(y_, x_);
     if (rad < 0) {
         rad += 2*PI;
