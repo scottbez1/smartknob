@@ -5,6 +5,7 @@
 #include <TFT_eSPI.h>
 
 #include "display_task.h"
+#include "interface_task.h"
 #include "motor_task.h"
 #include "tlv_sensor.h"
 
@@ -12,6 +13,7 @@ using namespace ace_button;
 
 DisplayTask display_task = DisplayTask(1);
 MotorTask motor_task = MotorTask(0, display_task);
+InterfaceTask interface_task = InterfaceTask(1, motor_task);
 
 CRGB leds[1];
 
@@ -21,6 +23,7 @@ void setup() {
 
   display_task.begin();
   motor_task.begin();
+  interface_task.begin();
 
   vTaskDelete(nullptr);
 }

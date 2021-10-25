@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 
+#include "knob_data.h"
 #include "task.h"
 
 class DisplayTask : public Task<DisplayTask> {
@@ -12,7 +13,7 @@ class DisplayTask : public Task<DisplayTask> {
         DisplayTask(const uint8_t task_core);
         ~DisplayTask();
 
-        void set_angle(float angle);
+        void setData(KnobState state);
 
     protected:
         void run();
@@ -25,5 +26,5 @@ class DisplayTask : public Task<DisplayTask> {
 
         SemaphoreHandle_t semaphore_;
 
-        float angle_ = 0;
+        KnobState state_;
 };
