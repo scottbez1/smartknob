@@ -1,4 +1,3 @@
-#include <AceButton.h>
 #include <Arduino.h>
 #include <FastLED.h>
 #include <SimpleFOC.h>
@@ -8,8 +7,6 @@
 #include "interface_task.h"
 #include "motor_task.h"
 #include "tlv_sensor.h"
-
-using namespace ace_button;
 
 DisplayTask display_task = DisplayTask(1);
 MotorTask motor_task = MotorTask(0, display_task);
