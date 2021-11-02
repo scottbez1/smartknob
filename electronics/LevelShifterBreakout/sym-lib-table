@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name SN74AVC4T774)(type Legacy)(uri ${KIPRJMOD}/../lib/SN74AVC4T774.lib)(options "")(descr ""))
+)

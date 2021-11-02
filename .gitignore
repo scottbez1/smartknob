@@ -1,0 +1,10 @@
+# KiCAD files
+*.000
+*.bak
+*.bck
+*.kicad_pcb-bak
+*.sch-bak
+*.net
+*.dsn
+fp-info-cache
+
