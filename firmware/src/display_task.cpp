@@ -99,30 +99,15 @@ void DisplayTask::run() {
             SemaphoreGuard lock(semaphore_);
             state = state_;
         }
-        // float degrees = angle * 360 / 2 / PI;
 
-        // uint8_t r, g, b;
-        // HSV_to_RGB(degrees, 80, 80, &r, &g, &b);
-
-        // spr_.fillSprite(tft_.color565(r, g, b));
         spr_.fillSprite(TFT_BLACK);
+        if (state.num_positions > 1) {
+          int32_t height = state.current_position * TFT_HEIGHT / (state.num_positions - 1);
+          spr_.fillRect(0, TFT_HEIGHT - height, TFT_WIDTH, height, spr_.color565(109, 20, 176));
+        }
 
         spr_.drawString(String() + state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2, 1);
-        // spr_.setCursor(60, 40);
-        // spr_.printf("%.1f", degrees);
 
-        // float pointer_angle = - angle;
-        // spr_.fillTriangle(
-        //     pointer_center_x + pointer_length_short * cos(pointer_angle - PI * 3 /4),
-        //     pointer_center_y + pointer_length_short * sin(pointer_angle - PI * 3 /4),
-        //     pointer_center_x + pointer_length_short * cos(pointer_angle + PI * 3 /4),
-        //     pointer_center_y + pointer_length_short * sin(pointer_angle + PI * 3 /4),
-        //     pointer_center_x + pointer_length_long * cos(pointer_angle),
-        //     pointer_center_y + pointer_length_long * sin(pointer_angle),
-        //     TFT_WHITE
-        // );
-
-        // spr_.fillCircle(pointer_center_x, pointer_center_y, 3, TFT_RED);
         float left_bound = PI / 2;
 
         if (state.num_positions > 0) {
@@ -133,7 +118,16 @@ void DisplayTask::run() {
           spr_.drawLine(TFT_WIDTH/2 + RADIUS * cosf(right_bound), TFT_HEIGHT/2 - RADIUS * sinf(right_bound), TFT_WIDTH/2 + (RADIUS - 10) * cosf(right_bound), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(right_bound), TFT_WHITE);
         }
 
-        float angle = left_bound - (state.sub_position_unit + state.current_position) * state.position_width_radians;
+        float adjusted_sub_position = state.sub_position_unit;
+        if (state.num_positions > 0) {
+          if (state.current_position == 0 && state.sub_position_unit < 0) {
+            adjusted_sub_position = -logf(1 - state.sub_position_unit);
+          } else if (state.current_position == state.num_positions - 1 && state.sub_position_unit > 0) {
+            adjusted_sub_position = logf(1 + state.sub_position_unit);
+          }
+        }
+
+        float angle = left_bound - (state.current_position + adjusted_sub_position) * state.position_width_radians;
         spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(angle), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(angle), 5, TFT_BLUE);
 
 

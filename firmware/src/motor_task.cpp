@@ -120,11 +120,11 @@ void MotorTask::run() {
         }
 
         float angle_to_detent_center = motor.shaft_angle - current_detent_center;
-        if (angle_to_detent_center > config.position_width_radians * 1.05 && (config.num_positions <= 0 || config.position > 0)) {
+        if (angle_to_detent_center > config.position_width_radians * config.snap_point && (config.num_positions <= 0 || config.position > 0)) {
             current_detent_center += config.position_width_radians;
             angle_to_detent_center -= config.position_width_radians;
             config.position--;
-        } else if (angle_to_detent_center < -config.position_width_radians * 1.05 && (config.num_positions <= 0 || config.position < config.num_positions - 1)) {
+        } else if (angle_to_detent_center < -config.position_width_radians * config.snap_point && (config.num_positions <= 0 || config.position < config.num_positions - 1)) {
             current_detent_center -= config.position_width_radians;
             angle_to_detent_center += config.position_width_radians;
             config.position++;

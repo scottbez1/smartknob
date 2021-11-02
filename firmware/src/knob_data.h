@@ -7,6 +7,7 @@ struct KnobConfig {
     int32_t position;
     float position_width_radians;
     float detent_strength_unit;
+    float snap_point;
 };
 
 struct KnobState {
