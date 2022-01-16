@@ -40,9 +40,9 @@ static KnobConfig configs[] = {
     {
         2,
         0,
-        45 * PI / 180,
+        60 * PI / 180,
         1,
-        0.6, // Note the snap point is slightly past the midpoint (0.5); compare to normal detents which use a snap point *past* the next value (i.e. > 1)
+        0.55, // Note the snap point is slightly past the midpoint (0.5); compare to normal detents which use a snap point *past* the next value (i.e. > 1)
         "On/off\nStrong detent",
     },
     {
@@ -81,7 +81,7 @@ static KnobConfig configs[] = {
         32,
         0,
         8.225806452 * PI / 180,
-        0.1,
+        0.2,
         1.1,
         "Coarse values\nWeak detents",
     },

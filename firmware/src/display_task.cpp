@@ -73,13 +73,16 @@ static void HSV_to_RGB(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_
 }
 
 void DisplayTask::run() {
+    delay(100);
     tft_.begin();
     tft_.invertDisplay(1);
     tft_.setRotation(0);
+    tft_.fillScreen(TFT_PURPLE);
 
     spr_.setColorDepth(16);
     if (spr_.createSprite(TFT_WIDTH, TFT_HEIGHT) == nullptr) {
       Serial.println("ERROR: sprite allocation failed!");
+      tft_.fillScreen(TFT_RED);
     }
     spr_.setTextColor(0xFFFF, TFT_BLACK);
     

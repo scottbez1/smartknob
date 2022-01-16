@@ -104,6 +104,25 @@ void MotorTask::run() {
         if (xQueueReceive(queue_, &config, 0) == pdTRUE) {
             Serial.println("Got new config");
             current_detent_center = motor.shaft_angle;
+
+            // Update derivative factor of torque controller based on detent width.
+            // If the D factor is large on coarse detents, the motor ends up making noise because the P&D factors amplify the noise from the sensor.
+            // This is a piecewise linear function so that fine detents (small width) get a higher D factor and coarse detents get a small D factor.
+            // Fine detents need a nonzero D factor to artificially create "clicks" each time a new value is reached (the P factor is small
+            // for fine detents due to the smaller angular errors, and the existing P factor doesn't work well for very small angle changes (easy to
+            // get runaway due to sensor noise & lag)).
+            // TODO: consider eliminating this D factor entirely and just "play" a hardcoded haptic "click" (e.g. a quick burst of torque in each
+            // direction) whenever the position changes when the detent width is too small for the P factor to work well.
+            const float derivative_lower_strength = config.detent_strength_unit * 0.06;
+            const float derivative_upper_strength = config.detent_strength_unit * 0;
+            const float derivative_position_width_lower = 5 * PI / 180;
+            const float derivative_position_width_upper = 10 * PI / 180;
+            const float raw = derivative_lower_strength + (derivative_upper_strength - derivative_lower_strength)/(derivative_position_width_upper - derivative_position_width_lower)*(config.position_width_radians - derivative_position_width_lower);
+            motor.PID_velocity.D = CLAMP(
+                raw,
+                min(derivative_lower_strength, derivative_upper_strength),
+                max(derivative_lower_strength, derivative_upper_strength)
+            );
         }
 
         idle_check_velocity_ewma = motor.shaft_velocity * IDLE_VELOCITY_EWMA_ALPHA + idle_check_velocity_ewma * (1 - IDLE_VELOCITY_EWMA_ALPHA);
@@ -144,9 +163,10 @@ void MotorTask::run() {
             fminf(config.position_width_radians*DEAD_ZONE_DETENT_PERCENT, DEAD_ZONE_RAD));
 
         bool out_of_bounds = config.num_positions > 0 && ((angle_to_detent_center > 0 && config.position == 0) || (angle_to_detent_center < 0 && config.position == config.num_positions - 1));
-        motor.PID_velocity.limit = out_of_bounds ? 10 : 3;
+        motor.PID_velocity.limit = 10; //out_of_bounds ? 10 : 3;
         motor.PID_velocity.P = out_of_bounds ? 4 : config.detent_strength_unit * 4;
-        motor.PID_velocity.D = config.detent_strength_unit * 0.02;
+
+
 
         if (fabsf(motor.shaft_velocity) > 20) {
             // Don't apply torque if velocity is too high (helps avoid positive feedback loop/runaway)
