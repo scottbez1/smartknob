@@ -6,6 +6,13 @@ using namespace ace_button;
 #define COUNT_OF(A) (sizeof(A) / sizeof(A[0]))
 
 static KnobConfig configs[] = {
+    // int32_t num_positions;
+    // int32_t position;
+    // float position_width_radians;
+    // float detent_strength_unit;
+    // float snap_point;
+    // char descriptor[50];
+
     {
         0,
         0,
@@ -99,13 +106,11 @@ void InterfaceTask::run() {
                 nextConfig();
             }
         }
-        // Serial.println(digitalRead(36));
         delay(10);
     }
 }
 
 void InterfaceTask::handleEvent(AceButton* button, uint8_t event_type, uint8_t button_state) {
-    Serial.println("EVENT!");
     switch (event_type) {
         case AceButton::kEventPressed:
             nextConfig();

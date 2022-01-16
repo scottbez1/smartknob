@@ -69,7 +69,13 @@ void MotorTask::run() {
     tlv.update();
     delay(10);
 
-    motor.initFOC(-0.6, Direction::CCW);
+    // Tune zero offset to the specific hardware (motor + mounted magnetic sensor).
+    // SimpleFOC is supposed to be able to determine this automatically (if you omit params to initFOC), but
+    // it seems to have a bug (or I've misconfigured it) that gets both the offset and direction very wrong!
+    // So this value is based on experimentation.
+    // TODO: dig into SimpleFOC calibration and find/fix the issue
+    float zero_electric_offset = -0.6;
+    motor.initFOC(zero_electric_offset, Direction::CCW);
     Serial.println(motor.zero_electric_angle);
 
     command.add('M', &doMotor, "foo");
