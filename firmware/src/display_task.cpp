@@ -3,7 +3,7 @@
 
 #include "font/roboto_light_60.h"
 
-DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 8192, 1, task_core} {
+DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 2048, 1, task_core} {
     semaphore_ = xSemaphoreCreateMutex();
     assert(semaphore_ != NULL);
     xSemaphoreGive(semaphore_);
@@ -78,13 +78,16 @@ void DisplayTask::run() {
     tft_.setRotation(0);
 
     spr_.setColorDepth(16);
-    spr_.createSprite(TFT_WIDTH, TFT_HEIGHT);
-    spr_.setFreeFont(&Roboto_Light_60);
+    if (spr_.createSprite(TFT_WIDTH, TFT_HEIGHT) == nullptr) {
+      Serial.println("ERROR: sprite allocation failed!");
+    }
     spr_.setTextColor(0xFFFF, TFT_BLACK);
     
     KnobState state;
 
     const int RADIUS = TFT_WIDTH / 2;
+    const uint16_t FILL_COLOR = spr_.color565(90, 18, 151);
+    const uint16_t DOT_COLOR = spr_.color565(80, 100, 200);
 
     int32_t pointer_center_x = TFT_WIDTH / 2;
     int32_t pointer_center_y = TFT_HEIGHT / 2;
@@ -94,42 +97,75 @@ void DisplayTask::run() {
     spr_.setTextDatum(CC_DATUM);
     spr_.setTextColor(TFT_WHITE);
     while(1) {
-
         {
             SemaphoreGuard lock(semaphore_);
             state = state_;
         }
 
         spr_.fillSprite(TFT_BLACK);
-        if (state.num_positions > 1) {
-          int32_t height = state.current_position * TFT_HEIGHT / (state.num_positions - 1);
-          spr_.fillRect(0, TFT_HEIGHT - height, TFT_WIDTH, height, spr_.color565(109, 20, 176));
+        if (state.config.num_positions > 1) {
+          int32_t height = state.current_position * TFT_HEIGHT / (state.config.num_positions - 1);
+          spr_.fillRect(0, TFT_HEIGHT - height, TFT_WIDTH, height, FILL_COLOR);
         }
 
-        spr_.drawString(String() + state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2, 1);
+        spr_.setFreeFont(&Roboto_Light_60);
+        spr_.drawString(String() + state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2 - 30, 1);
+        spr_.setFreeFont(&Roboto_Thin_24);
+        int32_t line_y = TFT_HEIGHT / 2 + 20;
+        char* start = state.config.descriptor;
+        char* end = start + strlen(state.config.descriptor);
+        while (start < end) {
+          char* newline = strchr(start, '\n');
+          if (newline == nullptr) {
+            newline = end;
+          }
+          
+          char buf[sizeof(state.config.descriptor)] = {};
+          strncat(buf, start, min(sizeof(buf) - 1, (size_t)(newline - start)));
+          spr_.drawString(String(buf), TFT_WIDTH / 2, line_y, 1);
+          start = newline + 1;
+          line_y += spr_.fontHeight(1);
+        }
 
         float left_bound = PI / 2;
 
-        if (state.num_positions > 0) {
-          float range_radians = (state.num_positions - 1) * state.position_width_radians;
+        if (state.config.num_positions > 0) {
+          float range_radians = (state.config.num_positions - 1) * state.config.position_width_radians;
           left_bound = PI / 2 + range_radians / 2;
           float right_bound = PI / 2 - range_radians / 2;
           spr_.drawLine(TFT_WIDTH/2 + RADIUS * cosf(left_bound), TFT_HEIGHT/2 - RADIUS * sinf(left_bound), TFT_WIDTH/2 + (RADIUS - 10) * cosf(left_bound), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(left_bound), TFT_WHITE);
           spr_.drawLine(TFT_WIDTH/2 + RADIUS * cosf(right_bound), TFT_HEIGHT/2 - RADIUS * sinf(right_bound), TFT_WIDTH/2 + (RADIUS - 10) * cosf(right_bound), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(right_bound), TFT_WHITE);
         }
 
-        float adjusted_sub_position = state.sub_position_unit;
-        if (state.num_positions > 0) {
+        float adjusted_sub_position = state.sub_position_unit * state.config.position_width_radians;
+        if (state.config.num_positions > 0) {
           if (state.current_position == 0 && state.sub_position_unit < 0) {
-            adjusted_sub_position = -logf(1 - state.sub_position_unit);
-          } else if (state.current_position == state.num_positions - 1 && state.sub_position_unit > 0) {
-            adjusted_sub_position = logf(1 + state.sub_position_unit);
+            adjusted_sub_position = -logf(1 - state.sub_position_unit  * state.config.position_width_radians / 5 / PI * 180) * 5 * PI / 180;
+          } else if (state.current_position == state.config.num_positions - 1 && state.sub_position_unit > 0) {
+            adjusted_sub_position = logf(1 + state.sub_position_unit  * state.config.position_width_radians / 5 / PI * 180)  * 5 * PI / 180;
           }
         }
 
-        float angle = left_bound - (state.current_position + adjusted_sub_position) * state.position_width_radians;
-        spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(angle), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(angle), 5, TFT_BLUE);
+        float raw_angle = left_bound - state.current_position * state.config.position_width_radians;
+        float adjusted_angle = raw_angle - adjusted_sub_position;
 
+        if (state.config.num_positions > 0 && ((state.current_position == 0 && state.sub_position_unit < 0) || (state.current_position == state.config.num_positions - 1 && state.sub_position_unit > 0))) {
+
+          spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(raw_angle), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(raw_angle), 5, DOT_COLOR);
+          if (raw_angle < adjusted_angle) {
+            for (float r = raw_angle; r <= adjusted_angle; r += 2 * PI / 180) {
+              spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(r), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(r), 2, DOT_COLOR);
+            }
+            spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(adjusted_angle), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(adjusted_angle), 2, DOT_COLOR);
+          } else {
+            for (float r = raw_angle; r >= adjusted_angle; r -= 2 * PI / 180) {
+              spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(r), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(r), 2, DOT_COLOR);
+            }
+            spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(adjusted_angle), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(adjusted_angle), 2, DOT_COLOR);
+          }
+        } else {
+          spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(adjusted_angle), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(adjusted_angle), 5, DOT_COLOR);
+        }
 
         spr_.pushSprite(0, 0);
         delay(2);

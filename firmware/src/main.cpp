@@ -18,9 +18,9 @@ CRGB leds[1];
 void setup() {
   Serial.begin(115200);
 
-  display_task.begin();
   motor_task.begin();
   interface_task.begin();
+  display_task.begin();
 
   vTaskDelete(nullptr);
 }

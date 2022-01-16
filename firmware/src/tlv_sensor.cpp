@@ -1,6 +1,6 @@
 #include "tlv_sensor.h"
 
-static const float ALPHA = 0.05;
+static const float ALPHA = 0.04;
 
 TlvSensor::TlvSensor() {}
 

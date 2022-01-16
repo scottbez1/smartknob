@@ -7,71 +7,80 @@ using namespace ace_button;
 
 static KnobConfig configs[] = {
     {
-        .num_positions = 0,
-        .position = 0,
-        .position_width_radians = 10 * PI / 180,
-        .detent_strength_unit = 0,
-        .snap_point = 1.1,
+        0,
+        0,
+        10 * PI / 180,
+        0,
+        1.1,
+        "Unbounded\nNo detents",
     },
     {
-        .num_positions = 11,
-        .position = 0,
-        .position_width_radians = 10 * PI / 180,
-        .detent_strength_unit = 0,
-        .snap_point = 1.1,
+        11,
+        0,
+        10 * PI / 180,
+        0,
+        1.1,
+        "Bounded 0-10\nNo detents",
     },
     {
-        .num_positions = 73,
-        .position = 0,
-        .position_width_radians = 10 * PI / 180,
-        .detent_strength_unit = 0,
-        .snap_point = 1.1,
+        73,
+        0,
+        10 * PI / 180,
+        0,
+        1.1,
+        "Multi-rev\nNo detents",
     },
     {
-        .num_positions = 2,
-        .position = 0,
-        .position_width_radians = 60 * PI / 180,
-        .detent_strength_unit = 1,
-        .snap_point = 1.1,
+        2,
+        0,
+        45 * PI / 180,
+        1,
+        0.6, // Note the snap point is slightly past the midpoint (0.5); compare to normal detents which use a snap point *past* the next value (i.e. > 1)
+        "On/off\nStrong detent",
     },
     {
-        .num_positions = 2,
-        .position = 0,
-        .position_width_radians = 60 * PI / 180,
-        .detent_strength_unit = 1,
-        .snap_point = 0.6,
+        1,
+        0,
+        60 * PI / 180,
+        0.01,
+        1.1,
+        "Return-to-center",
     },
     {
-        .num_positions = 256,
-        .position = 127,
-        .position_width_radians = 1 * PI / 180,
-        .detent_strength_unit = 0,
-        .snap_point = 1.1,
+        256,
+        127,
+        1 * PI / 180,
+        0,
+        1.1,
+        "Fine values\nNo detents",
     },
     {
-        .num_positions = 256,
-        .position = 127,
-        .position_width_radians = 1 * PI / 180,
-        .detent_strength_unit = 1,
-        .snap_point = 1.1,
+        256,
+        127,
+        1 * PI / 180,
+        1,
+        1.1,
+        "Fine values\nWith detents",
     },
     {
-        .num_positions = 32,
-        .position = 0,
-        .position_width_radians = 8.225806452 * PI / 180,
-        .detent_strength_unit = 1,
-        .snap_point = 1.1,
+        32,
+        0,
+        8.225806452 * PI / 180,
+        1,
+        1.1,
+        "Coarse values\nStrong detents",
     },
     {
-        .num_positions = 32,
-        .position = 0,
-        .position_width_radians = 8.225806452 * PI / 180,
-        .detent_strength_unit = 0.1,
-        .snap_point = 1.1,
+        32,
+        0,
+        8.225806452 * PI / 180,
+        0.1,
+        1.1,
+        "Coarse values\nWeak detents",
     },
 };
 
-InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task) : Task{"Interface", 8192, 1, task_core}, motor_task_(motor_task) {
+InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task) : Task{"Interface", 2048, 1, task_core}, motor_task_(motor_task) {
 }
 
 InterfaceTask::~InterfaceTask() {}
@@ -108,6 +117,6 @@ void InterfaceTask::handleEvent(AceButton* button, uint8_t event_type, uint8_t b
 
 void InterfaceTask::nextConfig() {
     current_config_ = (current_config_ + 1) % COUNT_OF(configs);
-    Serial.printf("Changing config to %d\n", current_config_);
+    Serial.printf("Changing config to %d:\n%s\n", current_config_, configs[current_config_].descriptor);
     motor_task_.setConfig(configs[current_config_]);
 }

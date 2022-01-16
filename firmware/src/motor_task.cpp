@@ -69,7 +69,7 @@ void MotorTask::run() {
     tlv.update();
     delay(10);
 
-    motor.initFOC(6, Direction::CW);
+    motor.initFOC(-0.6, Direction::CCW);
     Serial.println(motor.zero_electric_angle);
 
     command.add('M', &doMotor, "foo");
@@ -89,6 +89,8 @@ void MotorTask::run() {
     float idle_check_velocity_ewma = 0;
     uint32_t last_idle_start = 0;
     uint32_t last_debug = 0;
+
+    uint32_t last_display_update = 0;
 
     while (1) {
         motor.loopFOC();
@@ -138,21 +140,23 @@ void MotorTask::run() {
         bool out_of_bounds = config.num_positions > 0 && ((angle_to_detent_center > 0 && config.position == 0) || (angle_to_detent_center < 0 && config.position == config.num_positions - 1));
         motor.PID_velocity.limit = out_of_bounds ? 10 : 3;
         motor.PID_velocity.P = out_of_bounds ? 4 : config.detent_strength_unit * 4;
-        motor.PID_velocity.D = config.detent_strength_unit * 0.04;
+        motor.PID_velocity.D = config.detent_strength_unit * 0.02;
 
         if (fabsf(motor.shaft_velocity) > 20) {
-            // Don't apply torque if velocity is too high (helps avoid feedback loop)
+            // Don't apply torque if velocity is too high (helps avoid positive feedback loop/runaway)
             motor.move(0);
         } else {
             motor.move(motor.PID_velocity(-angle_to_detent_center + dead_zone_adjustment));
         }
 
-        display_task_.setData({
-            .num_positions = config.num_positions,
-            .current_position = config.position,
-            .sub_position_unit = -angle_to_detent_center / config.position_width_radians,
-            .position_width_radians = config.position_width_radians,
-        });
+        if (millis() - last_display_update > 10) {
+            display_task_.setData({
+                .current_position = config.position,
+                .sub_position_unit = -angle_to_detent_center / config.position_width_radians,
+                .config = config,
+            });
+            last_display_update = millis();
+        }
 
         motor.monitor();
         // command.run();
