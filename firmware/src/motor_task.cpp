@@ -113,7 +113,7 @@ void MotorTask::run() {
             // get runaway due to sensor noise & lag)).
             // TODO: consider eliminating this D factor entirely and just "play" a hardcoded haptic "click" (e.g. a quick burst of torque in each
             // direction) whenever the position changes when the detent width is too small for the P factor to work well.
-            const float derivative_lower_strength = config.detent_strength_unit * 0.06;
+            const float derivative_lower_strength = config.detent_strength_unit * 0.04;
             const float derivative_upper_strength = config.detent_strength_unit * 0;
             const float derivative_position_width_lower = 5 * PI / 180;
             const float derivative_position_width_upper = 10 * PI / 180;
@@ -164,7 +164,7 @@ void MotorTask::run() {
 
         bool out_of_bounds = config.num_positions > 0 && ((angle_to_detent_center > 0 && config.position == 0) || (angle_to_detent_center < 0 && config.position == config.num_positions - 1));
         motor.PID_velocity.limit = 10; //out_of_bounds ? 10 : 3;
-        motor.PID_velocity.P = out_of_bounds ? 4 : config.detent_strength_unit * 4;
+        motor.PID_velocity.P = out_of_bounds ? config.endstop_strength_unit * 4 : config.detent_strength_unit * 4;
 
 
 

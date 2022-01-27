@@ -10,6 +10,7 @@ static KnobConfig configs[] = {
     // int32_t position;
     // float position_width_radians;
     // float detent_strength_unit;
+    // float endstop_strength_unit;
     // float snap_point;
     // char descriptor[50];
 
@@ -18,6 +19,7 @@ static KnobConfig configs[] = {
         0,
         10 * PI / 180,
         0,
+        1,
         1.1,
         "Unbounded\nNo detents",
     },
@@ -26,6 +28,7 @@ static KnobConfig configs[] = {
         0,
         10 * PI / 180,
         0,
+        1,
         1.1,
         "Bounded 0-10\nNo detents",
     },
@@ -34,6 +37,7 @@ static KnobConfig configs[] = {
         0,
         10 * PI / 180,
         0,
+        1,
         1.1,
         "Multi-rev\nNo detents",
     },
@@ -41,6 +45,7 @@ static KnobConfig configs[] = {
         2,
         0,
         60 * PI / 180,
+        1,
         1,
         0.55, // Note the snap point is slightly past the midpoint (0.5); compare to normal detents which use a snap point *past* the next value (i.e. > 1)
         "On/off\nStrong detent",
@@ -50,6 +55,7 @@ static KnobConfig configs[] = {
         0,
         60 * PI / 180,
         0.01,
+        0.6,
         1.1,
         "Return-to-center",
     },
@@ -58,6 +64,7 @@ static KnobConfig configs[] = {
         127,
         1 * PI / 180,
         0,
+        1,
         1.1,
         "Fine values\nNo detents",
     },
@@ -65,6 +72,7 @@ static KnobConfig configs[] = {
         256,
         127,
         1 * PI / 180,
+        1,
         1,
         1.1,
         "Fine values\nWith detents",
@@ -74,6 +82,7 @@ static KnobConfig configs[] = {
         0,
         8.225806452 * PI / 180,
         1,
+        1,
         1.1,
         "Coarse values\nStrong detents",
     },
@@ -82,6 +91,7 @@ static KnobConfig configs[] = {
         0,
         8.225806452 * PI / 180,
         0.2,
+        1,
         1.1,
         "Coarse values\nWeak detents",
     },
