@@ -1,0 +1,16 @@
+EESchema-LIBRARY Version 2.3
+#encoding utf-8
+#
+# no_pin
+#
+DEF no_pin Z 0 40 Y Y 1 F N
+F0 "Z" -350 150 60 H V C CNN
+F1 "no_pin" 0 0 60 H V C CNN
+F2 "" 0 0 60 H I C CNN
+F3 "" 0 0 60 H I C CNN
+DRAW
+S -400 100 400 -100 0 1 0 N
+ENDDRAW
+ENDDEF
+#
+#End Library

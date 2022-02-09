@@ -8,3 +8,21 @@
 *.dsn
 fp-info-cache
 
+# Proprietary 3d model (for KiCAD)
+**/proprietary/*.stp
+**/proprietary/*.step
+
+# PlatformIO
+.pio/
+
+# General build outputs
+build/
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+#!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
