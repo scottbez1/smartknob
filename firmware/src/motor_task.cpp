@@ -19,7 +19,7 @@ static const float IDLE_CORRECTION_MAX_ANGLE_RAD = 5 * PI / 180;
 static const float IDLE_CORRECTION_RATE_ALPHA = 0.0005;
 
 
-MotorTask::MotorTask(const uint8_t task_core, DisplayTask& display_task) : Task{"Motor", 8192, 1, task_core}, display_task_(display_task) {
+MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 8192, 1, task_core) {
     queue_ = xQueueCreate(1, sizeof(KnobConfig));
     assert(queue_ != NULL);
 }
@@ -28,8 +28,8 @@ MotorTask::~MotorTask() {}
 
 
 // BLDC motor & driver instance
-BLDCMotor motor = BLDCMotor(7);
-BLDCDriver6PWM driver = BLDCDriver6PWM(27, 26, 25, 33, 32, 13);
+BLDCMotor motor = BLDCMotor(POLE_PAIRS);
+BLDCDriver6PWM driver = BLDCDriver6PWM(PIN_UH, PIN_UL, PIN_VH, PIN_VL, PIN_WH, PIN_WL);
 
 TlvSensor tlv = TlvSensor();
 
@@ -40,12 +40,25 @@ Commander command = Commander(Serial);
 void doMotor(char* cmd) { command.motor(&motor, cmd); }
 
 void MotorTask::run() {
+    // Hardware-specific configuration:
+    // TODO: make this easier to configure
+    // Tune zero offset to the specific hardware (motor + mounted magnetic sensor).
+    // SimpleFOC is supposed to be able to determine this automatically (if you omit params to initFOC), but
+    // it seems to have a bug (or I've misconfigured it) that gets both the offset and direction very wrong!
+    // So this value is based on experimentation.
+    // TODO: dig into SimpleFOC calibration and find/fix the issue
+    // float zero_electric_offset = -0.6;
+    float zero_electric_offset = 0.4;
+    bool tlv_invert = true;
+    Direction foc_direction = Direction::CCW;
+
+
     driver.voltage_power_supply = 5;
     driver.init();
 
-    Wire.begin();
+    Wire.begin(PIN_SDA, PIN_SCL);
     Wire.setClock(400000);
-    tlv.init();
+    tlv.init(Wire, tlv_invert);
 
     motor.linkDriver(&driver);
 
@@ -69,13 +82,8 @@ void MotorTask::run() {
     tlv.update();
     delay(10);
 
-    // Tune zero offset to the specific hardware (motor + mounted magnetic sensor).
-    // SimpleFOC is supposed to be able to determine this automatically (if you omit params to initFOC), but
-    // it seems to have a bug (or I've misconfigured it) that gets both the offset and direction very wrong!
-    // So this value is based on experimentation.
-    // TODO: dig into SimpleFOC calibration and find/fix the issue
-    float zero_electric_offset = -0.6;
-    motor.initFOC(zero_electric_offset, Direction::CCW);
+
+    motor.initFOC(zero_electric_offset, foc_direction);
     Serial.println(motor.zero_electric_angle);
 
     command.add('M', &doMotor, "foo");
@@ -96,7 +104,7 @@ void MotorTask::run() {
     uint32_t last_idle_start = 0;
     uint32_t last_debug = 0;
 
-    uint32_t last_display_update = 0;
+    uint32_t last_publish = 0;
 
     while (1) {
         motor.loopFOC();
@@ -175,13 +183,13 @@ void MotorTask::run() {
             motor.move(motor.PID_velocity(-angle_to_detent_center + dead_zone_adjustment));
         }
 
-        if (millis() - last_display_update > 10) {
-            display_task_.setData({
+        if (millis() - last_publish > 10) {
+            publish({
                 .current_position = config.position,
                 .sub_position_unit = -angle_to_detent_center / config.position_width_radians,
                 .config = config,
             });
-            last_display_update = millis();
+            last_publish = millis();
         }
 
         motor.monitor();
@@ -191,4 +199,14 @@ void MotorTask::run() {
 
 void MotorTask::setConfig(const KnobConfig& config) {
     xQueueOverwrite(queue_, &config);
+}
+
+void MotorTask::addListener(QueueHandle_t queue) {
+    listeners_.push_back(queue);
+}
+
+void MotorTask::publish(const KnobState& state) {
+    for (auto listener : listeners_) {
+        xQueueOverwrite(listener, &state);
+    }
 }
