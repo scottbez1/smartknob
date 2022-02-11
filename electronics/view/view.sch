@@ -1674,28 +1674,24 @@ Wire Wire Line
 Wire Wire Line
 	6700 6500 7050 6500
 Wire Wire Line
-	13050 2950 12450 2950
-Text Label 12450 2950 0    50   ~ 0
-TMC_UH
-Wire Wire Line
-	13050 3050 12450 3050
-Text Label 12450 3050 0    50   ~ 0
-TMC_UL
-Wire Wire Line
 	13050 3150 12450 3150
 Text Label 12450 3150 0    50   ~ 0
-TMC_VH
-Wire Wire Line
-	13050 3250 12450 3250
-Text Label 12450 3250 0    50   ~ 0
-TMC_VL
+TMC_UL
 Wire Wire Line
 	13050 3350 12450 3350
 Text Label 12450 3350 0    50   ~ 0
-TMC_WH
+TMC_VH
+Wire Wire Line
+	13050 2950 12450 2950
+Text Label 12450 2950 0    50   ~ 0
+TMC_VL
 Wire Wire Line
 	13050 3550 12450 3550
 Text Label 12450 3550 0    50   ~ 0
+TMC_WH
+Wire Wire Line
+	13050 3050 12450 3050
+Text Label 12450 3050 0    50   ~ 0
 TMC_WL
 Wire Wire Line
 	14550 3450 15200 3450
@@ -1913,24 +1909,24 @@ Wire Wire Line
 Text Label 9200 4700 0    50   ~ 0
 TMC_UH
 Wire Wire Line
-	9800 4800 9200 4800
-Text Label 9200 4800 0    50   ~ 0
-TMC_UL
-Wire Wire Line
-	9800 4900 9200 4900
-Text Label 9200 4900 0    50   ~ 0
-TMC_VH
-Wire Wire Line
 	9800 5000 9200 5000
 Text Label 9200 5000 0    50   ~ 0
-TMC_VL
+TMC_UL
 Wire Wire Line
-	9800 5100 9200 5100
-Text Label 9200 5100 0    50   ~ 0
-TMC_WH
+	9800 4800 9200 4800
+Text Label 9200 4800 0    50   ~ 0
+TMC_VH
 Wire Wire Line
 	9800 5200 9200 5200
 Text Label 9200 5200 0    50   ~ 0
+TMC_VL
+Wire Wire Line
+	9800 4900 9200 4900
+Text Label 9200 4900 0    50   ~ 0
+TMC_WH
+Wire Wire Line
+	9800 5100 9200 5100
+Text Label 9200 5100 0    50   ~ 0
 TMC_WL
 $Comp
 L Device:R_Small R7
@@ -2470,4 +2466,8 @@ GPIO12=MTDI. Should be 0 on boot\nfor 3.3v built-in flash/psram on\nESP32-PICO-v
 Text Notes 15100 3800 0    39   ~ 0
 IO2 must be 0 to enter UART\ndownload mode
 NoConn ~ 13050 2650
+Text Label 12450 3250 0    50   ~ 0
+TMC_UH
+Wire Wire Line
+	13050 3250 12450 3250
 $EndSCHEMATC
