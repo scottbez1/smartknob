@@ -1722,16 +1722,16 @@ LCD_CS
 Text Label 15200 2450 2    50   ~ 0
 LCD_CMD
 Wire Wire Line
-	13450 3850 13450 4500
-Wire Wire Line
 	13050 3450 12400 3450
 Wire Wire Line
-	13050 2650 12400 2650
-Text Label 13450 4500 1    50   ~ 0
-MAG_CSN
+	13450 3850 13450 4500
+Wire Wire Line
+	13550 3850 13550 4500
 Text Label 12400 3450 0    50   ~ 0
+MAG_CSN
+Text Label 13450 4500 1    50   ~ 0
 MAG_CLK
-Text Label 12400 2650 0    50   ~ 0
+Text Label 13550 4500 1    50   ~ 0
 MAG_DO
 Text Label 13650 4750 1    50   ~ 0
 STRAIN_DO
@@ -2043,17 +2043,16 @@ Wire Wire Line
 Wire Wire Line
 	14050 4050 14050 3850
 Wire Wire Line
-	14050 4050 14500 4050
+	14150 3850 14600 3850
 Wire Wire Line
-	14150 3850 15000 3850
-Text Label 14500 4050 2    50   ~ 0
+	14050 4050 14900 4050
+Text Label 14600 3850 2    50   ~ 0
 SDA
-Text Label 15000 3850 2    50   ~ 0
+Text Label 14900 4050 2    50   ~ 0
 SCL
 NoConn ~ 14550 2850
 NoConn ~ 13050 2750
 NoConn ~ 13050 2850
-NoConn ~ 13550 3850
 $Comp
 L power:PWR_FLAG #FLG0101
 U 1 1 625E1008
@@ -2470,4 +2469,5 @@ Text Notes 11650 3800 0    39   ~ 0
 GPIO12=MTDI. Should be 0 on boot\nfor 3.3v built-in flash/psram on\nESP32-PICO-v3-02
 Text Notes 15100 3800 0    39   ~ 0
 IO2 must be 0 to enter UART\ndownload mode
+NoConn ~ 13050 2650
 $EndSCHEMATC
