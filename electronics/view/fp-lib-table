@@ -8,4 +8,5 @@
   (lib (name Modified)(type KiCad)(uri ${KIPRJMOD}/../lib/Modified.pretty)(options "")(descr ""))
   (lib (name view_custom)(type KiCad)(uri ${KIPRJMOD}/lib/view_custom.pretty)(options "")(descr ""))
   (lib (name VEML7700)(type KiCad)(uri ${KIPRJMOD}/../lib/VEML7700.pretty)(options "")(descr ""))
+  (lib (name SolderPads)(type KiCad)(uri ${KIPRJMOD}/../lib/SolderPads.pretty)(options "")(descr ""))
 )

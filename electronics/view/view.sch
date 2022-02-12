@@ -1412,7 +1412,7 @@ U 1 1 622DFEF9
 P 9900 3200
 F 0 "J3" H 9980 3192 50  0000 L CNN
 F 1 "LCD" H 9980 3101 50  0000 L CNN
-F 2 "view_custom:SolderPads_2mm_8" H 9900 3200 50  0001 C CNN
+F 2 "SolderPads:SolderPads_2mm_8" H 9900 3200 50  0001 C CNN
 F 3 "~" H 9900 3200 50  0001 C CNN
 	1    9900 3200
 	1    0    0    -1  
@@ -1747,7 +1747,7 @@ U 1 1 62748B8A
 P 5450 7450
 F 0 "J4" H 5530 7492 50  0000 L CNN
 F 1 "Strain" H 5530 7401 50  0000 L CNN
-F 2 "view_custom:SolderPads_2mm_3" H 5450 7450 50  0001 C CNN
+F 2 "SolderPads:SolderPads_2mm_3" H 5450 7450 50  0001 C CNN
 F 3 "~" H 5450 7450 50  0001 C CNN
 	1    5450 7450
 	1    0    0    -1  
@@ -1758,7 +1758,7 @@ U 1 1 6274A9BB
 P 5450 7900
 F 0 "J5" H 5530 7942 50  0000 L CNN
 F 1 "Strain" H 5530 7851 50  0000 L CNN
-F 2 "view_custom:SolderPads_2mm_3" H 5450 7900 50  0001 C CNN
+F 2 "SolderPads:SolderPads_2mm_3" H 5450 7900 50  0001 C CNN
 F 3 "~" H 5450 7900 50  0001 C CNN
 	1    5450 7900
 	1    0    0    -1  
