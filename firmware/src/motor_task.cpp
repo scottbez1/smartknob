@@ -47,8 +47,9 @@ void MotorTask::run() {
     // it seems to have a bug (or I've misconfigured it) that gets both the offset and direction very wrong!
     // So this value is based on experimentation.
     // TODO: dig into SimpleFOC calibration and find/fix the issue
-    // float zero_electric_offset = -0.6;
-    float zero_electric_offset = 0.4;
+    // float zero_electric_offset = -0.6; // original proto
+    //float zero_electric_offset = 0.4; // handheld 1
+    float zero_electric_offset = -0.8; // handheld 2
     bool tlv_invert = true;
     Direction foc_direction = Direction::CCW;
 
