@@ -9,6 +9,8 @@ Coming soon...
 ### SmartKnob View
 Premium SmartKnob experience. Under active development.
 
+![Exploded view](doc/img/explodedv145.gif)
+
 ### SmartKnob Handheld
 An exploration of a small handheld form-factor. Under active development.
 
@@ -23,6 +25,8 @@ A decent choice, and easy to prototype with using [Adafruit's QWIIC breakout boa
 
 In my testing, it is a little noisy, requiring filtering/smoothing that can slow responsiveness, hurting control loop stability. Or, with less filtering, the noise
 can easily be "amplified" by the derivative component in the PID motor torque controller, causing audible (and tactile) humming/buzzing.
+
+There is also apparently a somewhat common issue with the internal ADC locking up, requiring a device reset (see datasheet section 5.6). From a random sample of 4 Adafruit breakout boards, 2 of them (50%) appear to be extremely prone to this - locking up within a minute or so of use! Further testing is planned, but this may be a deal-breaker.
 
 As of 2022-02-08, there is limited availability of this IC.
 
