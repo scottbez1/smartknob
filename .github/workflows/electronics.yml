@@ -18,7 +18,7 @@ jobs:
 
       # Note: These kibot scripts are run last because they mess with file permissions which breaks other scripts, not sure why
       - name: Export BOM
-        uses: INTI-CMNB/KiBot@e391f513ecac09a446f2982c2d731143ba749576
+        uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
           config: electronics/view_base/view_base.kibot.yml
           dir: electronics/build
