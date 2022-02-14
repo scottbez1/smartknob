@@ -1,0 +1,37 @@
+name: Export Electronics
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  export-electronics-chainlink:
+    name: Export Electronics (View Base)
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up outputs directory
+        run: mkdir -p electronics/build/outputs
+
+      # Note: These kibot scripts are run last because they mess with file permissions which breaks other scripts, not sure why
+      - name: Export BOM
+        uses: INTI-CMNB/KiBot@e391f513ecac09a446f2982c2d731143ba749576
+        with:
+          config: electronics/view_base/view_base.kibot.yml
+          dir: electronics/build
+          schema: 'electronics/view_base/view_base.sch'
+          board: 'electronics/view_base/view_base.kicad_pcb'
+
+      - name: Copy BOM outputs
+        run: cp -r electronics/build/bom electronics/build/outputs
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: electronics-view_base
+          path: |
+            electronics/build

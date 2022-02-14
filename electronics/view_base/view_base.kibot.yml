@@ -1,0 +1,19 @@
+kibot:
+  version: 1
+
+preflight:
+  check_zone_fills: true
+  run_drc: true
+  run_erc: true
+  update_xml: true
+
+outputs:
+  - name: ibom
+    comment: 'Interactive BOM'
+    type: ibom
+    dir: bom
+    options:
+      # layer_view: F
+      dark_mode: true
+      netlist_file: '%F.xml'
+      # extra_fields: 'LCSC'
