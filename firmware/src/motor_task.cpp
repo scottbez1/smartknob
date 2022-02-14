@@ -2,6 +2,7 @@
 
 #include "motor_task.h"
 #include "tlv_sensor.h"
+#include "mt6701_sensor.h"
 
 
 template <typename T> T CLAMP(const T& value, const T& low, const T& high) 
@@ -31,8 +32,8 @@ MotorTask::~MotorTask() {}
 BLDCMotor motor = BLDCMotor(7);
 BLDCDriver6PWM driver = BLDCDriver6PWM(27, 26, 25, 33, 32, 13);
 
-TlvSensor tlv = TlvSensor();
-
+// TlvSensor tlv = TlvSensor();
+MT6701Sensor encoder = MT6701Sensor();
 
 Commander command = Commander(Serial);
 
@@ -43,15 +44,15 @@ void MotorTask::run() {
     driver.voltage_power_supply = 5;
     driver.init();
 
-    Wire.begin();
-    Wire.setClock(400000);
-    tlv.init();
+    // Wire.begin();
+    // Wire.setClock(400000);
+    encoder.init();
 
     motor.linkDriver(&driver);
 
     motor.controller = MotionControlType::torque;
     motor.voltage_limit = 5;
-    motor.linkSensor(&tlv);
+    motor.linkSensor(&encoder);
 
     // Not actually using the velocity loop; but I'm using those PID variables
     // because SimpleFOC studio supports updating them easily over serial for tuning.
@@ -66,7 +67,7 @@ void MotorTask::run() {
 
     motor.init();
 
-    tlv.update();
+    encoder.update();
     delay(10);
 
     // Tune zero offset to the specific hardware (motor + mounted magnetic sensor).
@@ -74,7 +75,7 @@ void MotorTask::run() {
     // it seems to have a bug (or I've misconfigured it) that gets both the offset and direction very wrong!
     // So this value is based on experimentation.
     // TODO: dig into SimpleFOC calibration and find/fix the issue
-    float zero_electric_offset = -0.6;
+    float zero_electric_offset = -0.2;
     motor.initFOC(zero_electric_offset, Direction::CCW);
     Serial.println(motor.zero_electric_angle);
 
@@ -168,7 +169,7 @@ void MotorTask::run() {
 
 
 
-        if (fabsf(motor.shaft_velocity) > 20) {
+        if (fabsf(motor.shaft_velocity) > 60) {
             // Don't apply torque if velocity is too high (helps avoid positive feedback loop/runaway)
             motor.move(0);
         } else {
@@ -186,6 +187,8 @@ void MotorTask::run() {
 
         motor.monitor();
         // command.run();
+
+        delay(1);
     }
 }
 
