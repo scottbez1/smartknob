@@ -27,9 +27,11 @@ outputs:
     dir: renders
     options:
       # no_virtual: true
-      ray_tracing: true
+      view: 'top'
       silk: '#111111'
       solder_mask: '#ffffff'
       zoom: 2
-      view: 'zzXXXX'
+      orthographic: true
+      height: 1280
+      width: 1280
 
