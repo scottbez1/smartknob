@@ -19,6 +19,8 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
+import time
 
 from contextlib import contextmanager
 
@@ -26,7 +28,8 @@ electronics_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 repo_root = os.path.dirname(electronics_root)
 sys.path.append(repo_root)
 
-from util import rev_info
+from xvfbwrapper import Xvfb
+from util import file_util, rev_info
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -46,15 +49,50 @@ class PopenContext(subprocess.Popen):
         # Wait for the process to terminate, to avoid zombies.
         self.wait()
 
+def xdotool(command):
+    return subprocess.check_output(['xdotool'] + command)
+
+def wait_for_window(name, window_regex, additional_commands=None, timeout=10):
+    if additional_commands is not None:
+        commands = additional_commands
+    else:
+        commands = []
+
+    DELAY = 0.5
+    logger.info('Waiting for %s window...', name)
+    for i in range(int(timeout/DELAY)):
+        try:
+            xdotool(['search', '--name', window_regex] + commands)
+            logger.info('Found %s window', name)
+            return
+        except subprocess.CalledProcessError:
+            pass
+        time.sleep(DELAY)
+    raise RuntimeError('Timed out waiting for %s window' % name)
+
+@contextmanager
+def recorded_xvfb(video_filename, **xvfb_args):
+    with Xvfb(**xvfb_args):
+        with PopenContext([
+                'recordmydesktop',
+                '--no-sound',
+                '--no-frame',
+                '--on-the-fly-encoding',
+                '-o', video_filename], close_fds=True) as screencast_proc: 
+            yield
+            screencast_proc.terminate()
+
 
 def get_versioned_contents(filename):
     with open(filename, 'r') as f:
         original_contents = f.read()
         date = rev_info.git_date()
+        date_long = rev_info.git_date(short=False)
         rev = rev_info.git_short_rev()
         logger.info('Replacing placeholders with %s and %s' % (date, rev))
         return original_contents, original_contents \
-            .replace('Date ""', 'Date "%s"' % date) \
+            .replace('Date ""', 'Date "%s"' % date_long) \
+            .replace('DATE: YYYY-MM-DD TIME TZ', 'DATE: %s' % date_long) \
             .replace('DATE: YYYY-MM-DD', 'DATE: %s' % date) \
             .replace('Rev ""', 'Rev "%s"' % rev) \
             .replace('COMMIT: deadbeef', 'COMMIT: %s' % rev)

@@ -15,7 +15,7 @@ sudo apt-get update -qq
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y kicad inkscape poppler-utils xdotool recordmydesktop python3-dev python3-pip
 
 # KiKit is installed via pinned git revision to get "new" CLI with support for V-Cuts layer specification. TODO: switch to release version once landed.
-sudo python3 -m pip install psutil kikit==1.0.2
+sudo python3 -m pip install psutil kikit==1.0.2 xvfbwrapper
 
 mkdir -p ~/.config/kicad
 cp /usr/share/kicad/template/fp-lib-table ~/.config/kicad/

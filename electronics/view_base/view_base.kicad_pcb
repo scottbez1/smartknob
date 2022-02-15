@@ -2,7 +2,7 @@
 
   (general
     (thickness 1.2)
-    (drawings 119)
+    (drawings 120)
     (tracks 913)
     (zones 0)
     (modules 96)
@@ -3893,6 +3893,9 @@
     (pad 1 thru_hole circle (at 0 0) (size 3.5 3.5) (drill 2.2) (layers *.Cu *.Mask))
   )
 
+  (gr_text "DATE: YYYY-MM-DD TIME TZ\nCOMMIT: deadbeef\n" (at 135 67.5) (layer B.SilkS)
+    (effects (font (size 1 1) (thickness 0.15)) (justify left mirror))
+  )
   (gr_text Display (at 75 132.5) (layer B.SilkS) (tstamp 620A4712)
     (effects (font (size 2 2) (thickness 0.3)) (justify mirror))
   )

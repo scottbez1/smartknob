@@ -24,10 +24,24 @@ jobs:
           ./electronics/scripts/export_jlcpcb.py electronics/view_base/view_base.kicad_pcb
           cp -r electronics/build/view_base-jlc electronics/build/outputs
 
+      - name: Export PCB overview PDF [view_base]
+        run: |
+          ./electronics/scripts/generate_pdf.py electronics/view_base/view_base.kicad_pcb
+          cp electronics/build/view_base-pcb-packet.pdf electronics/build/outputs
+        env:
+          PYTHONUNBUFFERED: 1
+
       - name: Export JLCPCB fabrication files [view_screen]
         run: |
           ./electronics/scripts/export_jlcpcb.py electronics/view_screen/view_screen.kicad_pcb
           cp -r electronics/build/view_screen-jlc electronics/build/outputs
+
+      - name: Export PCB overview PDF [view_screen]
+        run: |
+          ./electronics/scripts/generate_pdf.py electronics/view_screen/view_screen.kicad_pcb
+          cp electronics/build/view_screen-pcb-packet.pdf electronics/build/outputs
+        env:
+          PYTHONUNBUFFERED: 1
 
       - name: Export artifacts (KiBot) [view_base]
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
