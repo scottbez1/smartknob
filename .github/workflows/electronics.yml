@@ -6,7 +6,7 @@ on:
 
 jobs:
   export-electronics:
-    name: Export Electronics (View Base)
+    name: Export Electronics
     runs-on: ubuntu-20.04
 
     steps:
@@ -16,7 +16,7 @@ jobs:
       - name: Set up outputs directory
         run: mkdir -p electronics/build
 
-      - name: Export artifacts (KiBot)
+      - name: Export artifacts (KiBot) [view_base]
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
           config: electronics/view_base/view_base.kibot.yml
@@ -24,11 +24,19 @@ jobs:
           schema: 'electronics/view_base/view_base.sch'
           board: 'electronics/view_base/view_base.kicad_pcb'
 
+      - name: Export artifacts (KiBot) [view_screen]
+        uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
+        with:
+          config: electronics/view_screen/view_screen.kibot.yml
+          dir: electronics/build
+          schema: 'electronics/view_screen/view_screen.sch'
+          board: 'electronics/view_screen/view_screen.kicad_pcb'
+
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: electronics-view_base
+          name: electronics
           path: |
             electronics/build
 
