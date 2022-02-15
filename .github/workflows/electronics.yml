@@ -14,13 +14,62 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up outputs directory
-        run: mkdir -p electronics/build
+        run: mkdir -p electronics/build/outputs
+
+      - name: Install dependencies
+        run: ./electronics/scripts/dependencies.sh
+
+      - name: Export JLCPCB fabrication files [view_base]
+        run: |
+          ./electronics/scripts/export_jlcpcb.py electronics/view_base/view_base.kicad_pcb
+          cp -r electronics/build/view_base-jlc electronics/build/outputs
+
+      - name: Export PCB overview PDF [view_base]
+        run: |
+          ./electronics/scripts/generate_pdf.py electronics/view_base/view_base.kicad_pcb
+          cp electronics/build/view_base-pcb-packet.pdf electronics/build/outputs
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Render PCB 3D [view_base]
+        run: |
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix front --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+
+          cp electronics/build/view_base-front-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_base-front-3d.png
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix back --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+
+          cp electronics/build/view_base-back-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_base-back-3d.png
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Export JLCPCB fabrication files [view_screen]
+        run: |
+          ./electronics/scripts/export_jlcpcb.py electronics/view_screen/view_screen.kicad_pcb
+          cp -r electronics/build/view_screen-jlc electronics/build/outputs
+
+      - name: Export PCB overview PDF [view_screen]
+        run: |
+          ./electronics/scripts/generate_pdf.py electronics/view_screen/view_screen.kicad_pcb
+          cp electronics/build/view_screen-pcb-packet.pdf electronics/build/outputs
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Render PCB 3D [view_screen]
+        run: |
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix front --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+
+          cp electronics/build/view_screen-front-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_screen-front-3d.png
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix back --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+
+          cp electronics/build/view_screen-back-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_screen-back-3d.png
+        env:
+          PYTHONUNBUFFERED: 1
 
       - name: Export artifacts (KiBot) [view_base]
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
           config: electronics/view_base/view_base.kibot.yml
-          dir: electronics/build
+          dir: electronics/build/outputs
           schema: 'electronics/view_base/view_base.sch'
           board: 'electronics/view_base/view_base.kicad_pcb'
 
@@ -28,7 +77,7 @@ jobs:
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
           config: electronics/view_screen/view_screen.kibot.yml
-          dir: electronics/build
+          dir: electronics/build/outputs
           schema: 'electronics/view_screen/view_screen.sch'
           board: 'electronics/view_screen/view_screen.kicad_pcb'
 
@@ -51,5 +100,5 @@ jobs:
       - name: Sync artifacts to S3
         if: github.event_name == 'push' && github.repository_owner == 'scottbez1'
         run: |
-          aws s3 sync electronics/build s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics --delete --cache-control max-age=0,no-cache
+          aws s3 sync electronics/build/outputs s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics --delete --cache-control max-age=0,no-cache
 

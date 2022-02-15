@@ -13,11 +13,11 @@ Premium SmartKnob experience. Under active development. Untested & unproven.
 
 #### Base PCB
 
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_top.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_top.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-front-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-front-3d.png" width="300" />
 </a>
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_bottom.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_bottom.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-back-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-back-3d.png" width="300" />
 </a>
 
 
@@ -25,13 +25,17 @@ Premium SmartKnob experience. Under active development. Untested & unproven.
 
 [Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-ibom.html)
 
+[PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-pcb-packet.pdf)
+
+[Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-jlc/gerbers.zip)
+
 #### Screen PCB
 
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-3D_top.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-3D_top.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-front-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-front-3d.png" width="300" />
 </a>
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-3D_bottom.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-3D_bottom.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-back-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-back-3d.png" width="300" />
 </a>
 
 
@@ -39,6 +43,9 @@ Premium SmartKnob experience. Under active development. Untested & unproven.
 
 [Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-ibom.html)
 
+[PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-pcb-packet.pdf)
+
+[Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-jlc/gerbers.zip)
 
 ### SmartKnob Handheld
 An exploration of a small handheld form-factor. Under active development.
