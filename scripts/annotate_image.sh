@@ -2,7 +2,9 @@
 
 set -e
 
-FONT="3d/roboto/RobotoMono-Bold.ttf"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+FONT="$DIR/RobotoMono-Bold.ttf"
 
 # Make sure font exists
 ls "$FONT"

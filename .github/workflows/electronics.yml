@@ -54,6 +54,17 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
 
+      - name: Render PCB 3D [view_screen]
+        run: |
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix front --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+
+          cp electronics/build/view_screen-front-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_screen-front-3d.png
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix back --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+
+          cp electronics/build/view_screen-back-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_screen-back-3d.png
+        env:
+          PYTHONUNBUFFERED: 1
+
       - name: Export artifacts (KiBot) [view_base]
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
