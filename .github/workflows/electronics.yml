@@ -33,10 +33,10 @@ jobs:
 
       - name: Render PCB 3D [view_base]
         run: |
-          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix front --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 --skip-raytrace transform z+ z+
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix front --width 1024 --height 1024 --skip-virtual --color-soldermask 1 1 1 --color-silk 0.1 0.1 0.1 transform z+ z+ rx+ rx+ rz- ry- ry- mu
           cp electronics/build/view_base-front-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_base-front-3d.png
-          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix back --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 --skip-raytrace transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix back --width 1024 --height 1024 --skip-virtual --color-soldermask 1 1 1 --color-silk 0.1 0.1 0.1 transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ rx+ rx+ rz- ry+ ry+ mu
           cp electronics/build/view_base-back-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_base-back-3d.png
         env:
@@ -56,10 +56,10 @@ jobs:
 
       - name: Render PCB 3D [view_screen]
         run: |
-          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix front --width 1280 --height 1280 --skip-virtual --color-soldermask 0.1 0.1 0.1 --color-silk 0.95 0.95 0.95 --skip-raytrace transform z+ z+
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix front --width 1024 --height 1024 --skip-virtual transform z+ z+ rx+ rx+ rz- ry- ry- mu
           cp electronics/build/view_screen-front-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_screen-front-3d.png
-          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix back --width 1280 --height 1280 --skip-virtual --color-soldermask 0.1 0.1 0.1 --color-silk 0.95 0.95 0.95 --skip-raytrace transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix back --width 1024 --height 1024 --skip-virtual transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ rx+ rx+ rz- ry+ ry+ mu
           cp electronics/build/view_screen-back-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_screen-back-3d.png
         env:

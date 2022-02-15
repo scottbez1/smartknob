@@ -137,7 +137,7 @@ def _pcbnew_export_3d(output_file, width, height, transforms):
     time.sleep(2)
 
 
-def export_3d(filename, suffix, width, height, transforms, raytrace, virtual, color_soldermask, color_silk):
+def export_3d(filename, suffix, width, height, transforms, raytrace, virtual, color_soldermask, color_silk, color_board):
     pcb_file = os.path.abspath(filename)
     output_dir = os.path.join(electronics_root, 'build')
     file_util.mkdir_p(output_dir)
@@ -157,6 +157,9 @@ def export_3d(filename, suffix, width, height, transforms, raytrace, virtual, co
         'SilkColor_Red': str(color_silk[0]),
         'SilkColor_Green': str(color_silk[1]),
         'SilkColor_Blue': str(color_silk[2]),
+        'BoardBodyColor_Red': str(color_board[0]),
+        'BoardBodyColor_Green': str(color_board[1]),
+        'BoardBodyColor_Blue': str(color_board[2]),
         'RenderEngine': '1' if raytrace else '0',
         'ShowFootprints_Virtual': '1' if virtual else '0',
         'Render_RAY_ProceduralTextures': '0',
@@ -177,8 +180,9 @@ if __name__ == '__main__':
     parser.add_argument('--height', type=int, default=1440)
     parser.add_argument('--skip-raytrace', action='store_true')
     parser.add_argument('--skip-virtual', action='store_true', help='Don\'t render virtual footprints')
-    parser.add_argument('--color-soldermask', type=float, nargs=3, help='Soldermask color as 3 floats from 0-1', default=[0.1, 0.1, 0.1])
-    parser.add_argument('--color-silk', type=float, nargs=3, help='Silkscreen color as 3 floats from 0-1', default=[0.9, 0.9, 0.9])
+    parser.add_argument('--color-soldermask', type=float, nargs=3, help='Soldermask color as 3 floats from 0-1', default=[0, 0, 0])
+    parser.add_argument('--color-silk', type=float, nargs=3, help='Silkscreen color as 3 floats from 0-1', default=[1, 1, 1])
+    parser.add_argument('--color-board', type=float, nargs=3, help='PCB substrate color as 3 floats from 0-1', default=[0.764705882, 0.729411765, 0.607843137])
 
     # Use subparsers to for an optional nargs="*" choices argument (workaround for https://bugs.python.org/issue9625)
     subparsers = parser.add_subparsers(dest='which')
@@ -189,4 +193,4 @@ if __name__ == '__main__':
 
     transforms = args.transform if args.which == 'transform' else []
 
-    export_3d(args.pcb, args.suffix, args.width, args.height, transforms, not args.skip_raytrace, not args.skip_virtual, args.color_soldermask, args.color_silk)
+    export_3d(args.pcb, args.suffix, args.width, args.height, transforms, not args.skip_raytrace, not args.skip_virtual, args.color_soldermask, args.color_silk, args.color_board)
