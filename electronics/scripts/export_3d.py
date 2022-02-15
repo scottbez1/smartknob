@@ -137,7 +137,7 @@ def _pcbnew_export_3d(output_file, width, height, transforms):
     time.sleep(2)
 
 
-def export_3d(filename, suffix, width, height, transforms, raytrace, virtual, color_soldermask, color_silk, color_board):
+def export_3d(filename, suffix, width, height, transforms, raytrace, virtual, color_soldermask, color_silk, color_board, color_copper):
     pcb_file = os.path.abspath(filename)
     output_dir = os.path.join(electronics_root, 'build')
     file_util.mkdir_p(output_dir)
@@ -151,19 +151,21 @@ def export_3d(filename, suffix, width, height, transforms, raytrace, virtual, co
 
     settings = {
         'canvas_type': '1',
-        'SMaskColor_Red': str(color_soldermask[0]),
-        'SMaskColor_Green': str(color_soldermask[1]),
-        'SMaskColor_Blue': str(color_soldermask[2]),
-        'SilkColor_Red': str(color_silk[0]),
-        'SilkColor_Green': str(color_silk[1]),
-        'SilkColor_Blue': str(color_silk[2]),
-        'BoardBodyColor_Red': str(color_board[0]),
-        'BoardBodyColor_Green': str(color_board[1]),
-        'BoardBodyColor_Blue': str(color_board[2]),
         'RenderEngine': '1' if raytrace else '0',
         'ShowFootprints_Virtual': '1' if virtual else '0',
+        'Render_RAY_Backfloor': '0',
         'Render_RAY_ProceduralTextures': '0',
     }
+    def apply_color(name, values):
+        components = ['Red', 'Green', 'Blue']
+        for component, value in zip(components, values):
+            settings[name + '_' + component] = str(value)
+
+    apply_color('SMaskColor', color_soldermask)
+    apply_color('SilkColor', color_silk)
+    apply_color('BoardBodyColor', color_board)
+    apply_color('CopperColor', color_copper)
+
     with patch_config(os.path.expanduser('~/.config/kicad/pcbnew'), settings):
         with versioned_file(pcb_file):
             with recorded_xvfb(screencast_output_file, width=width, height=height, colordepth=24):
@@ -183,6 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--color-soldermask', type=float, nargs=3, help='Soldermask color as 3 floats from 0-1', default=[0, 0, 0])
     parser.add_argument('--color-silk', type=float, nargs=3, help='Silkscreen color as 3 floats from 0-1', default=[1, 1, 1])
     parser.add_argument('--color-board', type=float, nargs=3, help='PCB substrate color as 3 floats from 0-1', default=[0.764705882, 0.729411765, 0.607843137])
+    parser.add_argument('--color-copper', type=float, nargs=3, help='Copper color as 3 floats from 0-1', default=[0.7, 0.7, 0.7])
 
     # Use subparsers to for an optional nargs="*" choices argument (workaround for https://bugs.python.org/issue9625)
     subparsers = parser.add_subparsers(dest='which')
@@ -193,4 +196,4 @@ if __name__ == '__main__':
 
     transforms = args.transform if args.which == 'transform' else []
 
-    export_3d(args.pcb, args.suffix, args.width, args.height, transforms, not args.skip_raytrace, not args.skip_virtual, args.color_soldermask, args.color_silk, args.color_board)
+    export_3d(args.pcb, args.suffix, args.width, args.height, transforms, not args.skip_raytrace, not args.skip_virtual, args.color_soldermask, args.color_silk, args.color_board, args.color_copper)
