@@ -49,5 +49,5 @@ jobs:
       - name: Sync artifacts to S3
         if: github.event_name == 'push' && github.repository_owner == 'scottbez1'
         run: |
-          aws s3 sync electronics/build/outputs s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics-chainlink --delete --acl public-read --cache-control max-age=0,no-cache
+          aws s3 sync electronics/build/outputs s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics-chainlink --delete --cache-control max-age=0,no-cache
 
