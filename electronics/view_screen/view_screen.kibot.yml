@@ -29,10 +29,10 @@ outputs:
       board: '#C3BA9B'
       copper: '#99967F'
       orthographic: true
-      ray_tracing: true
+      #ray_tracing: true
       height: 1920
       width: 1920
-      zoom: 3
+      zoom: 4
 
   - name: 3d_back
     type: render_3d

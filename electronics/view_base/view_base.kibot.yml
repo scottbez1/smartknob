@@ -30,7 +30,7 @@ outputs:
       copper: '#99967F'
       zoom: 4
       orthographic: true
-      ray_tracing: true
+      #ray_tracing: true
       height: 1920
       width: 1920
 
@@ -40,3 +40,11 @@ outputs:
     options:
       view: 'bottom'
       zoom: 3
+
+  - name: pdf
+    type: pdf_pcb_print
+    dir: pdf
+
+  - name: gerber
+    type: gerber
+    dir: gerber
