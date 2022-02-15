@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  export-electronics-chainlink:
+  export-electronics:
     name: Export Electronics (View Base)
     runs-on: ubuntu-20.04
 
@@ -25,10 +25,7 @@ jobs:
           board: 'electronics/view_base/view_base.kicad_pcb'
 
       - name: Copy BOM outputs
-        run: |
-          cp -r electronics/build/bom electronics/build/outputs &&
-          cp -r electronics/build/schematic electronics/build/outputs &&
-          cp -r electronics/build/renders electronics/build/outputs
+        run: cp -r electronics/build electronics/build/outputs
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
@@ -49,5 +46,5 @@ jobs:
       - name: Sync artifacts to S3
         if: github.event_name == 'push' && github.repository_owner == 'scottbez1'
         run: |
-          aws s3 sync electronics/build/outputs s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics-chainlink --delete --cache-control max-age=0,no-cache
+          aws s3 sync electronics/build/outputs s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics --delete --cache-control max-age=0,no-cache
 

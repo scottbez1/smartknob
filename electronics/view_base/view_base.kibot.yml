@@ -11,7 +11,6 @@ outputs:
   - name: ibom
     comment: 'Interactive BOM'
     type: ibom
-    dir: bom
     options:
       # layer_view: F
       dark_mode: true
@@ -20,30 +19,24 @@ outputs:
 
   - name: schematic
     type: pdf_sch_print
-    dir: schematic
 
   - name: 3d
     type: render_3d
-    dir: renders
     options:
-      # no_virtual: true
+      no_virtual: true
       view: 'top'
       silk: '#111111'
       solder_mask: '#ffffff'
+      board: '#C3BA9B'
+      copper: '#99967F'
       zoom: 3
       orthographic: true
-      height: 2048
-      width: 2048
+      ray_tracing: true
+      height: 1920
+      width: 1920
 
   - name: 3d_back
     type: render_3d
-    dir: renders
+    extends: 3d
     options:
-      # no_virtual: true
       view: 'bottom'
-      silk: '#111111'
-      solder_mask: '#ffffff'
-      zoom: 3
-      orthographic: true
-      height: 2048
-      width: 2048
