@@ -20,7 +20,7 @@ outputs:
 
   - name: schematic
     type: pdf_sch_print
-    dir: sch
+    dir: schematic
 
   - name: 3d
     type: render_3d
@@ -30,8 +30,20 @@ outputs:
       view: 'top'
       silk: '#111111'
       solder_mask: '#ffffff'
-      zoom: 2
+      zoom: 3
       orthographic: true
-      height: 1280
-      width: 1280
+      height: 2048
+      width: 2048
 
+  - name: 3d_back
+    type: render_3d
+    dir: renders
+    options:
+      # no_virtual: true
+      view: 'bottom'
+      silk: '#111111'
+      solder_mask: '#ffffff'
+      zoom: 3
+      orthographic: true
+      height: 2048
+      width: 2048

@@ -16,7 +16,6 @@ jobs:
       - name: Set up outputs directory
         run: mkdir -p electronics/build/outputs
 
-      # Note: These kibot scripts are run last because they mess with file permissions which breaks other scripts, not sure why
       - name: Export BOM
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
@@ -26,7 +25,10 @@ jobs:
           board: 'electronics/view_base/view_base.kicad_pcb'
 
       - name: Copy BOM outputs
-        run: cp -r electronics/build/bom electronics/build/outputs
+        run: |
+          cp -r electronics/build/bom electronics/build/outputs &&
+          cp -r electronics/build/schematic electronics/build/outputs &&
+          cp -r electronics/build/renders electronics/build/outputs
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
@@ -35,3 +37,17 @@ jobs:
           name: electronics-view_base
           path: |
             electronics/build
+
+      - name: Configure AWS Credentials
+        if: github.event_name == 'push' && github.repository_owner == 'scottbez1'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Sync artifacts to S3
+        if: github.event_name == 'push' && github.repository_owner == 'scottbez1'
+        run: |
+          aws s3 sync electronics/build/outputs s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics-chainlink --delete --acl public-read --cache-control max-age=0,no-cache
+
