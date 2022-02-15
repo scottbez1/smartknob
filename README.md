@@ -11,17 +11,17 @@ Premium SmartKnob experience. Under active development. Untested & unproven.
 
 ![Exploded view](doc/img/explodedv145.gif)
 
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_top.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_top.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_top.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_top.png" width="300" />
 </a>
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_bottom.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_bottom.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_bottom.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-3D_bottom.png" width="300" />
 </a>
 
 
-[Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-schematic.pdf)
+[Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-schematic.pdf)
 
-[Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-ibom.html)
+[Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-ibom.html)
 
 
 ### SmartKnob Handheld
