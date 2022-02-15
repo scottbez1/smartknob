@@ -1652,8 +1652,6 @@ Text Label 9050 3500 0    50   ~ 0
 LCD_CS
 Text Label 9050 3600 0    50   ~ 0
 LCD_CMD
-Text Notes 8750 3750 0    50   ~ 0
-TODO: figure these out
 Wire Wire Line
 	7750 6800 7950 6800
 Wire Wire Line
@@ -2578,8 +2576,6 @@ Text Notes 11200 1900 0    79   Italic 16
 MCU - ESP32 (T-MICRO32 PLUS)
 Wire Notes Line
 	7700 1950 7700 500 
-Wire Wire Line
-	11550 2600 11550 3000
 $Comp
 L Device:C_Small C28
 U 1 1 6211BEF1
@@ -2591,11 +2587,6 @@ F 3 "~" H 9500 5400 50  0001 C CNN
 	1    9500 5400
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	11700 3000 11550 3000
-Connection ~ 11550 3000
-Wire Wire Line
-	11550 3000 11550 3100
 Text Notes 8500 5950 0    50   ~ 0
 Recommended 1uF-10uF on EN for auto-reset\ncircuitry, per Espressif design notes.
 Wire Notes Line
@@ -2680,4 +2671,6 @@ Wire Wire Line
 	6800 3650 6300 3650
 Wire Wire Line
 	8650 5250 9500 5250
+Wire Wire Line
+	11550 2600 11550 3100
 $EndSCHEMATC
