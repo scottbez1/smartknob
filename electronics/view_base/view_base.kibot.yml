@@ -12,7 +12,6 @@ outputs:
     comment: 'Interactive BOM'
     type: ibom
     options:
-      # layer_view: F
       dark_mode: true
       netlist_file: '%F.xml'
       # extra_fields: 'LCSC'
@@ -29,7 +28,7 @@ outputs:
       solder_mask: '#ffffff'
       board: '#C3BA9B'
       copper: '#99967F'
-      zoom: 3
+      zoom: 4
       orthographic: true
       ray_tracing: true
       height: 1920
@@ -40,3 +39,4 @@ outputs:
     extends: 3d
     options:
       view: 'bottom'
+      zoom: 3

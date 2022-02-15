@@ -16,7 +16,7 @@ jobs:
       - name: Set up outputs directory
         run: mkdir -p electronics/build
 
-      - name: Export BOM
+      - name: Export artifacts (KiBot)
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
           config: electronics/view_base/view_base.kibot.yml

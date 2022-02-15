@@ -12,10 +12,10 @@ Premium SmartKnob experience. Under active development. Untested & unproven.
 ![Exploded view](doc/img/explodedv145.gif)
 
 <a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_top.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_top.png" width="200" />
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_top.png" width="300" />
 </a>
 <a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_bottom.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_bottom.png" width="200" />
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/automation/electronics/view_base-3D_bottom.png" width="300" />
 </a>
 
 
