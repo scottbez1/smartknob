@@ -484,7 +484,7 @@ U 1 1 61FCAA5B
 P 1500 3000
 F 0 "J2" H 1607 3867 50  0000 C CNN
 F 1 "USB_C_Receptacle_USB2.0" H 1607 3776 50  0000 C CNN
-F 2 "GCT_USB:USB4510" H 1650 3000 50  0001 C CNN
+F 2 "GCT_USB:USB4510_NoPaste" H 1650 3000 50  0001 C CNN
 F 3 "https://www.usb.org/sites/default/files/documents/usb_type-c.zip" H 1650 3000 50  0001 C CNN
 	1    1500 3000
 	1    0    0    -1  
