@@ -31,6 +31,17 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
 
+      - name: Render PCB 3D [view_base]
+        run: |
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix front --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+
+          cp electronics/build/view_base-front-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_base-front-3d.png
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix back --width 1280 --height 1280 --skip-virtual --color-soldermask 0.95 0.95 0.95 --color-silk 0.1 0.1 0.1 transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+
+          cp electronics/build/view_base-back-3d.png electronics/build/outputs
+          ./scripts/annotate_image.sh electronics/build/outputs/view_base-back-3d.png
+        env:
+          PYTHONUNBUFFERED: 1
+
       - name: Export JLCPCB fabrication files [view_screen]
         run: |
           ./electronics/scripts/export_jlcpcb.py electronics/view_screen/view_screen.kicad_pcb
