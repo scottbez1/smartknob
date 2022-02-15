@@ -14,13 +14,26 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up outputs directory
-        run: mkdir -p electronics/build
+        run: mkdir -p electronics/build/outputs
+
+      - name: Install dependencies
+        run: ./electronics/scripts/dependencies.sh
+
+      - name: Export JLCPCB fabrication files [view_base]
+        run: |
+          ./electronics/scripts/export_jlcpcb.py electronics/view_base/view_base.kicad_pcb
+          cp -r electronics/build/view_base-jlc electronics/build/outputs
+
+      - name: Export JLCPCB fabrication files [view_screen]
+        run: |
+          ./electronics/scripts/export_jlcpcb.py electronics/view_screen/view_screen.kicad_pcb
+          cp -r electronics/build/view_screen-jlc electronics/build/outputs
 
       - name: Export artifacts (KiBot) [view_base]
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
           config: electronics/view_base/view_base.kibot.yml
-          dir: electronics/build
+          dir: electronics/build/outputs
           schema: 'electronics/view_base/view_base.sch'
           board: 'electronics/view_base/view_base.kicad_pcb'
 
@@ -28,7 +41,7 @@ jobs:
         uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
         with:
           config: electronics/view_screen/view_screen.kibot.yml
-          dir: electronics/build
+          dir: electronics/build/outputs
           schema: 'electronics/view_screen/view_screen.sch'
           board: 'electronics/view_screen/view_screen.kicad_pcb'
 
@@ -51,5 +64,5 @@ jobs:
       - name: Sync artifacts to S3
         if: github.event_name == 'push' && github.repository_owner == 'scottbez1'
         run: |
-          aws s3 sync electronics/build s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics --delete --cache-control max-age=0,no-cache
+          aws s3 sync electronics/build/outputs s3://smartknob-artifacts/${GITHUB_REF#refs/heads/}/electronics --delete --cache-control max-age=0,no-cache
 

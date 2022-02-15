@@ -29,7 +29,7 @@ outputs:
       board: '#C3BA9B'
       copper: '#99967F'
       orthographic: true
-      #ray_tracing: true
+      ray_tracing: true
       height: 1920
       width: 1920
       zoom: 4
