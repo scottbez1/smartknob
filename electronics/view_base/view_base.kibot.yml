@@ -44,6 +44,9 @@ outputs:
   - name: pdf
     type: pdf_pcb_print
     dir: pdf
+    options:
+      separated: true
+      layers: all
 
   - name: gerber
     type: gerber
