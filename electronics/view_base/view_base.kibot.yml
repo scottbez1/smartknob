@@ -8,6 +8,32 @@ preflight:
   update_xml: true
 
 outputs:
+  - name: pdf
+    type: pdf_pcb_print
+    dir: pdf
+    options:
+      separated: true
+    layers:
+      - 'F.Cu'
+      - 'B.Cu'
+      - 'F.Paste'
+      - 'B.Paste'
+      - 'F.SilkS'
+      - 'B.SilkS'
+      - 'Edge.Cuts'
+
+  - name: gerber
+    type: gerber
+    dir: gerber
+    layers:
+      - 'F.Cu'
+      - 'B.Cu'
+      - 'F.Paste'
+      - 'B.Paste'
+      - 'F.SilkS'
+      - 'B.SilkS'
+      - 'Edge.Cuts'
+
   - name: ibom
     comment: 'Interactive BOM'
     type: ibom
@@ -40,14 +66,3 @@ outputs:
     options:
       view: 'bottom'
       zoom: 3
-
-  - name: pdf
-    type: pdf_pcb_print
-    dir: pdf
-    options:
-      separated: true
-      layers: all
-
-  - name: gerber
-    type: gerber
-    dir: gerber
