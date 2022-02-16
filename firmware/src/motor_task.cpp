@@ -49,7 +49,8 @@ void MotorTask::run() {
     // TODO: dig into SimpleFOC calibration and find/fix the issue
     // float zero_electric_offset = -0.6; // original proto
     //float zero_electric_offset = 0.4; // handheld 1
-    float zero_electric_offset = -0.8; // handheld 2
+    // float zero_electric_offset = -0.8; // handheld 2
+    float zero_electric_offset = 0; // 17mm test
     bool tlv_invert = true;
     Direction foc_direction = Direction::CCW;
 
@@ -58,8 +59,8 @@ void MotorTask::run() {
     driver.init();
 
     Wire.begin(PIN_SDA, PIN_SCL);
-    Wire.setClock(400000);
-    tlv.init(Wire, tlv_invert);
+    Wire.setClock(1000000);
+    tlv.init(&Wire, tlv_invert);
 
     motor.linkDriver(&driver);
 
@@ -83,7 +84,33 @@ void MotorTask::run() {
     tlv.update();
     delay(10);
 
+    //Open loop motor test code:
+    motor.controller = MotionControlType::angle_openloop;
+    while (1) {
+        motor.voltage_limit = 5;
+        for (float a = 0; a < _2PI; a += 0.001) {
+            motor.move(a);
+            delay(1);
+            // tlv.update();
+            Serial.printf("%d, %d\n", (int)(motor.electricalAngle() * 1000), (int)(tlv.getMechanicalAngle()*1000));
+        }
+        delay(1000);
+        for (float a = _2PI; a > 0; a -= 0.001) {
+            motor.move(a);
+            delay(1);
+            tlv.update();
+        }
+        motor.voltage_limit = 1;
+        motor.move(0);
+        delay(8000);
+    }
+/*
+1.7571
+4.4333
 
+5.5365
+3.3717
+*/
     motor.initFOC(zero_electric_offset, foc_direction);
     Serial.println(motor.zero_electric_angle);
 
