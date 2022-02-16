@@ -3981,7 +3981,7 @@
   (gr_text + (at 64.5 119) (layer B.SilkS)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
-  (gr_text "Base PCB v0.1" (at 136 66) (layer F.SilkS) (tstamp 62085A50)
+  (gr_text "Base PCB v0.2" (at 136 66) (layer F.SilkS) (tstamp 62085A50)
     (effects (font (size 1.5 1.5) (thickness 0.12)) (justify right))
   )
   (gr_text "SmartKnob View" (at 136 63.5) (layer F.SilkS)
