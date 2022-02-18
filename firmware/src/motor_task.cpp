@@ -50,9 +50,9 @@ void MotorTask::run() {
     // float zero_electric_offset = -0.6; // original proto
     //float zero_electric_offset = 0.4; // handheld 1
     // float zero_electric_offset = -0.8; // handheld 2
-    float zero_electric_offset = 0; // 17mm test
-    bool tlv_invert = true;
-    Direction foc_direction = Direction::CCW;
+    float zero_electric_offset = 2.93; //0.15; // 17mm test
+    bool tlv_invert = false;
+    Direction foc_direction = Direction::CW;
 
 
     driver.voltage_power_supply = 5;
@@ -84,34 +84,49 @@ void MotorTask::run() {
     tlv.update();
     delay(10);
 
-    //Open loop motor test code:
-    motor.controller = MotionControlType::angle_openloop;
-    while (1) {
-        motor.voltage_limit = 5;
-        for (float a = 0; a < _2PI; a += 0.001) {
-            motor.move(a);
-            delay(1);
-            // tlv.update();
-            Serial.printf("%d, %d\n", (int)(motor.electricalAngle() * 1000), (int)(tlv.getMechanicalAngle()*1000));
-        }
-        delay(1000);
-        for (float a = _2PI; a > 0; a -= 0.001) {
-            motor.move(a);
-            delay(1);
-            tlv.update();
-        }
-        motor.voltage_limit = 1;
-        motor.move(0);
-        delay(8000);
-    }
-/*
-1.7571
-4.4333
-
-5.5365
-3.3717
-*/
     motor.initFOC(zero_electric_offset, foc_direction);
+
+    // //Open loop motor test code:
+    // motor.controller = MotionControlType::angle_openloop;
+    // while (1) {
+    //     motor.voltage_limit = 5;
+    //     for (float a = -0.2; a < _2PI; a += 0.001) {
+    //         tlv.update();
+    //         motor.move(a);
+    //         delay(1);
+    //         float measured_electrical = _normalizeAngle( (float)(foc_direction * POLE_PAIRS) * tlv.getMechanicalAngle() - zero_electric_offset);
+    //         float target_electrical = _normalizeAngle(_electricalAngle(a, POLE_PAIRS));
+    //         Serial.printf("%d, %d, %d, %d\n", (int)(a*1000), (int)(target_electrical*1000), (int)(measured_electrical * 1000), (int)(tlv.getMechanicalAngle()*1000));
+    //     }
+    //     delay(1000);
+    //     for (float a = _2PI; a > -0.2; a -= 0.001) {
+    //         motor.move(a);
+    //         delay(1);
+    //         tlv.update();
+    //     }
+    //     motor.voltage_limit = 1;
+    //     motor.move(0);
+    //     delay(8000);
+    // }
+
+
+    // while (1) {
+    //     static bool last;
+    //     motor.loopFOC();
+    //     bool forward = (millis() / 2000) % 2;
+    //     motor.move(digitalRead(PIN_BUTTON_PREV) ? 0 : 1.5 * (forward ? 1 : -1));
+    //     if (forward != last) {
+    //         Serial.println(forward);
+    //         last = forward;
+    //     }
+    //     if (!digitalRead(PIN_BUTTON_NEXT)) {
+    //         motor.zero_electric_angle = _normalizeAngle(motor.zero_electric_angle + 0.001);
+    //         Serial.println(motor.zero_electric_angle);
+    //     }
+    //     delay(1);
+    // }
+
+
     Serial.println(motor.zero_electric_angle);
 
     command.add('M', &doMotor, "foo");
