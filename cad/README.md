@@ -24,3 +24,5 @@ Note that all measurements were done by hand and will be approximate. Chamfers &
 
  ## 15mm
  - [Motor model](https://a360.co/34N1nOa)
+ - [Magnet spacer](https://a360.co/3532Tvb)
+ - [Magnet gluing jig](https://a360.co/3I1xbx6)
