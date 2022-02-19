@@ -12,8 +12,15 @@ Most CAD work is done in Fusion 360 and versioned outside of this git repo.
  - [Thumbwheel](https://a360.co/3H3jSee) Test thumbwheel for motor rotor, for turning from the side
 
 # Motors
+Note that all measurements were done by hand and will be approximate. Chamfers & fillets are approximated.
+
+## 32mm
+ - [Motor model](https://a360.co/3H8LUFi)
+
 ## 17mm
  - [Motor model](https://a360.co/3sYa93Y)
  - [Spacer](https://a360.co/3H3xh5M) (screw at the bottom is replaced with a longer M1.4 screw with this spacer inserted; diametric magnet is glued to screw)
  - [Dummy test jig](https://a360.co/3sPQgvB)
- 
+
+ ## 15mm
+ - [Motor model](https://a360.co/34N1nOa)
