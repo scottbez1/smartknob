@@ -26,3 +26,4 @@ Note that all measurements were done by hand and will be approximate. Chamfers &
  - [Motor model](https://a360.co/34N1nOa)
  - [Magnet spacer](https://a360.co/3532Tvb)
  - [Magnet gluing jig](https://a360.co/3I1xbx6)
+ - [Adapter](https://a360.co/35gC86B) - mount motor to Adafruit TLV493d adapter board
