@@ -2,6 +2,7 @@
 
 #include "motor_task.h"
 #include "tlv_sensor.h"
+#include <sensors/MagneticSensorI2C.h>
 
 
 template <typename T> T CLAMP(const T& value, const T& low, const T& high) 
@@ -28,10 +29,11 @@ MotorTask::~MotorTask() {}
 
 
 // BLDC motor & driver instance
-BLDCMotor motor = BLDCMotor(POLE_PAIRS);
+BLDCMotor motor = BLDCMotor(1);
 BLDCDriver6PWM driver = BLDCDriver6PWM(PIN_UH, PIN_UL, PIN_VH, PIN_VL, PIN_WH, PIN_WL);
 
-TlvSensor tlv = TlvSensor();
+// TlvSensor tlv = TlvSensor();
+MagneticSensorI2C tlv = MagneticSensorI2C(AS5600_I2C);
 
 
 Commander command = Commander(Serial);
@@ -60,12 +62,14 @@ void MotorTask::run() {
 
     Wire.begin(PIN_SDA, PIN_SCL);
     Wire.setClock(1000000);
-    tlv.init(&Wire, tlv_invert);
+    // tlv.init(&Wire, tlv_invert);
+    tlv.init(&Wire);
 
     motor.linkDriver(&driver);
 
     motor.controller = MotionControlType::torque;
     motor.voltage_limit = 5;
+    motor.velocity_limit = 10000;
     motor.linkSensor(&tlv);
 
     // Not actually using the velocity loop; but I'm using those PID variables
@@ -86,45 +90,199 @@ void MotorTask::run() {
 
     motor.initFOC(zero_electric_offset, foc_direction);
 
-    // //Open loop motor test code:
-    // motor.controller = MotionControlType::angle_openloop;
-    // while (1) {
+    bool calibrate = true;
+    if (calibrate) {
+        motor.controller = MotionControlType::angle_openloop;
+        motor.pole_pairs = 1;
+        motor.initFOC(0, Direction::CW);
+
+
+        Serial.println("Calibration: press Y to start");
+        while (Serial.read() != 'Y') {
+            delay(10);
+        }
+
+        float a = 0;
+
+        for (uint8_t i = 0; i < 200; i++) {
+            tlv.update();
+            motor.move(a);
+            delay(1);
+        }
+        float start_sensor = tlv.getAngle();
+
+        for (; a < 3 * _2PI; a += 0.01) {
+            tlv.update();
+            motor.move(a);
+            delay(1);
+        }
+
+        for (uint8_t i = 0; i < 200; i++) {
+            tlv.update();
+            delay(1);
+        }
+        float end_sensor = tlv.getAngle();
+
+
+        motor.voltage_limit = 0;
+        motor.move(a);
+        // Serial.println("Did motor turn counterclockwise? Press Y to continue, otherwise change motor wiring and restart");
+        // while (Serial.read() != 'Y') {
+        //     delay(10);
+        // }
+
+        Serial.println();
+
+        // TODO: check for no motor movement!
+
+        Serial.print("Sensor measures positive for positive motor rotation: ");
+        if (end_sensor > start_sensor) {
+            Serial.println("YES, Direction=CW");
+            motor.initFOC(0, Direction::CW);
+        } else {
+            Serial.println("NO, Direction=CCW");
+            motor.initFOC(0, Direction::CCW);
+        }
+
+        // Rotate many electrical revolutions and measure mechanical angle traveled, to calculate pole-pairs
+        uint8_t electrical_revolutions = 20;
+        Serial.printf("Going to measure %d electrical revolutions...\n", electrical_revolutions);
+        motor.voltage_limit = 5;
+        motor.move(a);
+        Serial.println("Going to electrical zero...");
+        float destination = a + _2PI;
+        for (; a < destination; a += 0.03) {
+            tlv.update();
+            motor.move(a);
+            delay(1);
+        }
+        Serial.println("pause...");
+        for (uint16_t i = 0; i < 1000; i++) {
+            tlv.update();
+            delay(1);
+        }
+        Serial.println("Measuring...");
+
+        start_sensor = motor.sensor_direction * tlv.getAngle();
+        destination = a + electrical_revolutions * _2PI;
+        for (; a < destination; a += 0.03) {
+            tlv.update();
+            motor.move(a);
+            delay(1);
+        }
+        for (uint16_t i = 0; i < 1000; i++) {
+            tlv.update();
+            motor.move(a);
+            delay(1);
+        }
+        end_sensor = motor.sensor_direction * tlv.getAngle();
+        motor.voltage_limit = 0;
+        motor.move(a);
+
+        if (fabsf(motor.shaft_angle - motor.target) > 1 * PI / 180) {
+            Serial.println("ERROR: motor did not reach target!");
+            while(1) {}
+        }
+
+        float electrical_per_mechanical = electrical_revolutions * _2PI / (end_sensor - start_sensor);
+        Serial.print("Electrical angle / mechanical angle (i.e. pole pairs) = ");
+        Serial.println(electrical_per_mechanical);
+
+        int measured_pole_pairs = (int)round(electrical_per_mechanical);
+        Serial.printf("Pole pairs set to %d\n", measured_pole_pairs);
+
+        delay(1000);
+
+
+
+        // Measure mechanical angle at every electrical zero for several revolutions
+        motor.voltage_limit = 5;
+        motor.move(a);
+        float offset_x = 0;
+        float offset_y = 0;
+        float destination1 = (floor(a / _2PI) + measured_pole_pairs / 2.) * _2PI;
+        float destination2 = (floor(a / _2PI)) * _2PI;
+        for (; a < destination1; a += 0.4) {
+            motor.move(a);
+            delay(100);
+            for (uint8_t i = 0; i < 100; i++) {
+                tlv.update();
+                delay(1);
+            }
+            float real_electrical_angle = _normalizeAngle(a);
+            float measured_electrical_angle = _normalizeAngle( (float)(motor.sensor_direction * measured_pole_pairs) * tlv.getMechanicalAngle()  - 0);
+
+            float offset_angle = measured_electrical_angle - real_electrical_angle;
+            offset_x += cosf(offset_angle);
+            offset_y += sinf(offset_angle);
+
+            Serial.print(degrees(real_electrical_angle));
+            Serial.print(", ");
+            Serial.print(degrees(measured_electrical_angle));
+            Serial.print(", ");
+            Serial.println(degrees(_normalizeAngle(offset_angle)));
+        }
+        for (; a > destination2; a -= 0.4) {
+            motor.move(a);
+            delay(100);
+            for (uint8_t i = 0; i < 100; i++) {
+                tlv.update();
+                delay(1);
+            }
+            float real_electrical_angle = _normalizeAngle(a);
+            float measured_electrical_angle = _normalizeAngle( (float)(motor.sensor_direction * measured_pole_pairs) * tlv.getMechanicalAngle()  - 0);
+
+            float offset_angle = measured_electrical_angle - real_electrical_angle;
+            offset_x += cosf(offset_angle);
+            offset_y += sinf(offset_angle);
+
+            Serial.print(degrees(real_electrical_angle));
+            Serial.print(", ");
+            Serial.print(degrees(measured_electrical_angle));
+            Serial.print(", ");
+            Serial.println(degrees(_normalizeAngle(offset_angle)));
+        }
+        motor.voltage_limit = 0;
+        motor.move(a);
+
+        float avg_offset_angle = atan2f(offset_y, offset_x);
+        Serial.print("\n\nAverage offset: ");
+        Serial.println(degrees(avg_offset_angle));
+
+        // Apply settings
+        motor.pole_pairs = measured_pole_pairs;
+        motor.zero_electric_angle = avg_offset_angle + _3PI_2;
+        motor.voltage_limit = 5;
+        motor.controller = MotionControlType::torque;
+
+    //     delay(2000);
+
+    //     // Test simple closed loop - apply constant torque back and forth - motor should move at roughly same speed in each direction if well-calibrated
     //     motor.voltage_limit = 5;
-    //     for (float a = -0.2; a < _2PI; a += 0.001) {
-    //         tlv.update();
-    //         motor.move(a);
-    //         delay(1);
-    //         float measured_electrical = _normalizeAngle( (float)(foc_direction * POLE_PAIRS) * tlv.getMechanicalAngle() - zero_electric_offset);
-    //         float target_electrical = _normalizeAngle(_electricalAngle(a, POLE_PAIRS));
-    //         Serial.printf("%d, %d, %d, %d\n", (int)(a*1000), (int)(target_electrical*1000), (int)(measured_electrical * 1000), (int)(tlv.getMechanicalAngle()*1000));
+    //     motor.controller = MotionControlType::torque;
+    //     for (int cycle = 0; cycle < 3; cycle++) {
+    //         Serial.println("CCW");
+    //         for (int i = 0; i < 2500; i++) {
+    //             tlv.update();
+    //             motor.move(5);
+    //             motor.loopFOC();
+    //             delay(1);
+    //         }
+    //         motor.move(0);
+    //         motor.loopFOC();
+    //         delay(500);
+    //         Serial.println("CW");
+    //         for (int i = 0; i < 2500; i++) {
+    //             tlv.update();
+    //             motor.move(-5);
+    //             motor.loopFOC();
+    //             delay(1);
+    //         }
+    //         motor.move(0);
+    //         motor.loopFOC();
+    //         delay(500);
     //     }
-    //     delay(1000);
-    //     for (float a = _2PI; a > -0.2; a -= 0.001) {
-    //         motor.move(a);
-    //         delay(1);
-    //         tlv.update();
-    //     }
-    //     motor.voltage_limit = 1;
-    //     motor.move(0);
-    //     delay(8000);
-    // }
-
-
-    // while (1) {
-    //     static bool last;
-    //     motor.loopFOC();
-    //     bool forward = (millis() / 2000) % 2;
-    //     motor.move(digitalRead(PIN_BUTTON_PREV) ? 0 : 1.5 * (forward ? 1 : -1));
-    //     if (forward != last) {
-    //         Serial.println(forward);
-    //         last = forward;
-    //     }
-    //     if (!digitalRead(PIN_BUTTON_NEXT)) {
-    //         motor.zero_electric_angle = _normalizeAngle(motor.zero_electric_angle + 0.001);
-    //         Serial.println(motor.zero_electric_angle);
-    //     }
-    //     delay(1);
-    // }
+    }
 
 
     Serial.println(motor.zero_electric_angle);

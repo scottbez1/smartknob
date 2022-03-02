@@ -81,7 +81,7 @@ static KnobConfig configs[] = {
         32,
         0,
         8.225806452 * PI / 180,
-        1,
+        3,
         1,
         1.1,
         "Coarse values\nStrong detents",
@@ -128,12 +128,12 @@ void InterfaceTask::run() {
         #if PIN_BUTTON_PREV > -1
             button_prev.check();
         #endif
-        if (Serial.available()) {
-            int v = Serial.read();
-            if (v == ' ') {
-                changeConfig(true);
-            }
-        }
+        // if (Serial.available()) {
+        //     int v = Serial.read();
+        //     if (v == ' ') {
+        //         changeConfig(true);
+        //     }
+        // }
         delay(10);
     }
 }
