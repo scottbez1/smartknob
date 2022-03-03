@@ -1,0 +1,42 @@
+kibot:
+  version: 1
+
+preflight:
+  check_zone_fills: true
+  run_drc: true
+  run_erc: true
+  update_xml: true
+
+outputs:
+  - name: ibom
+    comment: 'Interactive BOM'
+    type: ibom
+    options:
+      dark_mode: true
+      netlist_file: '%F.xml'
+      # extra_fields: 'LCSC'
+
+  - name: schematic
+    type: pdf_sch_print
+
+  # - name: 3d
+  #   type: render_3d
+  #   options:
+  #     no_virtual: true
+  #     view: 'top'
+  #     silk: '#111111'
+  #     solder_mask: '#ffffff'
+  #     board: '#C3BA9B'
+  #     copper: '#99967F'
+  #     orthographic: true
+  #     ray_tracing: true
+  #     height: 1920
+  #     width: 1920
+  #     zoom: 4
+
+  # - name: 3d_back
+  #   type: render_3d
+  #   extends: 3d
+  #   options:
+  #     view: 'bottom'
+  #     zoom: 3
