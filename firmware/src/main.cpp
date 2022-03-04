@@ -1,6 +1,14 @@
 #include <Arduino.h>
 #include <SimpleFOC.h>
 
+#if SK_STRAIN
+#include <HX711.h>
+#endif
+
+#if SK_LEDS
+#include <FastLED.h>
+#endif
+
 #if SK_DISPLAY
 #include "display_task.h"
 #endif
@@ -8,6 +16,7 @@
 #include "interface_task.h"
 #include "motor_task.h"
 #include "tlv_sensor.h"
+#include "util.h"
 
 #if SK_DISPLAY
 DisplayTask display_task = DisplayTask(1);
@@ -16,7 +25,13 @@ MotorTask motor_task = MotorTask(0);
 
 InterfaceTask interface_task = InterfaceTask(1, motor_task);
 
-// CRGB leds[1];
+#if SK_LEDS
+CRGB leds[NUM_LEDS];
+#endif
+
+#if SK_STRAIN
+HX711 scale;
+#endif
 
 static QueueHandle_t knob_state_debug_queue;
 
@@ -39,6 +54,14 @@ void setup() {
   assert(knob_state_debug_queue != NULL);
 
   motor_task.addListener(knob_state_debug_queue);
+
+  #if SK_LEDS
+  FastLED.addLeds<SK6812, PIN_LED_DATA, GRB>(leds, NUM_LEDS);
+  #endif
+
+  #if SK_STRAIN
+  scale.begin(38, 2);
+  #endif
 }
 
 
@@ -51,4 +74,33 @@ void loop() {
     Serial.println(state.current_position);
     last_debug = millis();
   }
+
+  #if SK_STRAIN
+  if (scale.wait_ready_timeout(100)) {
+    long reading = scale.read();
+    Serial.print("HX711 reading: ");
+    Serial.println(reading);
+    long lower = 950000;
+    long upper = 2500000;
+    long value = CLAMP(reading, lower, upper);
+    float unit = 1. * (value - lower) / (upper - lower);
+
+    #if SK_LEDS
+    for (uint8_t i = 0; i < NUM_LEDS; i++) {
+      leds[i].setHSV(255 * unit, 255, 128);
+    }
+    FastLED.show();
+    #endif
+
+  } else {
+    Serial.println("HX711 not found.");
+
+    #if SK_LEDS
+    for (uint8_t i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Red;
+    }
+    FastLED.show();
+    #endif
+  }
+  #endif
 }

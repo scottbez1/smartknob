@@ -1,0 +1,13 @@
+(module SolderPads_2mm_3 (layer F.Cu) (tedit 620309F0)
+  (fp_text reference REF** (at 0 0.5) (layer F.SilkS) hide
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_text value SolderPads_2mm_3 (at 0 -0.5) (layer F.Fab)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_line (start -1 -1.5) (end -1 -1) (layer F.SilkS) (width 0.15))
+  (fp_line (start -0.5 -1.5) (end -1 -1.5) (layer F.SilkS) (width 0.15))
+  (pad 1 smd oval (at 0 0) (size 1.25 2.5) (layers F.Cu F.Mask))
+  (pad 2 smd oval (at 2 0) (size 1.25 2.5) (layers F.Cu F.Mask))
+  (pad 3 smd oval (at 4 0) (size 1.25 2.5) (layers F.Cu F.Mask))
+)

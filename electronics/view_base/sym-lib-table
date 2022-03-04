@@ -1,0 +1,9 @@
+(sym_lib_table
+  (lib (name MagnTek)(type Legacy)(uri ${KIPRJMOD}/../lib/MagnTek.lib)(options "")(descr ""))
+  (lib (name SK6812)(type Legacy)(uri ${KIPRJMOD}/../lib/SK6812.lib)(options "")(descr ""))
+  (lib (name no_pin)(type Legacy)(uri ${KIPRJMOD}/../lib/no_pin.lib)(options "")(descr ""))
+  (lib (name lilygo_micro32)(type Legacy)(uri ${KIPRJMOD}/../lib/lilygo_micro32.lib)(options "")(descr ""))
+  (lib (name strain)(type Legacy)(uri ${KIPRJMOD}/../lib/strain.lib)(options "")(descr ""))
+  (lib (name Trinamic)(type Legacy)(uri ${KIPRJMOD}/../lib/Trinamic.lib)(options "")(descr ""))
+  (lib (name VEML7700)(type Legacy)(uri ${KIPRJMOD}/../lib/VEML7700.lib)(options "")(descr ""))
+)

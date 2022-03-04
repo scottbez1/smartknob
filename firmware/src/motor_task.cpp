@@ -1,14 +1,10 @@
 #include <SimpleFOC.h>
-
-#include "motor_task.h"
-#include "tlv_sensor.h"
 #include <sensors/MagneticSensorI2C.h>
 
-
-template <typename T> T CLAMP(const T& value, const T& low, const T& high) 
-{
-  return value < low ? low : (value > high ? high : value); 
-}
+#include "motor_task.h"
+#include "mt6701_sensor.h"
+#include "tlv_sensor.h"
+#include "util.h"
 
 static const float DEAD_ZONE_DETENT_PERCENT = 0.2;
 static const float DEAD_ZONE_RAD = 1 * _PI / 180;
@@ -32,9 +28,12 @@ MotorTask::~MotorTask() {}
 BLDCMotor motor = BLDCMotor(1);
 BLDCDriver6PWM driver = BLDCDriver6PWM(PIN_UH, PIN_UL, PIN_VH, PIN_VL, PIN_WH, PIN_WL);
 
-// TlvSensor tlv = TlvSensor();
-MagneticSensorI2C tlv = MagneticSensorI2C(AS5600_I2C);
-
+#if SENSOR_TLV
+    TlvSensor encoder = TlvSensor();
+#elif SENSOR_MT6701
+    MT6701Sensor encoder = MT6701Sensor();
+#endif
+// MagneticSensorI2C tlv = MagneticSensorI2C(AS5600_I2C);
 
 Commander command = Commander(Serial);
 
@@ -54,23 +53,28 @@ void MotorTask::run() {
     // float zero_electric_offset = -0.8; // handheld 2
     float zero_electric_offset = 2.93; //0.15; // 17mm test
     bool tlv_invert = false;
-    Direction foc_direction = Direction::CW;
+    Direction foc_direction = Direction::CCW;
 
 
     driver.voltage_power_supply = 5;
     driver.init();
 
+    #if SENSOR_TLV
     Wire.begin(PIN_SDA, PIN_SCL);
-    Wire.setClock(1000000);
-    // tlv.init(&Wire, tlv_invert);
-    tlv.init(&Wire);
+    Wire.setClock(400000);
+    encoder.init(Wire, tlv_invert);
+    #endif
+
+    #if SENSOR_MT6701
+    encoder.init();
+    #endif
 
     motor.linkDriver(&driver);
 
     motor.controller = MotionControlType::torque;
     motor.voltage_limit = 5;
     motor.velocity_limit = 10000;
-    motor.linkSensor(&tlv);
+    motor.linkSensor(&encoder);
 
     // Not actually using the velocity loop; but I'm using those PID variables
     // because SimpleFOC studio supports updating them easily over serial for tuning.
@@ -85,7 +89,7 @@ void MotorTask::run() {
 
     motor.init();
 
-    tlv.update();
+    encoder.update();
     delay(10);
 
     motor.initFOC(zero_electric_offset, foc_direction);
@@ -105,23 +109,23 @@ void MotorTask::run() {
         float a = 0;
 
         for (uint8_t i = 0; i < 200; i++) {
-            tlv.update();
+            encoder.update();
             motor.move(a);
             delay(1);
         }
-        float start_sensor = tlv.getAngle();
+        float start_sensor = encoder.getAngle();
 
         for (; a < 3 * _2PI; a += 0.01) {
-            tlv.update();
+            encoder.update();
             motor.move(a);
             delay(1);
         }
 
         for (uint8_t i = 0; i < 200; i++) {
-            tlv.update();
+            encoder.update();
             delay(1);
         }
-        float end_sensor = tlv.getAngle();
+        float end_sensor = encoder.getAngle();
 
 
         motor.voltage_limit = 0;
@@ -152,30 +156,30 @@ void MotorTask::run() {
         Serial.println("Going to electrical zero...");
         float destination = a + _2PI;
         for (; a < destination; a += 0.03) {
-            tlv.update();
+            encoder.update();
             motor.move(a);
             delay(1);
         }
         Serial.println("pause...");
         for (uint16_t i = 0; i < 1000; i++) {
-            tlv.update();
+            encoder.update();
             delay(1);
         }
         Serial.println("Measuring...");
 
-        start_sensor = motor.sensor_direction * tlv.getAngle();
+        start_sensor = motor.sensor_direction * encoder.getAngle();
         destination = a + electrical_revolutions * _2PI;
         for (; a < destination; a += 0.03) {
-            tlv.update();
+            encoder.update();
             motor.move(a);
             delay(1);
         }
         for (uint16_t i = 0; i < 1000; i++) {
-            tlv.update();
+            encoder.update();
             motor.move(a);
             delay(1);
         }
-        end_sensor = motor.sensor_direction * tlv.getAngle();
+        end_sensor = motor.sensor_direction * encoder.getAngle();
         motor.voltage_limit = 0;
         motor.move(a);
 
@@ -206,11 +210,11 @@ void MotorTask::run() {
             motor.move(a);
             delay(100);
             for (uint8_t i = 0; i < 100; i++) {
-                tlv.update();
+                encoder.update();
                 delay(1);
             }
             float real_electrical_angle = _normalizeAngle(a);
-            float measured_electrical_angle = _normalizeAngle( (float)(motor.sensor_direction * measured_pole_pairs) * tlv.getMechanicalAngle()  - 0);
+            float measured_electrical_angle = _normalizeAngle( (float)(motor.sensor_direction * measured_pole_pairs) * encoder.getMechanicalAngle()  - 0);
 
             float offset_angle = measured_electrical_angle - real_electrical_angle;
             offset_x += cosf(offset_angle);
@@ -226,11 +230,11 @@ void MotorTask::run() {
             motor.move(a);
             delay(100);
             for (uint8_t i = 0; i < 100; i++) {
-                tlv.update();
+                encoder.update();
                 delay(1);
             }
             float real_electrical_angle = _normalizeAngle(a);
-            float measured_electrical_angle = _normalizeAngle( (float)(motor.sensor_direction * measured_pole_pairs) * tlv.getMechanicalAngle()  - 0);
+            float measured_electrical_angle = _normalizeAngle( (float)(motor.sensor_direction * measured_pole_pairs) * encoder.getMechanicalAngle()  - 0);
 
             float offset_angle = measured_electrical_angle - real_electrical_angle;
             offset_x += cosf(offset_angle);
@@ -263,7 +267,7 @@ void MotorTask::run() {
     //     for (int cycle = 0; cycle < 3; cycle++) {
     //         Serial.println("CCW");
     //         for (int i = 0; i < 2500; i++) {
-    //             tlv.update();
+    //             encoder.update();
     //             motor.move(5);
     //             motor.loopFOC();
     //             delay(1);
@@ -273,7 +277,7 @@ void MotorTask::run() {
     //         delay(500);
     //         Serial.println("CW");
     //         for (int i = 0; i < 2500; i++) {
-    //             tlv.update();
+    //             encoder.update();
     //             motor.move(-5);
     //             motor.loopFOC();
     //             delay(1);
@@ -283,7 +287,6 @@ void MotorTask::run() {
     //         delay(500);
     //     }
     }
-
 
     Serial.println(motor.zero_electric_angle);
 
@@ -377,7 +380,7 @@ void MotorTask::run() {
 
 
 
-        if (fabsf(motor.shaft_velocity) > 20) {
+        if (fabsf(motor.shaft_velocity) > 60) {
             // Don't apply torque if velocity is too high (helps avoid positive feedback loop/runaway)
             motor.move(0);
         } else {
@@ -395,6 +398,8 @@ void MotorTask::run() {
 
         motor.monitor();
         // command.run();
+
+        delay(1);
     }
 }
 
