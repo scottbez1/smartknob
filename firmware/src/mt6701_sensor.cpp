@@ -1,10 +1,6 @@
 #include "mt6701_sensor.h"
 #include "driver/spi_master.h"
 
-#define PIN_CSN 12
-#define PIN_SDA 21
-#define PIN_SCL 22
-
 static const float ALPHA = 0.4;
 
 
@@ -44,13 +40,13 @@ MT6701Sensor::MT6701Sensor() {}
 
 void MT6701Sensor::init() {
 
-    pinMode(PIN_CSN, OUTPUT);
-    digitalWrite(PIN_CSN, HIGH);
+    pinMode(PIN_MT_CSN, OUTPUT);
+    digitalWrite(PIN_MT_CSN, HIGH);
 
   spi_bus_config_t tx_bus_config = {
       .mosi_io_num = -1,
-      .miso_io_num = PIN_SDA,
-      .sclk_io_num = PIN_SCL,
+      .miso_io_num = PIN_MT_DATA,
+      .sclk_io_num = PIN_MT_CLOCK,
       .quadwp_io_num = -1,
       .quadhd_io_num = -1,
       .max_transfer_sz = 1000,
@@ -68,7 +64,7 @@ void MT6701Sensor::init() {
       .cs_ena_posttrans=0,
       .clock_speed_hz=4000000,
       .input_delay_ns=0,
-      .spics_io_num=PIN_CSN,
+      .spics_io_num=PIN_MT_CSN,
       .flags = 0,
       .queue_size=1,
       .pre_cb=NULL,

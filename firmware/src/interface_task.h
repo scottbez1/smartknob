@@ -22,5 +22,5 @@ class InterfaceTask : public Task<InterfaceTask>, public ace_button::IEventHandl
         MotorTask& motor_task_;
         int current_config_ = 0;
 
-        void nextConfig();
+        void changeConfig(bool next);
 };

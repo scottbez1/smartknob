@@ -8,7 +8,7 @@ class TlvSensor : public Sensor {
         TlvSensor();
 
         // initialize the sensor hardware
-        void init();
+        void init(TwoWire& wire, bool invert);
 
         // Get current shaft angle from the sensor hardware, and 
         // return it as a float in radians, in the range 0 to 2PI.
@@ -21,4 +21,5 @@ class TlvSensor : public Sensor {
         float x_;
         float y_;
         uint32_t last_update_;
+        bool invert_;
 };
