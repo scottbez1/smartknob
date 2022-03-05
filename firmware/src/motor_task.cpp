@@ -51,10 +51,10 @@ void MotorTask::run() {
     // float zero_electric_offset = -0.6; // original proto
     //float zero_electric_offset = 0.4; // handheld 1
     // float zero_electric_offset = -0.8; // handheld 2
-    float zero_electric_offset = 2.93; //0.15; // 17mm test
-    bool tlv_invert = false;
+    // float zero_electric_offset = 2.93; //0.15; // 17mm test
+    float zero_electric_offset = 0.66; // 15mm handheld
     Direction foc_direction = Direction::CCW;
-
+    motor.pole_pairs = 7;
 
     driver.voltage_power_supply = 5;
     driver.init();
@@ -62,12 +62,14 @@ void MotorTask::run() {
     #if SENSOR_TLV
     Wire.begin(PIN_SDA, PIN_SCL);
     Wire.setClock(400000);
-    encoder.init(Wire, tlv_invert);
+    encoder.init(Wire, false);
     #endif
 
     #if SENSOR_MT6701
     encoder.init();
+    // motor.LPF_angle = LowPassFilter(0.05);
     #endif
+    // motor.LPF_current_q = {0.01};
 
     motor.linkDriver(&driver);
 
@@ -94,17 +96,22 @@ void MotorTask::run() {
 
     motor.initFOC(zero_electric_offset, foc_direction);
 
-    bool calibrate = true;
+    bool calibrate = false;
+
+    Serial.println("Press Y to run calibration");
+    uint32_t t = millis();
+    while (millis() - t < 3000) {
+        if (Serial.read() == 'Y') {
+            calibrate = true;
+            break;
+        }
+        delay(10);
+    }
     if (calibrate) {
         motor.controller = MotionControlType::angle_openloop;
         motor.pole_pairs = 1;
         motor.initFOC(0, Direction::CW);
 
-
-        Serial.println("Calibration: press Y to start");
-        while (Serial.read() != 'Y') {
-            delay(10);
-        }
 
         float a = 0;
 
@@ -250,8 +257,6 @@ void MotorTask::run() {
         motor.move(a);
 
         float avg_offset_angle = atan2f(offset_y, offset_x);
-        Serial.print("\n\nAverage offset: ");
-        Serial.println(degrees(avg_offset_angle));
 
         // Apply settings
         motor.pole_pairs = measured_pole_pairs;
@@ -259,33 +264,16 @@ void MotorTask::run() {
         motor.voltage_limit = 5;
         motor.controller = MotionControlType::torque;
 
-    //     delay(2000);
-
-    //     // Test simple closed loop - apply constant torque back and forth - motor should move at roughly same speed in each direction if well-calibrated
-    //     motor.voltage_limit = 5;
-    //     motor.controller = MotionControlType::torque;
-    //     for (int cycle = 0; cycle < 3; cycle++) {
-    //         Serial.println("CCW");
-    //         for (int i = 0; i < 2500; i++) {
-    //             encoder.update();
-    //             motor.move(5);
-    //             motor.loopFOC();
-    //             delay(1);
-    //         }
-    //         motor.move(0);
-    //         motor.loopFOC();
-    //         delay(500);
-    //         Serial.println("CW");
-    //         for (int i = 0; i < 2500; i++) {
-    //             encoder.update();
-    //             motor.move(-5);
-    //             motor.loopFOC();
-    //             delay(1);
-    //         }
-    //         motor.move(0);
-    //         motor.loopFOC();
-    //         delay(500);
-    //     }
+        Serial.print("\n\nRESULTS:\n  zero electric angle: ");
+        Serial.println(motor.zero_electric_angle);
+        Serial.print("  direction: ");
+        if (motor.sensor_direction == Direction::CW) {
+            Serial.println("CW");
+        } else {
+            Serial.println("CCW");
+        }
+        Serial.printf("  pole pairs: %d\n", motor.pole_pairs);
+        delay(2000);
     }
 
     Serial.println(motor.zero_electric_angle);
@@ -325,8 +313,8 @@ void MotorTask::run() {
             // get runaway due to sensor noise & lag)).
             // TODO: consider eliminating this D factor entirely and just "play" a hardcoded haptic "click" (e.g. a quick burst of torque in each
             // direction) whenever the position changes when the detent width is too small for the P factor to work well.
-            const float derivative_lower_strength = config.detent_strength_unit * 0.04;
-            const float derivative_upper_strength = config.detent_strength_unit * 0;
+            const float derivative_lower_strength = config.detent_strength_unit * 0.1;
+            const float derivative_upper_strength = config.detent_strength_unit * 0.02;
             const float derivative_position_width_lower = 5 * PI / 180;
             const float derivative_position_width_upper = 10 * PI / 180;
             const float raw = derivative_lower_strength + (derivative_upper_strength - derivative_lower_strength)/(derivative_position_width_upper - derivative_position_width_lower)*(config.position_width_radians - derivative_position_width_lower);
