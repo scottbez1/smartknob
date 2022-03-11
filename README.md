@@ -1,6 +1,7 @@
 # SmartKnob
+SmartKnob is an open-source input device with software-configurable endstops and virtual detents.
 
-Coming soon...
+A brushless gimbal motor is paired with a magnetic encoder to provide closed-loop torque feedback control, making it possible to dynamically create and adjust the feel of detents and endstops.
 
 # Hardware
 
@@ -11,7 +12,7 @@ Premium SmartKnob experience. Under active development.
 
 Not recommended for general use yet (mechanical and electrical revisions are planned).
 
-Requires advanced soldering experience to build - reflow and small-pitch SMT soldering are required.
+Requires advanced soldering experience to build - reflow and/or small-pitch surface-mount soldering are required, and assembly is quite time-consuming and delicate.
 
 Features:
  - Powered by ESP32-PICO-V3-02 (Lilygo TMicro32 Plus module)
@@ -111,7 +112,13 @@ In my experience testing 4 different Adafruit breakout boards, 2 of them (50%) r
 
 [Datasheet](https://www.mouser.com/datasheet/2/196/Infineon_TLV493D_A1B6_DataSheet_v01_10_EN-1227967.pdf)
 
-#### 
+
+#### AS5600 (AMS)
+A mediocre choice. Cheap breakout boards are readily available.
+
+In my testing, it's fairly noisy (anecdotally, noisier than the TLV493d), requiring filtering/smoothing that can slow responsiveness, hurting control loop stability. Additionally, it saturates at a lower magnetic field strength than other sensors I tested, requiring a significant air gap (8-10mm) when used with a strong neodymium diametric magnet like [Radial Magnets 8995](https://www.digikey.com/en/products/detail/radial-magnets-inc/8995/5126077).
+
+[Datasheet](https://ams.com/documents/20143/36005/AS5600_DS000365_5-00.pdf)
 
 ### Motor drivers
 #### TMC6300-LA
