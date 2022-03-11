@@ -15,14 +15,15 @@ Not recommended for general use yet (mechanical and electrical revisions are pla
 Requires advanced soldering experience to build - reflow and/or small-pitch surface-mount soldering are required, and assembly is quite time-consuming and delicate.
 
 Features:
- - Powered by ESP32-PICO-V3-02 (Lilygo TMicro32 Plus module)
  - 240x240 round LCD, protected by 39.5mm watch glass on rotor
+ - Low cost BLDC gimbal motor, with a hollow shaft for mechanically & electrically connecting the LCD
+ - Powered by ESP32-PICO-V3-02 (Lilygo TMicro32 Plus module)
  - PCB flexure and strain gauges used for press detection (haptic feedback provided via the motor)
  - 8 side-firing RGB LEDs (SK6812-SIDE-A) illuminate ring around the knob
- - USB C (2.0) connector for 5V power and serial data/programming (CH340)
+ - USB-C (2.0) connector for 5V power and serial data/programming (CH340)
  - VEML7700 ambient light sensor for automatic backlight & LED intensity adjustment
- - Versatile back plate for mounting - use either 4x screws, or 2x 3M medium Command strips for mounting
- - Front cover snaps on for easy access
+ - Versatile back plate for mounting - use either 4x screws, or 2x 3M medium Command strips (with cutouts for accessing removal tabs after installation)
+ - Front cover snaps on for easy access to the PCB
 
 #### Demo video
 
@@ -36,6 +37,27 @@ Features:
 
 Latest Fusion 360 Model: https://a360.co/3BzkU0n
 
+#### Build your own?
+
+More documentation on the BOM and what parts you need to order is coming in the future - thanks so much for your interest! Follow me on [Twitter](https://twitter.com/scottbez1) for the latest updates on this and other projects.
+
+A few miscellaneous notes in the meantime:
+
+ - This can probably be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish
+ - There's limited space inside the LCD mount for wiring, and 8 wires need to fit through. I used 30 AWG wire-wrapping wire. Enamel-coated wire would probably work too.
+ - Strain gauges are BF350-3AA, and glued in place with CA glue (I'll include video of this process in the future, but essentially I used kapton tape to pick up the strain gauge and hold it in place during curing). This has to be done after reflow soldering, and would be hard to remove in case of a mistake, so MAKE SURE TO PRACTICE FIRST!
+ - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly, but that's the fun of DIY, right?
+
+Future plans:
+ - consider switch to using an ESP32-S3-MINI-1 module (once Arduino core support is complete), as that would allow for direct USB HID support (for joystick/macro-pad type input to a computer)
+ - get wifi configured and working (probably MQTT?). Currently memory is an issue with the full display framebuffer sprite. PSRAM might fix this (requires newer ESP-IDF & unreleased Arduino core, and from a brief test I got horrible performance with PSRAM enabled), or the next item might help reduce memory:
+ - migrate to LVGL, for better display rendering and easy support for menus, etc. Shouldn't require a full 240x240x24b framebuffer in memory, freeing some for wifi, etc.
+ - integrate nanopb for structured serial data (see [splitflap protobuf protocol](https://github.com/scottbez1/splitflap/blob/1440aba54d5b0d822ec5da68762431879988d7ef/arduino/splitflap/esp32/splitflap/serial_proto_protocol.cpp) for example)
+ - Home Assistant integration, or other real-world applications
+ - ???
+ - [Profit](https://github.com/sponsors/scottbez1/) 😉
+
+
 #### Base PCB
 
 <a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-front-3d.png">
@@ -45,7 +67,7 @@ Latest Fusion 360 Model: https://a360.co/3BzkU0n
     <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-back-3d.png" width="300" />
 </a>
 
-Note: use white soldermask, for reflecting light from RGB LED ring around the knob.
+Ordering notes: use white soldermask, for reflecting light from RGB LED ring around the knob. Should be 1.2mm thick (not "standard" 1.6mm).
 
 [Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-schematic.pdf)
 
@@ -64,6 +86,7 @@ Note: use white soldermask, for reflecting light from RGB LED ring around the kn
     <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-back-3d.png" width="300" />
 </a>
 
+Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design.
 
 [Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-schematic.pdf)
 
@@ -175,7 +198,7 @@ corresponding [discussion in the SimpleFOC community](https://community.simplefo
 
 # License
 
-This project is licensed under Apache v2 (see [LICENSE.txt](LICENSE.txt)).
+This project is licensed under Apache v2 (software, electronics, documentation) and Creative Commons Attribution 4.0 (hardware/mechanical) (see [LICENSE.txt](LICENSE.txt) and [Creative Commons](https://creativecommons.org/licenses/by/4.0/)).
 
     Copyright 2022 Scott Bezek
     
