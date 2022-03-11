@@ -1,5 +1,7 @@
 #pragma once
 
+#if SK_DISPLAY
+
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 
@@ -13,7 +15,9 @@ class DisplayTask : public Task<DisplayTask> {
         DisplayTask(const uint8_t task_core);
         ~DisplayTask();
 
-        void setData(KnobState state);
+        QueueHandle_t getKnobStateQueue();
+
+        void setBrightness(uint16_t brightness);
 
     protected:
         void run();
@@ -24,7 +28,17 @@ class DisplayTask : public Task<DisplayTask> {
         /** Full-size sprite used as a framebuffer */
         TFT_eSprite spr_ = TFT_eSprite(&tft_);
 
-        SemaphoreHandle_t semaphore_;
+        QueueHandle_t knob_state_queue_;
 
         KnobState state_;
+
+        SemaphoreHandle_t mutex_;
+
+        uint16_t brightness_;
 };
+
+#else
+
+class DisplayTask {};
+
+#endif

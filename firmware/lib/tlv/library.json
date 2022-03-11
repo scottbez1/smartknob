@@ -1,0 +1,17 @@
+{
+    "name": "TLV493D-Magnetic-Sensor",
+    "keywords": "3D, magnetic, sensor2go",
+    "description": "This library provides an Interface for Infineon's TLV493D Magnetic Sensor",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/Infineon/TLV493D-A1B6-3DMagnetic-Sensor.git",
+      "branch": "master"
+    },
+    "version":"1.0.3",
+    "frameworks": "arduino",
+    "platforms": [
+        "infineonxmc",
+        "atmelavr"
+    ]
+  }

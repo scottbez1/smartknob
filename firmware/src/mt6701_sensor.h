@@ -1,14 +1,14 @@
 #pragma once
 
 #include <SimpleFOC.h>
-#include <Tlv493d.h>
+#include "driver/spi_master.h"
 
-class TlvSensor : public Sensor {
+class MT6701Sensor : public Sensor {
     public:
-        TlvSensor();
+        MT6701Sensor();
 
         // initialize the sensor hardware
-        void init(TwoWire* wire, bool invert);
+        void init();
 
         // Get current shaft angle from the sensor hardware, and 
         // return it as a float in radians, in the range 0 to 2PI.
@@ -17,13 +17,11 @@ class TlvSensor : public Sensor {
         //    Use update() when calling from outside code.
         float getSensorAngle();
     private:
-        Tlv493d tlv_ = Tlv493d();
+
+        spi_device_handle_t spi_device_;
+        spi_transaction_t spi_transaction_ = {};
+
         float x_;
         float y_;
         uint32_t last_update_;
-        TwoWire* wire_;
-        bool invert_;
-
-        uint8_t frame_counts_[3] = {};
-        uint8_t cur_frame_count_index_ = 0;
 };

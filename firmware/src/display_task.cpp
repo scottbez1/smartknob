@@ -1,18 +1,20 @@
+#if SK_DISPLAY
 #include "display_task.h"
 #include "semaphore_guard.h"
 
 #include "font/roboto_light_60.h"
 
-DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 2048, 1, task_core} {
-    semaphore_ = xSemaphoreCreateMutex();
-    assert(semaphore_ != NULL);
-    xSemaphoreGive(semaphore_);
+DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 4048, 1, task_core} {
+  knob_state_queue_ = xQueueCreate(1, sizeof(KnobState));
+  assert(knob_state_queue_ != NULL);
+
+  mutex_ = xSemaphoreCreateMutex();
+  assert(mutex_ != NULL);
 }
 
 DisplayTask::~DisplayTask() {
-    if (semaphore_ != NULL) {
-        vSemaphoreDelete(semaphore_);
-    }
+  vQueueDelete(knob_state_queue_);
+  vSemaphoreDelete(mutex_);
 }
 
 static void HSV_to_RGB(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_t *b)
@@ -73,16 +75,23 @@ static void HSV_to_RGB(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_
 }
 
 void DisplayTask::run() {
-    delay(100);
     tft_.begin();
     tft_.invertDisplay(1);
     tft_.setRotation(0);
-    tft_.fillScreen(TFT_PURPLE);
+    tft_.fillScreen(TFT_DARKGREEN);
+
+    ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
+    ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
+    ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT16_MAX);
 
     spr_.setColorDepth(16);
+
     if (spr_.createSprite(TFT_WIDTH, TFT_HEIGHT) == nullptr) {
       Serial.println("ERROR: sprite allocation failed!");
       tft_.fillScreen(TFT_RED);
+    } else {
+      Serial.println("Sprite created!");
+      tft_.fillScreen(TFT_PURPLE);
     }
     spr_.setTextColor(0xFFFF, TFT_BLACK);
     
@@ -100,9 +109,8 @@ void DisplayTask::run() {
     spr_.setTextDatum(CC_DATUM);
     spr_.setTextColor(TFT_WHITE);
     while(1) {
-        {
-            SemaphoreGuard lock(semaphore_);
-            state = state_;
+        if (xQueueReceive(knob_state_queue_, &state, portMAX_DELAY) == pdFALSE) {
+          continue;
         }
 
         spr_.fillSprite(TFT_BLACK);
@@ -112,9 +120,9 @@ void DisplayTask::run() {
         }
 
         spr_.setFreeFont(&Roboto_Light_60);
-        spr_.drawString(String() + state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2 - 30, 1);
-        spr_.setFreeFont(&Roboto_Thin_24);
-        int32_t line_y = TFT_HEIGHT / 2 + 20;
+        spr_.drawString(String() + state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2 - VALUE_OFFSET, 1);
+        spr_.setFreeFont(&DESCRIPTION_FONT);
+        int32_t line_y = TFT_HEIGHT / 2 + DESCRIPTION_Y_OFFSET;
         char* start = state.config.descriptor;
         char* end = start + strlen(state.config.descriptor);
         while (start < end) {
@@ -138,6 +146,9 @@ void DisplayTask::run() {
           float right_bound = PI / 2 - range_radians / 2;
           spr_.drawLine(TFT_WIDTH/2 + RADIUS * cosf(left_bound), TFT_HEIGHT/2 - RADIUS * sinf(left_bound), TFT_WIDTH/2 + (RADIUS - 10) * cosf(left_bound), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(left_bound), TFT_WHITE);
           spr_.drawLine(TFT_WIDTH/2 + RADIUS * cosf(right_bound), TFT_HEIGHT/2 - RADIUS * sinf(right_bound), TFT_WIDTH/2 + (RADIUS - 10) * cosf(right_bound), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(right_bound), TFT_WHITE);
+        }
+        if (DRAW_ARC) {
+          spr_.drawCircle(TFT_WIDTH/2, TFT_HEIGHT/2, RADIUS, TFT_DARKGREY);
         }
 
         float adjusted_sub_position = state.sub_position_unit * state.config.position_width_radians;
@@ -171,11 +182,22 @@ void DisplayTask::run() {
         }
 
         spr_.pushSprite(0, 0);
+
+        {
+          SemaphoreGuard lock(mutex_);
+          ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, brightness_);
+        }
         delay(2);
     }
 }
 
-void DisplayTask::setData(KnobState state) {
-    SemaphoreGuard lock(semaphore_);
-    state_ = state;
+QueueHandle_t DisplayTask::getKnobStateQueue() {
+  return knob_state_queue_;
 }
+
+void DisplayTask::setBrightness(uint16_t brightness) {
+  SemaphoreGuard lock(mutex_);
+  brightness_ = brightness;
+}
+
+#endif
