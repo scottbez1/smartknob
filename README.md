@@ -7,7 +7,29 @@ Coming soon...
 ## Designs
 
 ### SmartKnob View
-Premium SmartKnob experience. Under active development. Untested & unproven.
+Premium SmartKnob experience. Under active development.
+
+Not recommended for general use yet (mechanical and electrical revisions are planned).
+
+Requires advanced soldering experience to build - reflow and small-pitch SMT soldering are required.
+
+Features:
+ - Powered by ESP32-PICO-V3-02 (Lilygo TMicro32 Plus module)
+ - 240x240 round LCD, protected by 39.5mm watch glass on rotor
+ - PCB flexure and strain gauges used for press detection (haptic feedback provided via the motor)
+ - 8 side-firing RGB LEDs (SK6812-SIDE-A) illuminate ring around the knob
+ - USB C (2.0) connector for 5V power and serial data/programming (CH340)
+ - VEML7700 ambient light sensor for automatic backlight & LED intensity adjustment
+ - Versatile back plate for mounting - use either 4x screws, or 2x 3M medium Command strips for mounting
+ - Front cover snaps on for easy access
+
+#### Demo video
+
+<a href="https://www.youtube.com/watch?v=ip641WmY4pA">
+    <img src="https://img.youtube.com/vi/ip641WmY4pA/maxresdefault.jpg" width="480" />
+</a>
+
+#### Exploded view
 
 ![Exploded view](doc/img/explodedv145.gif)
 
@@ -20,6 +42,7 @@ Premium SmartKnob experience. Under active development. Untested & unproven.
     <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-back-3d.png" width="300" />
 </a>
 
+Note: use white soldermask, for reflecting light from RGB LED ring around the knob.
 
 [Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-schematic.pdf)
 
@@ -58,6 +81,19 @@ Planned for the future.
 ## Component Info
 
 ### Magnetic encoders
+
+#### MT6701 (MagnTek)
+Excellent sensor at a reasonable price - highly recommended. Less noisy than TLV493D, and more responsive (control loop is more stable) using SSI.
+
+ - Lots of IO options - SSI, I2C, and ABZ - should offer good response latency
+ - SSI includes CRC to validate data
+ - No power-down or low-power options - may not be ideal for battery-powered devices
+ - Not available from US distributors (Mouser, Digi-Key)
+
+[Datasheet](http://www.magntek.com.cn/upload/MT6701_Rev.1.5.pdf)
+
+[Ordering (LCSC)](https://lcsc.com/product-detail/Angle-Linear-Position-Sensors_Magn-Tek-MT6701CT-STD_C2856764.html)
+
 #### TLV493D (Infineon)
 A mediocre choice. Easy to prototype with using [Adafruit's QWIIC breakout board](https://www.adafruit.com/product/4366).
 
@@ -71,27 +107,15 @@ There is also apparently a known silicon issue that causes the internal ADC to s
     be detected by:
      - Frame Counter (FRM) counter stucks and does not increment anymore.
 
-In my experience testing 4 different Adafruit breakout boards, 2 of them (50%) regularly exhibit this lockup behavior within a minute or two of use.
-
-As of 2022-02-08, there is limited availability of this IC.
+In my experience testing 4 different Adafruit breakout boards, 2 of them (50%) regularly exhibit this lockup behavior within a minute or two of use. It is possible to detect and auto-reset (and there is code in the project to do so), but it is slow and may cause undesirable jumps/delays if the sensor locks up often.
 
 [Datasheet](https://www.mouser.com/datasheet/2/196/Infineon_TLV493D_A1B6_DataSheet_v01_10_EN-1227967.pdf)
 
-#### MT6701 (MagnTek)
-Very promising based on the datasheet and initial tests. Seems to be less noisy than TLV493D, and more responsive (control loop is more stable) using SSI.
-
- - Lots of IO options - SSI, I2C, and ABZ - should offer good response latency
- - SSI include CRC to validate data
- - No power-down or low-power options - may not be ideal for battery-powered devices
- - Not available from US distributors (Mouser, Digi-Key)
-
-[Datasheet](http://www.magntek.com.cn/upload/MT6701_Rev.1.5.pdf)
-
-[Ordering (LCSC)](https://lcsc.com/product-detail/Angle-Linear-Position-Sensors_Magn-Tek-MT6701CT-STD_C2856764.html)
+#### 
 
 ### Motor drivers
 #### TMC6300-LA
-This is a relatively new IC and it's a perfect match! There generally aren't any other drivers (with integrated fets) that meet the requirements for the low-voltage and low-current motors used in this project.
+This is a relatively new IC and it's a perfect match! There generally aren't any other drivers (with integrated fets) that meet the requirements for the low-voltage and low-current motors used in this project (DRV8316 might work, but has not been tested).
 
 Highlights:
  - 2-11V DC motor supply input
