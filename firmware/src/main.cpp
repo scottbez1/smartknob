@@ -1,37 +1,20 @@
 #include <Arduino.h>
 #include <SimpleFOC.h>
 
-#if SK_STRAIN
-#include <HX711.h>
-#endif
-
-#if SK_LEDS
-#include <FastLED.h>
-#endif
-
-#if SK_DISPLAY
 #include "display_task.h"
-#endif
-
 #include "interface_task.h"
 #include "motor_task.h"
-#include "tlv_sensor.h"
-#include "util.h"
 
 #if SK_DISPLAY
-DisplayTask display_task = DisplayTask(1);
+static DisplayTask display_task = DisplayTask(0);
+static DisplayTask* display_task_p = &display_task;
+#else
+static DisplayTask* display_task_p = nullptr;
 #endif
-MotorTask motor_task = MotorTask(0);
+static MotorTask motor_task = MotorTask(1);
 
-InterfaceTask interface_task = InterfaceTask(1, motor_task);
 
-#if SK_LEDS
-CRGB leds[NUM_LEDS];
-#endif
-
-#if SK_STRAIN
-HX711 scale;
-#endif
+InterfaceTask interface_task = InterfaceTask(0, motor_task, display_task_p);
 
 static QueueHandle_t knob_state_debug_queue;
 
@@ -48,20 +31,14 @@ void setup() {
   motor_task.addListener(display_task.getKnobStateQueue());
   #endif
 
-
   // Create a queue and register it with motor_task to print knob state to serial (see loop() below)
   knob_state_debug_queue = xQueueCreate(1, sizeof(KnobState));
   assert(knob_state_debug_queue != NULL);
 
   motor_task.addListener(knob_state_debug_queue);
 
-  #if SK_LEDS
-  FastLED.addLeds<SK6812, PIN_LED_DATA, GRB>(leds, NUM_LEDS);
-  #endif
-
-  #if SK_STRAIN
-  scale.begin(38, 2);
-  #endif
+  // Free up the loop task
+  vTaskDelete(NULL);
 }
 
 
@@ -75,32 +52,15 @@ void loop() {
     last_debug = millis();
   }
 
-  #if SK_STRAIN
-  if (scale.wait_ready_timeout(100)) {
-    long reading = scale.read();
-    Serial.print("HX711 reading: ");
-    Serial.println(reading);
-    long lower = 950000;
-    long upper = 2500000;
-    long value = CLAMP(reading, lower, upper);
-    float unit = 1. * (value - lower) / (upper - lower);
-
-    #if SK_LEDS
-    for (uint8_t i = 0; i < NUM_LEDS; i++) {
-      leds[i].setHSV(255 * unit, 255, 128);
-    }
-    FastLED.show();
+  static uint32_t last_stack_debug;
+  if (millis() - last_stack_debug > 1000) {
+    Serial.println("Stack high water:");
+    Serial.printf("main: %d\n", uxTaskGetStackHighWaterMark(NULL));
+    #if SK_DISPLAY
+      Serial.printf("display: %d\n", uxTaskGetStackHighWaterMark(display_task.getHandle()));
     #endif
-
-  } else {
-    Serial.println("HX711 not found.");
-
-    #if SK_LEDS
-    for (uint8_t i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CRGB::Red;
-    }
-    FastLED.show();
-    #endif
+    Serial.printf("motor: %d\n", uxTaskGetStackHighWaterMark(motor_task.getHandle()));
+    Serial.printf("interface: %d\n", uxTaskGetStackHighWaterMark(interface_task.getHandle()));
+    last_stack_debug = millis();
   }
-  #endif
 }

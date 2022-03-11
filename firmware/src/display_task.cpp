@@ -4,14 +4,17 @@
 
 #include "font/roboto_light_60.h"
 
-DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 2048, 1, task_core} {
+DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 4048, 1, task_core} {
   knob_state_queue_ = xQueueCreate(1, sizeof(KnobState));
   assert(knob_state_queue_ != NULL);
 
+  mutex_ = xSemaphoreCreateMutex();
+  assert(mutex_ != NULL);
 }
 
 DisplayTask::~DisplayTask() {
   vQueueDelete(knob_state_queue_);
+  vSemaphoreDelete(mutex_);
 }
 
 static void HSV_to_RGB(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_t *b)
@@ -72,13 +75,17 @@ static void HSV_to_RGB(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_
 }
 
 void DisplayTask::run() {
-    delay(100);
     tft_.begin();
     tft_.invertDisplay(1);
     tft_.setRotation(0);
     tft_.fillScreen(TFT_DARKGREEN);
 
+    ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
+    ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
+    ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT16_MAX);
+
     spr_.setColorDepth(16);
+
     if (spr_.createSprite(TFT_WIDTH, TFT_HEIGHT) == nullptr) {
       Serial.println("ERROR: sprite allocation failed!");
       tft_.fillScreen(TFT_RED);
@@ -175,12 +182,22 @@ void DisplayTask::run() {
         }
 
         spr_.pushSprite(0, 0);
+
+        {
+          SemaphoreGuard lock(mutex_);
+          ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, brightness_);
+        }
         delay(2);
     }
 }
 
 QueueHandle_t DisplayTask::getKnobStateQueue() {
   return knob_state_queue_;
+}
+
+void DisplayTask::setBrightness(uint16_t brightness) {
+  SemaphoreGuard lock(mutex_);
+  brightness_ = brightness;
 }
 
 #endif

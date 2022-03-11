@@ -1,9 +1,29 @@
 #pragma once
 
 #include <Arduino.h>
+#include <vector>
 
 #include "knob_data.h"
 #include "task.h"
+
+
+enum class CommandType {
+    CONFIG,
+    HAPTIC,
+};
+
+struct HapticData {
+    bool press;
+};
+
+struct Command {
+    CommandType command_type;
+    union CommandData {
+        KnobConfig config;
+        HapticData haptic;
+    };
+    CommandData data;
+};
 
 class MotorTask : public Task<MotorTask> {
     friend class Task<MotorTask>; // Allow base Task to invoke protected run()
@@ -13,6 +33,7 @@ class MotorTask : public Task<MotorTask> {
         ~MotorTask();
 
         void setConfig(const KnobConfig& config);
+        void playHaptic(bool press);
 
         void addListener(QueueHandle_t queue);
 

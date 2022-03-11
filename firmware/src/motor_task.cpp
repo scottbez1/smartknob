@@ -16,8 +16,8 @@ static const float IDLE_CORRECTION_MAX_ANGLE_RAD = 5 * PI / 180;
 static const float IDLE_CORRECTION_RATE_ALPHA = 0.0005;
 
 
-MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 8192, 1, task_core) {
-    queue_ = xQueueCreate(1, sizeof(KnobConfig));
+MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 1200, 1, task_core) {
+    queue_ = xQueueCreate(5, sizeof(Command));
     assert(queue_ != NULL);
 }
 
@@ -52,16 +52,15 @@ void MotorTask::run() {
     //float zero_electric_offset = 0.4; // handheld 1
     // float zero_electric_offset = -0.8; // handheld 2
     // float zero_electric_offset = 2.93; //0.15; // 17mm test
-    float zero_electric_offset = 0.66; // 15mm handheld
-    Direction foc_direction = Direction::CCW;
+    // float zero_electric_offset = 0.66; // 15mm handheld
+    float zero_electric_offset = 7.34;
+    Direction foc_direction = Direction::CW;
     motor.pole_pairs = 7;
 
     driver.voltage_power_supply = 5;
     driver.init();
 
     #if SENSOR_TLV
-    Wire.begin(PIN_SDA, PIN_SCL);
-    Wire.setClock(400000);
     encoder.init(Wire, false);
     #endif
 
@@ -301,28 +300,54 @@ void MotorTask::run() {
     while (1) {
         motor.loopFOC();
 
-        if (xQueueReceive(queue_, &config, 0) == pdTRUE) {
-            Serial.println("Got new config");
-            current_detent_center = motor.shaft_angle;
+        Command command;
+        if (xQueueReceive(queue_, &command, 0) == pdTRUE) {
+            switch (command.command_type) {
+                case CommandType::CONFIG: {
+                    config = command.data.config;
+                    Serial.println("Got new config");
+                    current_detent_center = motor.shaft_angle;
+                    #if SK_INVERT_ROTATION
+                        current_detent_center = -motor.shaft_angle;
+                    #endif
 
-            // Update derivative factor of torque controller based on detent width.
-            // If the D factor is large on coarse detents, the motor ends up making noise because the P&D factors amplify the noise from the sensor.
-            // This is a piecewise linear function so that fine detents (small width) get a higher D factor and coarse detents get a small D factor.
-            // Fine detents need a nonzero D factor to artificially create "clicks" each time a new value is reached (the P factor is small
-            // for fine detents due to the smaller angular errors, and the existing P factor doesn't work well for very small angle changes (easy to
-            // get runaway due to sensor noise & lag)).
-            // TODO: consider eliminating this D factor entirely and just "play" a hardcoded haptic "click" (e.g. a quick burst of torque in each
-            // direction) whenever the position changes when the detent width is too small for the P factor to work well.
-            const float derivative_lower_strength = config.detent_strength_unit * 0.1;
-            const float derivative_upper_strength = config.detent_strength_unit * 0.02;
-            const float derivative_position_width_lower = 5 * PI / 180;
-            const float derivative_position_width_upper = 10 * PI / 180;
-            const float raw = derivative_lower_strength + (derivative_upper_strength - derivative_lower_strength)/(derivative_position_width_upper - derivative_position_width_lower)*(config.position_width_radians - derivative_position_width_lower);
-            motor.PID_velocity.D = CLAMP(
-                raw,
-                min(derivative_lower_strength, derivative_upper_strength),
-                max(derivative_lower_strength, derivative_upper_strength)
-            );
+                    // Update derivative factor of torque controller based on detent width.
+                    // If the D factor is large on coarse detents, the motor ends up making noise because the P&D factors amplify the noise from the sensor.
+                    // This is a piecewise linear function so that fine detents (small width) get a higher D factor and coarse detents get a small D factor.
+                    // Fine detents need a nonzero D factor to artificially create "clicks" each time a new value is reached (the P factor is small
+                    // for fine detents due to the smaller angular errors, and the existing P factor doesn't work well for very small angle changes (easy to
+                    // get runaway due to sensor noise & lag)).
+                    // TODO: consider eliminating this D factor entirely and just "play" a hardcoded haptic "click" (e.g. a quick burst of torque in each
+                    // direction) whenever the position changes when the detent width is too small for the P factor to work well.
+                    const float derivative_lower_strength = config.detent_strength_unit * 0.08;
+                    const float derivative_upper_strength = config.detent_strength_unit * 0.02;
+                    const float derivative_position_width_lower = radians(3);
+                    const float derivative_position_width_upper = radians(8);
+                    const float raw = derivative_lower_strength + (derivative_upper_strength - derivative_lower_strength)/(derivative_position_width_upper - derivative_position_width_lower)*(config.position_width_radians - derivative_position_width_lower);
+                    motor.PID_velocity.D = CLAMP(
+                        raw,
+                        min(derivative_lower_strength, derivative_upper_strength),
+                        max(derivative_lower_strength, derivative_upper_strength)
+                    );
+                    break;
+                }
+                case CommandType::HAPTIC: {
+                    float strength = command.data.haptic.press ? 5 : 1.5;
+                    motor.move(strength);
+                    for (uint8_t i = 0; i < 3; i++) {
+                        motor.loopFOC();
+                        delay(1);
+                    }
+                    motor.move(-strength);
+                    for (uint8_t i = 0; i < 3; i++) {
+                        motor.loopFOC();
+                        delay(1);
+                    }
+                    motor.move(0);
+                    motor.loopFOC();
+                    break;
+                }
+            }
         }
 
         idle_check_velocity_ewma = motor.shaft_velocity * IDLE_VELOCITY_EWMA_ALPHA + idle_check_velocity_ewma * (1 - IDLE_VELOCITY_EWMA_ALPHA);
@@ -347,6 +372,9 @@ void MotorTask::run() {
         }
 
         float angle_to_detent_center = motor.shaft_angle - current_detent_center;
+        #if SK_INVERT_ROTATION
+            angle_to_detent_center = -motor.shaft_angle - current_detent_center;
+        #endif
         if (angle_to_detent_center > config.position_width_radians * config.snap_point && (config.num_positions <= 0 || config.position > 0)) {
             current_detent_center += config.position_width_radians;
             angle_to_detent_center -= config.position_width_radians;
@@ -372,7 +400,11 @@ void MotorTask::run() {
             // Don't apply torque if velocity is too high (helps avoid positive feedback loop/runaway)
             motor.move(0);
         } else {
-            motor.move(motor.PID_velocity(-angle_to_detent_center + dead_zone_adjustment));
+            float torque = motor.PID_velocity(-angle_to_detent_center + dead_zone_adjustment);
+            #if SK_INVERT_ROTATION
+                torque = -torque;
+            #endif
+            motor.move(torque);
         }
 
         if (millis() - last_publish > 10) {
@@ -392,8 +424,28 @@ void MotorTask::run() {
 }
 
 void MotorTask::setConfig(const KnobConfig& config) {
-    xQueueOverwrite(queue_, &config);
+    Command command = {
+        .command_type = CommandType::CONFIG,
+        .data = {
+            .config = config,
+        }
+    };
+    xQueueSend(queue_, &command, portMAX_DELAY);
 }
+
+
+void MotorTask::playHaptic(bool press) {
+    Command command = {
+        .command_type = CommandType::HAPTIC,
+        .data = {
+            .haptic = {
+                .press = press,
+            },
+        }
+    };
+    xQueueSend(queue_, &command, portMAX_DELAY);
+}
+
 
 void MotorTask::addListener(QueueHandle_t queue) {
     listeners_.push_back(queue);

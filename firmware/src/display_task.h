@@ -17,6 +17,8 @@ class DisplayTask : public Task<DisplayTask> {
 
         QueueHandle_t getKnobStateQueue();
 
+        void setBrightness(uint16_t brightness);
+
     protected:
         void run();
 
@@ -29,5 +31,14 @@ class DisplayTask : public Task<DisplayTask> {
         QueueHandle_t knob_state_queue_;
 
         KnobState state_;
+
+        SemaphoreHandle_t mutex_;
+
+        uint16_t brightness_;
 };
+
+#else
+
+class DisplayTask {};
+
 #endif
