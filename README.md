@@ -30,9 +30,11 @@ Features:
     <img src="https://img.youtube.com/vi/ip641WmY4pA/maxresdefault.jpg" width="480" />
 </a>
 
-#### Exploded view
+#### 3D CAD
 
 ![Exploded view](doc/img/explodedv145.gif)
+
+Latest Fusion 360 Model: https://a360.co/3BzkU0n
 
 #### Base PCB
 
