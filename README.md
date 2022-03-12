@@ -43,9 +43,12 @@ More documentation on the BOM and what parts you need to order is coming in the 
 
 A few miscellaneous notes in the meantime:
 
- - This can probably be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish
- - There's limited space inside the LCD mount for wiring, and 8 wires need to fit through. I used 30 AWG wire-wrapping wire. Enamel-coated wire would probably work too.
+ - This can _probably_ be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish
+ - If you wanted a simpler build, you could omit the LCD and just merge the knob + glass from the model into a single STL to get a closed-top knob
+ - There's limited space inside the LCD mount for wiring, and 8 wires need to fit through the hole in the center. I used 30 AWG wire-wrapping wire. Enamel-coated wire would probably work too.
  - Strain gauges are BF350-3AA, and glued in place with CA glue (I'll include video of this process in the future, but essentially I used kapton tape to pick up the strain gauge and hold it in place during curing). This has to be done after reflow soldering, and would be hard to remove in case of a mistake, so MAKE SURE TO PRACTICE FIRST!
+ - The TMC6300 is _tiny_ and has a bottom pad, so I would seriously consider getting a stencil along with the PCB order. Even with the stencil I needed to manually clean up some bridging afterward; I _highly_ recommend Chip Quik NC191 gel flux, available on [Amazon](https://amzn.to/3MGDSr5) (or use this [non-affiliate link](https://www.amazon.com/Smooth-Flow-No-Clean-syringe-plunger/dp/B08KJPG3NZ) instead) or from your electronics distributor of choice.
+ - For breadboard prototyping, the [TMC6300-BOB](https://www.trinamic.com/support/eval-kits/details/tmc6300-bob/) is awesome and way easier to work with than the bare chip
  - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly, but that's the fun of DIY, right?
 
 Future plans:
@@ -175,25 +178,35 @@ This is overall the easiest motor to get started with. Low cogging and a built-i
 
 [AliExpress](https://www.aliexpress.com/item/1005001384349991.html)
 
-#### ~17mm Rotor
-<a href="doc/img/motors/PXL_20220121_220530808.jpg"><img src="doc/img/motors/PXL_20220121_220530808.jpg" width="200" /></a>
-<a href="doc/img/motors/PXL_20220121_220546761.jpg"><img src="doc/img/motors/PXL_20220121_220546761.jpg" width="200" /></a>
 
-- Not tested yet
-- Stepped 17.3mm and 16.3mm diameter rotor
-- 11.2mm total height, 8.6mm rotor height
-- moderate cogging - not ideal for completely smooth input
-- Rotor has threaded hole on the side that should be usable for keying a cap
-- Very little shaft accessible on bottom - may be tricky to mount a diametric magnet to it. Maybe could replace screw with something else?
 
-[AliExpress](https://www.aliexpress.com/item/1005003240145615.html)
+Coming soon: I've ordered over a dozen different BLDC motors to test and will create an overview of which ones are suitable for this kind of haptic feedback use-case.
 
 # Firmware
-TODO
+TODO: document this
+
+Also TODO: implement a lot more of the firmware
+
+# Frequently Asked Questions (FAQ)
+
+**How much does it cost?**
+
+I wish I could tell you now, but I don't actually know off the top of my head. Check back soon - I've only built 1 so far, which was the result of a bunch of tinkering and prototyping over an extended period, so I don't have all the expenses tallied up yet. Certainly less than $200 in parts, and maybe closer to $100?
+
+**Does it work with XYZ?**
+
+No. So far I've only implemented enough firmware for the demo shown in the video, so you can't actually use it for anything productive yet. The basic detent configuration API is there, but not much else. Lots of firmware work remains to be done. If you build one, I'd love your help adding support for XYZ though!
+
+**Can I buy one as a kit or already assembled?**
+
+Probably not? Or at least, I don't have any immediate plans to sell them myself. It's not that I don't want you to be happy, but hardware is a hard business and I just work on this stuff in my free time.
+
+It's open source with a fairly permissive license though, so in theory anyone could start offering kits/assemblies. If someone does go down that route of selling them, note that attribution is
+ _required_ (and I wouldn't say no to [royalties/tips/thanks](https://github.com/sponsors/scottbez1/) if you're in a giving mood 🙂).
 
 # Acknowledgements
 This project was greatly inspired by Jesse Schoch's video "[haptic textures and virtual detents](https://www.youtube.com/watch?v=1gPQfDkX3BU)" and the
-corresponding [discussion in the SimpleFOC community](https://community.simplefoc.com/t/haptic-textures/301).
+corresponding [discussion in the SimpleFOC community](https://community.simplefoc.com/t/haptic-textures/301). Seriously, this project wouldn't exist if not for that video - thank you Jesse!
 
 
 # License
