@@ -310,4 +310,58 @@ Text Label 5500 3650 0    50   ~ 0
 MOSI
 Text Label 5500 3750 0    50   ~ 0
 nRESET
+$Comp
+L Connector_Generic:Conn_01x04 J4
+U 1 1 626526C1
+P 7400 2850
+F 0 "J4" H 7480 2842 50  0000 L CNN
+F 1 "Conn_01x04" H 7480 2751 50  0000 L CNN
+F 2 "SolderPads:SolderPads_2mm_4" H 7400 2850 50  0001 C CNN
+F 3 "~" H 7400 2850 50  0001 C CNN
+	1    7400 2850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7200 2750 6750 2750
+Wire Wire Line
+	7200 2850 6750 2850
+Wire Wire Line
+	7200 2950 6750 2950
+Wire Wire Line
+	7200 3050 6750 3050
+Text Label 6750 2750 0    50   ~ 0
+GND
+Text Label 6750 2850 0    50   ~ 0
+VDD
+Text Label 6750 2950 0    50   ~ 0
+BACKLIGHT_EN
+Text Label 6750 3050 0    50   ~ 0
+DC
+$Comp
+L Connector_Generic:Conn_01x04 J5
+U 1 1 62654604
+P 7400 3550
+F 0 "J5" H 7480 3542 50  0000 L CNN
+F 1 "Conn_01x04" H 7480 3451 50  0000 L CNN
+F 2 "SolderPads:SolderPads_2mm_4" H 7400 3550 50  0001 C CNN
+F 3 "~" H 7400 3550 50  0001 C CNN
+	1    7400 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7200 3450 6750 3450
+Wire Wire Line
+	7200 3550 6750 3550
+Wire Wire Line
+	7200 3650 6750 3650
+Wire Wire Line
+	7200 3750 6750 3750
+Text Label 6750 3450 0    50   ~ 0
+nCS
+Text Label 6750 3550 0    50   ~ 0
+SCK
+Text Label 6750 3650 0    50   ~ 0
+MOSI
+Text Label 6750 3750 0    50   ~ 0
+nRESET
 $EndSCHEMATC
