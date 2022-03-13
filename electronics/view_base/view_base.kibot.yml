@@ -8,32 +8,6 @@ preflight:
   update_xml: true
 
 outputs:
-  # - name: pdf
-  #   type: pdf_pcb_print
-  #   dir: pdf
-  #   options:
-  #     separated: true
-  #   layers:
-  #     - 'F.Cu'
-  #     - 'B.Cu'
-  #     - 'F.Paste'
-  #     - 'B.Paste'
-  #     - 'F.SilkS'
-  #     - 'B.SilkS'
-  #     - 'Edge.Cuts'
-
-  # - name: gerber
-  #   type: gerber
-  #   dir: gerber
-  #   layers:
-  #     - 'F.Cu'
-  #     - 'B.Cu'
-  #     - 'F.Paste'
-  #     - 'B.Paste'
-  #     - 'F.SilkS'
-  #     - 'B.SilkS'
-  #     - 'Edge.Cuts'
-
   - name: ibom
     comment: 'Interactive BOM'
     type: ibom
@@ -45,24 +19,12 @@ outputs:
   - name: schematic
     type: pdf_sch_print
 
-  # - name: 3d
-  #   type: render_3d
-  #   options:
-  #     no_virtual: true
-  #     view: 'top'
-  #     silk: '#111111'
-  #     solder_mask: '#ffffff'
-  #     board: '#C3BA9B'
-  #     copper: '#99967F'
-  #     zoom: 4
-  #     orthographic: true
-  #     ray_tracing: true
-  #     height: 1920
-  #     width: 1920
-
-  # - name: 3d_back
-  #   type: render_3d
-  #   extends: 3d
-  #   options:
-  #     view: 'bottom'
-  #     zoom: 3
+  - name: 'bom_csv'
+    comment: "Bill of Materials in CSV format"
+    type: bom
+    options:
+      use_alt: false
+      number: 1
+      aggregate:
+        - file: ../view_screen/view_screen.sch
+          number: 1
