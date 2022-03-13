@@ -26,5 +26,7 @@ outputs:
       use_alt: false
       number: 1
       aggregate:
-        - file: ../view_screen/view_screen.sch
+        - file: electronics/view_screen/view_screen.sch
+          name: 'Screen'
           number: 1
+          ref_id: 'SCREEN-'
