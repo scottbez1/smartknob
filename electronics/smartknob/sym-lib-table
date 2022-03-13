@@ -1,3 +1,0 @@
-(sym_lib_table
-  (lib (name lilygo_micro32)(type Legacy)(uri ${KIPRJMOD}/lib/lilygo_micro32.lib)(options "")(descr ""))
-)

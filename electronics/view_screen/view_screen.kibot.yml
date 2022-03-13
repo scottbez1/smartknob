@@ -14,7 +14,7 @@ outputs:
     options:
       dark_mode: true
       netlist_file: '%F.xml'
-      # extra_fields: 'LCSC'
+      extra_fields: 'LCSC,Mouser,Digikey,AliExpress,Note'
 
   - name: schematic
     type: pdf_sch_print

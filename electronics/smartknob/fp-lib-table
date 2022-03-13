@@ -1,5 +1,0 @@
-(fp_lib_table
-  (lib (name lilygo_micro32)(type KiCad)(uri ${KIPRJMOD}/lib/lilygo_micro32.pretty)(options "")(descr ""))
-  (lib (name sk6812)(type KiCad)(uri ${KIPRJMOD}/lib/sk6812.pretty)(options "")(descr ""))
-  (lib (name tube_mounts)(type KiCad)(uri ${KIPRJMOD}/lib/tube_mounts.pretty)(options "")(descr ""))
-)
