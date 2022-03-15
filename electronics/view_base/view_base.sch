@@ -2965,4 +2965,30 @@ F 5 "https://www.aliexpress.com/item/1005001384349991.html" H 8050 1800 50  0001
 	1    8050 1800
 	1    0    0    -1  
 $EndComp
+$Comp
+L Mechanical:MountingHole_Pad H8
+U 1 1 623284D1
+P 5350 1750
+F 0 "H8" H 5300 2000 50  0000 L CNN
+F 1 "AlignmentHole" H 5300 1950 50  0000 L CNN
+F 2 "Holes:MountingHole_2.2mm_M2_ISO7380_Pad_NonVirtual" H 5350 1750 50  0001 C CNN
+F 3 "~" H 5350 1750 50  0001 C CNN
+F 4 "" H 5350 1750 50  0001 C CNN "Note"
+	1    5350 1750
+	1    0    0    -1  
+$EndComp
+NoConn ~ 5350 1850
+$Comp
+L Mechanical:MountingHole_Pad H9
+U 1 1 623284D9
+P 5800 1750
+F 0 "H9" H 5750 2000 50  0000 L CNN
+F 1 "AlignmentHole" H 5750 1950 50  0000 L CNN
+F 2 "Holes:MountingHole_2.2mm_M2_ISO7380_Pad_NonVirtual" H 5800 1750 50  0001 C CNN
+F 3 "~" H 5800 1750 50  0001 C CNN
+F 4 "" H 5800 1750 50  0001 C CNN "Note"
+	1    5800 1750
+	1    0    0    -1  
+$EndComp
+NoConn ~ 5800 1850
 $EndSCHEMATC
