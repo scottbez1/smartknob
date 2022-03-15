@@ -1569,10 +1569,6 @@ Text Label 15700 1600 2    50   ~ 0
 USB_SERIAL_RXI
 Text Label 15700 1700 2    50   ~ 0
 USB_SERIAL_TXO
-Wire Wire Line
-	15700 1700 14900 1700
-Wire Wire Line
-	14900 1600 15700 1600
 $Comp
 L Connector_Generic:Conn_01x08 J3
 U 1 1 622DFEF9
@@ -2991,4 +2987,30 @@ F 4 "" H 5800 1750 50  0001 C CNN "Note"
 	1    0    0    -1  
 $EndComp
 NoConn ~ 5800 1850
+$Comp
+L Connector:TestPoint_Small TP15
+U 1 1 62379E81
+P 15800 1600
+F 0 "TP15" H 15848 1646 50  0000 L CNN
+F 1 "TX" H 15850 1600 50  0000 L CNN
+F 2 "Modified:TestPoint_Pad_D2.0mm_ValueSilk" H 16000 1600 50  0001 C CNN
+F 3 "~" H 16000 1600 50  0001 C CNN
+	1    15800 1600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	14900 1600 15800 1600
+$Comp
+L Connector:TestPoint_Small TP16
+U 1 1 623A126C
+P 15800 1700
+F 0 "TP16" H 15848 1746 50  0000 L CNN
+F 1 "RX" H 15850 1700 50  0000 L CNN
+F 2 "Modified:TestPoint_Pad_D2.0mm_ValueSilk" H 16000 1700 50  0001 C CNN
+F 3 "~" H 16000 1700 50  0001 C CNN
+	1    15800 1700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	14900 1700 15800 1700
 $EndSCHEMATC
