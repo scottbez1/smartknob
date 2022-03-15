@@ -21,22 +21,22 @@ jobs:
 
       - name: Export JLCPCB fabrication files [view_base]
         run: |
-          ./electronics/scripts/export_jlcpcb.py electronics/view_base/view_base.kicad_pcb
+          ./electronics/scripts/export_jlcpcb.py --release-prefix releases/view_base/ electronics/view_base/view_base.kicad_pcb
           cp -r electronics/build/view_base-jlc electronics/build/outputs
 
       - name: Export PCB overview PDF [view_base]
         run: |
-          ./electronics/scripts/generate_pdf.py electronics/view_base/view_base.kicad_pcb
+          ./electronics/scripts/generate_pdf.py --release-prefix releases/view_base/ electronics/view_base/view_base.kicad_pcb
           cp electronics/build/view_base-pcb-packet.pdf electronics/build/outputs
         env:
           PYTHONUNBUFFERED: 1
 
       - name: Render PCB 3D [view_base]
         run: |
-          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix front --width 1024 --height 1024 --skip-virtual --color-soldermask 1 1 1 --color-silk 0.1 0.1 0.1 transform z+ z+ rx+ rx+ rz- ry- ry- mu
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix front --width 1024 --height 1024 --skip-virtual --color-soldermask 1 1 1 --color-silk 0.1 0.1 0.1 --release-prefix releases/view_base/ transform z+ z+ rx+ rx+ rz- ry- ry- mu
           cp electronics/build/view_base-front-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_base-front-3d.png
-          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix back --width 1024 --height 1024 --skip-virtual --color-soldermask 1 1 1 --color-silk 0.1 0.1 0.1 transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ rx+ rx+ rz- ry+ ry+ mu
+          ./electronics/scripts/export_3d.py electronics/view_base/view_base.kicad_pcb --suffix back --width 1024 --height 1024 --skip-virtual --color-soldermask 1 1 1 --color-silk 0.1 0.1 0.1 --release-prefix releases/view_base/ transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ rx+ rx+ rz- ry+ ry+ mu
           cp electronics/build/view_base-back-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_base-back-3d.png
         env:
@@ -44,22 +44,22 @@ jobs:
 
       - name: Export JLCPCB fabrication files [view_screen]
         run: |
-          ./electronics/scripts/export_jlcpcb.py electronics/view_screen/view_screen.kicad_pcb
+          ./electronics/scripts/export_jlcpcb.py --release-prefix releases/view_screen/ electronics/view_screen/view_screen.kicad_pcb
           cp -r electronics/build/view_screen-jlc electronics/build/outputs
 
       - name: Export PCB overview PDF [view_screen]
         run: |
-          ./electronics/scripts/generate_pdf.py electronics/view_screen/view_screen.kicad_pcb
+          ./electronics/scripts/generate_pdf.py --release-prefix releases/view_screen/ electronics/view_screen/view_screen.kicad_pcb
           cp electronics/build/view_screen-pcb-packet.pdf electronics/build/outputs
         env:
           PYTHONUNBUFFERED: 1
 
       - name: Render PCB 3D [view_screen]
         run: |
-          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix front --width 1024 --height 1024 --skip-virtual transform z+ z+ rx+ rx+ rz- ry- ry- mu
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix front --width 1024 --height 1024 --skip-virtual --release-prefix releases/view_screen/ transform z+ z+ rx+ rx+ rz- ry- ry- mu
           cp electronics/build/view_screen-front-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_screen-front-3d.png
-          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix back --width 1024 --height 1024 --skip-virtual transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ rx+ rx+ rz- ry+ ry+ mu
+          ./electronics/scripts/export_3d.py electronics/view_screen/view_screen.kicad_pcb --suffix back --width 1024 --height 1024 --skip-virtual --release-prefix releases/view_screen/ transform z+ z+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ ry+ rx+ rx+ rz- ry+ ry+ mu
           cp electronics/build/view_screen-back-3d.png electronics/build/outputs
           ./scripts/annotate_image.sh electronics/build/outputs/view_screen-back-3d.png
         env:

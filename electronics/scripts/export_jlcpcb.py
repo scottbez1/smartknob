@@ -33,13 +33,13 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def export_jlcpcb(pcb, schematic, alt_fields):
+def export_jlcpcb(pcb, schematic, alt_fields, release_prefix):
     pcb_file = os.path.abspath(pcb)
 
     output_dir = os.path.join(electronics_root, 'build', os.path.splitext(os.path.basename(pcb_file))[0] + '-jlc')
     file_util.mkdir_p(output_dir)
 
-    with versioned_file(pcb_file):
+    with versioned_file(pcb_file, release_prefix):
         command = [
             'kikit',
             'fab',
@@ -66,5 +66,6 @@ if __name__ == '__main__':
     parser.add_argument('pcb')
     parser.add_argument('--assembly-schematic')
     parser.add_argument('--alt-fields', nargs='+')
+    parser.add_argument('--release-prefix', type=str, required=True, help='Tag prefix to check if this is a tagged/versioned release. E.g. "releases/" for tags like "releases/v1.0"')
     args = parser.parse_args()
-    export_jlcpcb(args.pcb, args.assembly_schematic, args.alt_fields)
+    export_jlcpcb(args.pcb, args.assembly_schematic, args.alt_fields, args.release_prefix)

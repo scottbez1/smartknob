@@ -29,8 +29,8 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 @contextmanager
-def versioned_board(filename):
-    _, versioned_contents = get_versioned_contents(filename)
+def versioned_board(filename, release_search_prefix):
+    _, versioned_contents = get_versioned_contents(filename, release_search_prefix)
     with tempfile.NamedTemporaryFile(suffix='.kicad_pcb', mode='w') as temp_pcb:
         logger.debug('Writing to %s', temp_pcb.name)
         temp_pcb.write(versioned_contents)
@@ -41,8 +41,8 @@ def versioned_board(filename):
         yield board
 
 @contextmanager
-def get_plotter(pcb_filename, build_directory):
-    with versioned_board(pcb_filename) as board:
+def get_plotter(pcb_filename, build_directory, release_prefix):
+    with versioned_board(pcb_filename, release_prefix) as board:
         yield Plotter(board, build_directory)
 
 
@@ -104,9 +104,10 @@ class Plotter(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test pcb util')
+    parser.add_argument('--release-prefix', type=str, required=True, help='Tag prefix to check if this is a tagged/versioned release. E.g. "releases/" for tags like "releases/v1.0"')
     parser.add_argument('input_file', help='Input .kicad_pcb file')
     args = parser.parse_args()
-    with versioned_board(args.input_file) as board:
+    with versioned_board(args.input_file, args.release_prefix) as board:
         logger.info('Loaded %s', board.GetFileName())
         for module in board.GetModules():
             logger.info('Module %s: %s', module.GetReference(), module.GetValue())

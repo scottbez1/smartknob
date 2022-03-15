@@ -83,24 +83,30 @@ def recorded_xvfb(video_filename, **xvfb_args):
             screencast_proc.terminate()
 
 
-def get_versioned_contents(filename):
+def get_versioned_contents(filename, release_search_prefix):
     with open(filename, 'r') as f:
         original_contents = f.read()
         date = rev_info.git_date()
         date_long = rev_info.git_date(short=False)
         rev = rev_info.git_short_rev()
         logger.info('Replacing placeholders with %s and %s' % (date, rev))
+        release_version = 'v#.#'
+        if release_search_prefix:
+            tag_version = rev_info.git_release_version(release_search_prefix)
+            if tag_version:
+                release_version = tag_version
         return original_contents, original_contents \
             .replace('Date ""', 'Date "%s"' % date_long) \
             .replace('DATE: YYYY-MM-DD TIME TZ', 'DATE: %s' % date_long) \
             .replace('DATE: YYYY-MM-DD', 'DATE: %s' % date) \
             .replace('Rev ""', 'Rev "%s"' % rev) \
-            .replace('COMMIT: deadbeef', 'COMMIT: %s' % rev)
+            .replace('COMMIT: deadbeef', 'COMMIT: %s' % rev) \
+            .replace('v#.#', release_version)
 
 
 @contextmanager
-def versioned_file(filename):
-    original_contents, versioned_contents = get_versioned_contents(filename)
+def versioned_file(filename, release_search_prefix):
+    original_contents, versioned_contents = get_versioned_contents(filename, release_search_prefix)
     with open(filename, 'w') as temp_schematic:
         logger.debug('Writing to %s', filename)
         temp_schematic.write(versioned_contents)

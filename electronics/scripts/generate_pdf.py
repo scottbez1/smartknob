@@ -29,21 +29,21 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def run(pcb_file):
+def run(pcb_file, release_prefix):
     output_directory = os.path.join(electronics_root, 'build')
     temp_dir = os.path.join(output_directory, 'temp_pdfs')
     shutil.rmtree(temp_dir, ignore_errors=True)
     try:
         os.makedirs(temp_dir)
-        plot_to_directory(pcb_file, output_directory, temp_dir)
+        plot_to_directory(pcb_file, output_directory, temp_dir, release_prefix)
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-def plot_to_directory(pcb_file, output_directory, temp_dir):
+def plot_to_directory(pcb_file, output_directory, temp_dir, release_prefix):
     board_name = os.path.splitext(os.path.basename(pcb_file))[0]
 
-    with pcb_util.get_plotter(pcb_file, temp_dir) as plotter:
+    with pcb_util.get_plotter(pcb_file, temp_dir, release_prefix) as plotter:
         plotter.plot_options.SetDrillMarksType(pcbnew.PCB_PLOT_PARAMS.NO_DRILL_SHAPE)
         plotter.plot_options.SetExcludeEdgeLayer(False)
 
@@ -74,7 +74,8 @@ def plot_to_directory(pcb_file, output_directory, temp_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Generate a pdf of the PCB')
+    parser.add_argument('--release-prefix', type=str, required=True, help='Tag prefix to check if this is a tagged/versioned release. E.g. "releases/" for tags like "releases/v1.0"')
     parser.add_argument('pcb_file')
     args = parser.parse_args()
-    run(args.pcb_file)
+    run(args.pcb_file, args.release_prefix)
 
