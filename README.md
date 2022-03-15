@@ -41,7 +41,7 @@ Latest Fusion 360 Model: https://a360.co/3BzkU0n
 
 More documentation on the BOM and what parts you need to order is coming in the future - thanks so much for your interest! Follow me on [Twitter](https://twitter.com/scottbez1) for the latest updates on this and other projects.
 
-View the [Base PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-ibom.html) and [Screen PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-ibom.html) (or, the combined [BOM csv](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-bom.csv)) for electronics/hardware parts list.
+View the latest auto-generated (untested) [Base PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-ibom.html) and [Screen PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-ibom.html) (or, the combined [BOM csv](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-bom.csv)) for electronics/hardware parts list. ⚠️ These are auto-generated from the latest untested revision on GitHub. For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 A few miscellaneous notes in the meantime:
 
@@ -51,6 +51,7 @@ A few miscellaneous notes in the meantime:
  - Strain gauges are BF350-3AA, and glued in place with CA glue (I'll include video of this process in the future, but essentially I used kapton tape to pick up the strain gauge and hold it in place during curing). This has to be done after reflow soldering, and would be hard to remove/fix in case of a mistake, so MAKE SURE TO PRACTICE GLUING strain gauges to other items before attempting on the PCB!
  - The TMC6300 is _tiny_ and has a bottom pad, so I would seriously consider getting a stencil along with the PCB order. Even with the stencil I needed to manually clean up some bridging afterward; I _highly_ recommend Chip Quik NC191 gel flux, available on [Amazon](https://amzn.to/3MGDSr5) (or use this [non-affiliate link](https://www.amazon.com/Smooth-Flow-No-Clean-syringe-plunger/dp/B08KJPG3NZ) instead) or from your electronics distributor of choice. Flux is also very helpful when soldering the LCD ribbon cable to to screen PCB.
  - For breadboard prototyping, the [TMC6300-BOB](https://www.trinamic.com/support/eval-kits/details/tmc6300-bob/) is awesome and way easier to work with than the bare chip if you just want to play around with low current BLDC motors
+ - For AliExpress purchases: I highly recommend **only** using AliExpress Standard Shipping (purchasing in the US). I have had multiple purchases take months or never get delivered when purchased with Cainiao or other low cost shipping options, whereas AliExpress Standard is very reliable and generally faster in my experience.
  - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly. I would not recommend ordering these parts yourself until the [stable release v1.0 milestone](https://github.com/scottbez1/smartknob/milestone/1) is complete, as there are some mechanical interference issues in the current revision.
 
 Future plans:
@@ -74,6 +75,8 @@ Future plans:
 
 Ordering notes: use white soldermask, for reflecting light from RGB LED ring around the knob. Should be 1.2mm thick (not "standard" 1.6mm).
 
+Latest auto-generated (untested and likely broken!) artifacts⚠️:
+
 [Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-schematic.pdf)
 
 [Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-ibom.html)
@@ -81,6 +84,8 @@ Ordering notes: use white soldermask, for reflecting light from RGB LED ring aro
 [PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-pcb-packet.pdf)
 
 [Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-jlc/gerbers.zip)
+
+⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 #### Screen PCB
 
@@ -93,6 +98,8 @@ Ordering notes: use white soldermask, for reflecting light from RGB LED ring aro
 
 Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design.
 
+Latest auto-generated (untested and likely broken!) artifacts⚠️:
+
 [Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-schematic.pdf)
 
 [Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-ibom.html)
@@ -100,6 +107,8 @@ Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design
 [PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-pcb-packet.pdf)
 
 [Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-jlc/gerbers.zip)
+
+⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 ### SmartKnob Handheld
 An exploration of a small handheld form-factor. Under active development.
@@ -180,7 +189,7 @@ This is overall the easiest motor to get started with. Low cogging and a built-i
 
 [AliExpress](https://www.aliexpress.com/item/1005001384349991.html)
 
-
+If the AliExpress listing above is out of stock, this [other listing](https://www.aliexpress.com/item/4001356858801.html) appears to be identical, but I am currently waiting for delivery to confirm it is actually the same, so purchase with caution.
 
 Coming soon: I've ordered over a dozen different BLDC motors to test and will create an overview of which ones are suitable for this kind of haptic feedback use-case.
 
