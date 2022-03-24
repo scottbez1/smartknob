@@ -10,9 +10,11 @@ A brushless gimbal motor is paired with a magnetic encoder to provide closed-loo
 ### SmartKnob View
 Premium SmartKnob experience. Under active development.
 
-Not recommended for general use yet (mechanical and electrical revisions are planned).
+**Update (2022-03-24): As a result of the popularity of this project, it seems like the recommended motors are unfortunately no longer available.** The seller is cancelling orders (after claiming they had already shipped), including an order I had placed *before I even publicized this project*, so I have removed the link to the AliExpress listing, and recommend that you avoid "Classic Motor Store" due to these shady practices. I would be wary of other sellers as well, as I expect that these motors are simply no longer in production and therefore limited stock is available (for future reference in case you find them for sale elsewhere at a higher price, they were originally selling for US$2.53 each before this project was published). In any case, I would recommend waiting to purchase other components until you have *received* the motors. I'm very sorry for this turn of events, and will keep an eye out for new motor availability going forward.
 
 Requires advanced soldering experience to build - reflow and/or small-pitch surface-mount soldering are required, and assembly is quite time-consuming and delicate.
+
+Not recommended for general use yet (mechanical and electrical revisions are planned).
 
 Features:
  - 240x240 round LCD, protected by 39.5mm watch glass on rotor
@@ -186,12 +188,6 @@ Highlights:
 - Proven option
 
 This is overall the easiest motor to get started with. Low cogging and a built-in diametric magnet are great!
-
-[AliExpress](https://www.aliexpress.com/item/1005001384349991.html)
-
-If the AliExpress listing above is out of stock, this [other listing](https://www.aliexpress.com/item/4001356858801.html) appears to be identical, but I am currently waiting for delivery to confirm it is actually the same, so purchase with caution.
-
-Coming soon: I've ordered over a dozen different BLDC motors to test and will create an overview of which ones are suitable for this kind of haptic feedback use-case.
 
 # Firmware
 TODO: document this
