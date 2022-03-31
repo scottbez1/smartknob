@@ -3,22 +3,18 @@ SmartKnob is an open-source input device with software-configurable endstops and
 
 A brushless gimbal motor is paired with a magnetic encoder to provide closed-loop torque feedback control, making it possible to dynamically create and adjust the feel of detents and endstops.
 
-# Hardware
+# Designs
 
-## Designs
-
-### SmartKnob View
+## SmartKnob View
 Premium SmartKnob experience. Under active development.
 
-**Update (2022-03-24): As a result of the popularity of this project, it seems like the recommended motors are unfortunately no longer available.** The seller is cancelling orders (after claiming they had already shipped), including an order I had placed *before I even publicized this project*, so I have removed the link to the AliExpress listing, and recommend that you avoid "Classic Motor Store" due to these shady practices. I would be wary of other sellers as well, as I expect that these motors are simply no longer in production and therefore limited stock is available (for future reference in case you find them for sale elsewhere at a higher price, they were originally selling for US$2.53 each before this project was published). In any case, I would recommend waiting to purchase other components until you have *received* the motors. I'm very sorry for this turn of events, and will keep an eye out for new motor availability going forward.
+⚠️ **Update (2022-03-24): As a result of the popularity of this project, it seems like the recommended motors are unfortunately no longer available.** I expect that these motors are simply no longer in production and therefore limited stock was available (for future reference in case you find them being sold elsewhere at a higher price, they were originally selling for US$2.56 each before this project was published). However... 👇
 
-Requires advanced soldering experience to build - reflow and/or small-pitch surface-mount soldering are required, and assembly is quite time-consuming and delicate.
-
-Not recommended for general use yet (mechanical and electrical revisions are planned).
+💡 **There is an ongoing search for new motors in issue #16** - follow along there for the latest info (or join in and help us find a good replacement). Any change in motor will likely require substantial redesigns, so *don't order PCBs/printed parts until there is more clarity on the motor.*
 
 Features:
- - 240x240 round LCD, protected by 39.5mm watch glass on rotor
- - Low cost BLDC gimbal motor, with a hollow shaft for mechanically & electrically connecting the LCD
+ - 240x240 round LCD ("GC9A01"), protected by 39.5mm watch glass on rotor
+ - BLDC gimbal motor, with a hollow shaft for mechanically & electrically connecting the LCD
  - Powered by ESP32-PICO-V3-02 (Lilygo TMicro32 Plus module)
  - PCB flexure and strain gauges used for press detection (haptic feedback provided via the motor)
  - 8 side-firing RGB LEDs (SK6812-SIDE-A) illuminate ring around the knob
@@ -27,19 +23,23 @@ Features:
  - Versatile back plate for mounting - use either 4x screws, or 2x 3M medium Command strips (with cutouts for accessing removal tabs after installation)
  - Front cover snaps on for easy access to the PCB
 
-#### Demo video
+**Current status:** Not recommended for general use (mechanical and electrical revisions are planned)
+
+### Demo video
 
 <a href="https://www.youtube.com/watch?v=ip641WmY4pA">
     <img src="https://img.youtube.com/vi/ip641WmY4pA/maxresdefault.jpg" width="480" />
 </a>
 
-#### 3D CAD
+### 3D CAD
 
 ![Exploded view](doc/img/explodedv145.gif)
 
 Latest Fusion 360 Model: https://a360.co/3BzkU0n
 
-#### Build your own?
+### Build your own?
+
+While this is a "DIY" open-source project, it is not yet a mature plug-and-play project. If you intend to build your own, note that it requires advanced soldering experience to build - very small-pitch surface-mount soldering is required (reflow or hot air recommended), and assembly is quite time-consuming and delicate. Please go into it with the expectation that you will almost certainly need to be able to troubleshoot some hardware and firmware issues yourself - I recommend reviewing/understanding the schematics and basic firmware before jumping in!
 
 More documentation on the BOM and what parts you need to order is coming in the future - thanks so much for your interest! Follow me on [Twitter](https://twitter.com/scottbez1) for the latest updates on this and other projects.
 
@@ -58,6 +58,7 @@ A few miscellaneous notes in the meantime:
 
 Future plans:
  - consider switch to using an ESP32-S3-MINI-1 module (once Arduino core support is complete), as that would allow for direct USB HID support (for joystick/macro-pad type input to a computer)
+ - Bluetooth HID support?
  - get wifi configured and working (probably MQTT?). Currently memory is an issue with the full display framebuffer sprite. PSRAM might fix this (requires newer ESP-IDF & unreleased Arduino core, and from a brief test I got horrible performance with PSRAM enabled), or the next item might help reduce memory:
  - migrate to LVGL, for better display rendering and easy support for menus, etc. Shouldn't require a full 240x240x24b framebuffer in memory, freeing some for wifi, etc.
  - integrate nanopb for structured serial data (see [splitflap protobuf protocol](https://github.com/scottbez1/splitflap/blob/1440aba54d5b0d822ec5da68762431879988d7ef/arduino/splitflap/esp32/splitflap/serial_proto_protocol.cpp) for example)
@@ -112,15 +113,30 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
-### SmartKnob Handheld
-An exploration of a small handheld form-factor. Under active development.
 
-<a href="doc/img/PXL_20220212_013249074.jpg"><img src="doc/img/PXL_20220212_013249074.jpg" width="200" /></a>
-
-### SmartKnob Mini
+## SmartKnob Mini
 Planned for the future.
 
-## Component Info
+
+# Frequently Asked Questions (FAQ)
+
+**How much does it cost?**
+
+I wish I could tell you now, but I don't actually know off the top of my head. Check back soon - I've only built 1 so far, which was the result of a bunch of tinkering and prototyping over an extended period, so I don't have all the expenses tallied up yet. Certainly less than $200 in parts, and maybe closer to $100?
+
+**Does it work with XYZ?**
+
+Not yet. So far I've only implemented enough firmware for the demo shown in the video, so you can't actually use it for anything productive yet. The basic detent configuration API is there, but not much else. Lots of firmware work remains to be done. If you build one, I'd love your help adding support for XYZ though!
+
+**Can I buy one as a kit or already assembled?**
+
+Probably not? Or at least, I don't have any immediate plans to sell them myself. It's not that I don't want you to be happy, but hardware is a hard business and I just work on this stuff in my free time.
+
+It's open source with a fairly permissive license though, so in theory anyone could start offering kits/assemblies. If someone does go down that route of selling them, note that attribution is
+ _required_ (and I wouldn't say no to [royalties/tips/thanks](https://github.com/sponsors/scottbez1/) if you're in a giving mood 🙂).
+
+
+## General Component Info
 
 ### Magnetic encoders
 
@@ -189,27 +205,12 @@ Highlights:
 
 This is overall the easiest motor to get started with. Low cogging and a built-in diametric magnet are great!
 
+Sadly, does not seem to be available any longer.
+
 # Firmware
 TODO: document this
 
 Also TODO: implement a lot more of the firmware
-
-# Frequently Asked Questions (FAQ)
-
-**How much does it cost?**
-
-I wish I could tell you now, but I don't actually know off the top of my head. Check back soon - I've only built 1 so far, which was the result of a bunch of tinkering and prototyping over an extended period, so I don't have all the expenses tallied up yet. Certainly less than $200 in parts, and maybe closer to $100?
-
-**Does it work with XYZ?**
-
-Not yet. So far I've only implemented enough firmware for the demo shown in the video, so you can't actually use it for anything productive yet. The basic detent configuration API is there, but not much else. Lots of firmware work remains to be done. If you build one, I'd love your help adding support for XYZ though!
-
-**Can I buy one as a kit or already assembled?**
-
-Probably not? Or at least, I don't have any immediate plans to sell them myself. It's not that I don't want you to be happy, but hardware is a hard business and I just work on this stuff in my free time.
-
-It's open source with a fairly permissive license though, so in theory anyone could start offering kits/assemblies. If someone does go down that route of selling them, note that attribution is
- _required_ (and I wouldn't say no to [royalties/tips/thanks](https://github.com/sponsors/scottbez1/) if you're in a giving mood 🙂).
 
 # Acknowledgements
 This project was greatly inspired by Jesse Schoch's video "[haptic textures and virtual detents](https://www.youtube.com/watch?v=1gPQfDkX3BU)" and the
