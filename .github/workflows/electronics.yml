@@ -21,7 +21,7 @@ jobs:
 
       - name: Export JLCPCB fabrication files [view_base]
         run: |
-          ./electronics/scripts/export_jlcpcb.py --release-prefix releases/view_base/ electronics/view_base/view_base.kicad_pcb
+          ./electronics/scripts/export_jlcpcb.py --release-prefix releases/view_base/ --assembly-schematic electronics/view_base/view_base.sch electronics/view_base/view_base.kicad_pcb
           cp -r electronics/build/view_base-jlc electronics/build/outputs
 
       - name: Export PCB overview PDF [view_base]
