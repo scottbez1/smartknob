@@ -4,6 +4,8 @@
 
 #include "font/roboto_light_60.h"
 
+static const uint8_t LEDC_CHANNEL_LCD_BACKLIGHT = 0;
+
 DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 4048, 1, task_core} {
   knob_state_queue_ = xQueueCreate(1, sizeof(KnobState));
   assert(knob_state_queue_ != NULL);

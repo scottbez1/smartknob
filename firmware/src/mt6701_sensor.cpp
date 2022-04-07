@@ -34,7 +34,7 @@ static uint8_t CRC6_43_18bit (uint32_t w_InputData)
  return b_CRC;
 } 
 
-
+#if SENSOR_MT6701
 
 MT6701Sensor::MT6701Sensor() {}
 
@@ -116,3 +116,5 @@ float MT6701Sensor::getSensorAngle() {
     }
     return rad;
 }
+
+#endif
