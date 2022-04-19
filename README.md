@@ -13,7 +13,7 @@ Premium SmartKnob experience. Under active development.
 
 ⚠️ **Update (2022-03-24): As a result of the popularity of this project, it seems like the recommended motors are unfortunately no longer available.** I expect that these motors are simply no longer in production and therefore limited stock was available (for future reference in case you find them being sold elsewhere at a higher price, they were originally selling for US$2.56 each before this project was published). However... 👇
 
-💡 **There is an ongoing search for new motors in issue #16** - follow along there for the latest info (or join in and help us find a good replacement). Any change in motor will likely require substantial redesigns, so *don't order PCBs/printed parts until there is more clarity on the motor.*
+💡 **There is an ongoing search for new motors in [issue #16](https://github.com/scottbez1/smartknob/issues/16)** - follow along there for the latest info (or join in and help us find a good replacement). Any change in motor will likely require substantial redesigns, so *don't order PCBs/printed parts until there is more clarity on the motor.*
 
 Features:
  - 240x240 round LCD ("GC9A01"), protected by 39.5mm watch glass on rotor
