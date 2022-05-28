@@ -154,7 +154,7 @@ void InterfaceTask::run() {
         FastLED.addLeds<SK6812, PIN_LED_DATA, GRB>(leds, NUM_LEDS);
     #endif
 
-    #if PIN_SDA >= 0 && PIN_SCL >= 0
+    #if SK_ALS && PIN_SDA >= 0 && PIN_SCL >= 0
         Wire.begin(PIN_SDA, PIN_SCL);
         Wire.setClock(400000);
     #endif
