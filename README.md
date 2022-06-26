@@ -11,9 +11,9 @@ A brushless gimbal motor is paired with a magnetic encoder to provide closed-loo
 ## SmartKnob View
 Premium SmartKnob experience. Under active development.
 
-⚠️ **Update (2022-03-24): As a result of the popularity of this project, it seems like the recommended motors are unfortunately no longer available.** I expect that these motors are simply no longer in production and therefore limited stock was available (for future reference in case you find them being sold elsewhere at a higher price, they were originally selling for US$2.56 each before this project was published). However... 👇
+⚠️ **As a result of the popularity of this project, it seems like the recommended motors are unfortunately no longer available.** I expect that these motors are simply no longer in production and therefore limited stock was available. However... 👇
 
-💡 **There is an ongoing search for new motors in [issue #16](https://github.com/scottbez1/smartknob/issues/16)** - follow along there for the latest info (or join in and help us find a good replacement). Any change in motor will likely require substantial redesigns, so *don't order PCBs/printed parts until there is more clarity on the motor.*
+💡 **There is an ongoing search for new motors** and I am currently in talks with what appears to be the original motor manufacturer about getting new motors manufactured (updated as of 2022-06-26). A summary of the motor search is being kept up to date in the [wiki](https://github.com/scottbez1/smartknob/wiki/Motor-Status), and there's a long discussion in [issue #16](https://github.com/scottbez1/smartknob/issues/16) - follow along there for the latest info (or join in and help us find a good replacement, but please check the wiki to see if your suggestion has already been mentioned before posting your own comment!). Any change in motor will likely require substantial redesigns, so *don't order PCBs/printed parts until there is more clarity on the motor.*
 
 Features:
  - 240x240 round LCD ("GC9A01"), protected by 39.5mm watch glass on rotor
@@ -26,12 +26,17 @@ Features:
  - Versatile back plate for mounting - use either 4x screws, or 2x 3M medium Command strips (with cutouts for accessing removal tabs after installation)
  - Front cover snaps on for easy access to the PCB
 
-**Current status:** Not recommended for general use (mechanical and electrical revisions are planned)
+**Current status:** Not recommended for general use (mechanical and electrical revisions may be needed depending on motor/electronics availability)
 
 ### Demo video
 
 <a href="https://www.youtube.com/watch?v=ip641WmY4pA">
     <img src="https://img.youtube.com/vi/ip641WmY4pA/maxresdefault.jpg" width="480" />
+</a>
+
+### How it works
+<a href="https://www.youtube.com/watch?v=Q76dMggUH1M">
+    <img src="https://img.youtube.com/vi/Q76dMggUH1M/maxresdefault.jpg" width="480" />
 </a>
 
 ### 3D CAD
