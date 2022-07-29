@@ -211,7 +211,7 @@ Highlights:
 - built-in diametric magnet for encoder
 - Proven option
 
-This is overall the easiest motor to get started with. Low cogging and a built-in diametric magnet are great!
+This is overall the easiest motor to get started with, low cogging and a built-in diametric magnet are great!
 
 Sadly, does not seem to be available any longer.
 
