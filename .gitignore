@@ -8,6 +8,7 @@
 *.dsn
 fp-info-cache
 _autosave*.kicad_pcb
+*.kicad_prl
 
 # Proprietary 3d model (for KiCAD)
 **/proprietary/*.stp
