@@ -106,6 +106,10 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
 [Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-jlc/gerbers.zip)
 
+[BOM (for JLCPCB assembly](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-jlc/bom.csv) (warning: completely untested!)
+
+[CPL (for JLCPCB assembly)](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-jlc/pos.csv)  (warning: completely untested!)
+
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 #### Screen PCB
