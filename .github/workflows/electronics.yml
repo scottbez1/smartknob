@@ -66,7 +66,7 @@ jobs:
           PYTHONUNBUFFERED: 1
 
       - name: Export artifacts (KiBot) [view_base]
-        uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
+        uses: INTI-CMNB/KiBot@9fdbfa54117f1cac88ba92a402679d1debce8640
         with:
           config: electronics/view_base/view_base.kibot.yml
           dir: electronics/build/outputs
@@ -74,7 +74,7 @@ jobs:
           board: 'electronics/view_base/view_base.kicad_pcb'
 
       - name: Export artifacts (KiBot) [view_screen]
-        uses: INTI-CMNB/KiBot@fb6d637c17fbba2daf005a9a7972e4c02c1c997c
+        uses: INTI-CMNB/KiBot@9fdbfa54117f1cac88ba92a402679d1debce8640
         with:
           config: electronics/view_screen/view_screen.kibot.yml
           dir: electronics/build/outputs

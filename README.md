@@ -1,7 +1,8 @@
 # SmartKnob
 SmartKnob is an open-source input device with software-configurable endstops and virtual detents.
 
-A brushless gimbal motor is paired with a magnetic encoder to provide closed-loop torque feedback control, making it possible to dynamically create and adjust the feel of detents and endstops.
+A brushless gimbal motor is paired with a magnetic encoder to provide closed-loop torque feedback control, making it
+possible to dynamically create and adjust the feel of detents and endstops.
 
 [![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml/badge.svg?branch=master)](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml)
 [![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml/badge.svg?branch=master)](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml)
@@ -11,9 +12,12 @@ A brushless gimbal motor is paired with a magnetic encoder to provide closed-loo
 ## SmartKnob View
 Premium SmartKnob experience. Under active development.
 
-⚠️ **As a result of the popularity of this project, it seems like the recommended motors are unfortunately no longer available.** I expect that these motors are simply no longer in production and therefore limited stock was available. However... 👇
-
-💡 **There is an ongoing search for new motors** and I am currently in talks with what appears to be the original motor manufacturer about getting new motors manufactured (updated as of 2022-06-26). A summary of the motor search is being kept up to date in the [wiki](https://github.com/scottbez1/smartknob/wiki/Motor-Status), and there's a long discussion in [issue #16](https://github.com/scottbez1/smartknob/issues/16) - follow along there for the latest info (or join in and help us find a good replacement, but please check the wiki to see if your suggestion has already been mentioned before posting your own comment!). Any change in motor will likely require substantial redesigns, so *don't order PCBs/printed parts until there is more clarity on the motor.*
+🎉 **Motors are [now available](https://www.sparkfun.com/products/20441)!** If you've been following this project,
+you'll know that the recommended motors went out of stock nearly immediately after it was published.
+Thanks to [the community](https://github.com/scottbez1/smartknob/issues/16#issuecomment-1094482805%5D), we were able to
+identify the likely original manufacturer, and recently SparkFun Electronics funded a new production run and are now
+[selling them](https://www.sparkfun.com/products/20441)! Thanks to everyone who helped search and investigate different
+motor options along the way!
 
 Features:
  - 240x240 round LCD ("GC9A01"), protected by 39.5mm watch glass on rotor
@@ -86,6 +90,12 @@ Future plans:
 
 Ordering notes: use white soldermask, for reflecting light from RGB LED ring around the knob. Should be 1.2mm thick (not "standard" 1.6mm).
 
+If you are ordering a stencil for solder paste from JLCPCB and plan to apply paste by hand (as
+[shown in the video](https://youtu.be/Q76dMggUH1M?t=372)) without a stencil frame/machine, make sure to select
+**"Customized size"** and enter smaller dimensions (e.g. 100mm x 100mm) to avoid getting a much larger stencil than you
+need. This will also likely reduce the cost of shipping substantially! Also, select only the **Top** side; the bottom
+only has 2 SMT components - the motor connector and VEML7700 ALS - so it's not worth getting a stencil for that.
+
 Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
 [Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-schematic.pdf)
@@ -108,6 +118,11 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
 </a>
 
 Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design.
+
+There are few enough components on the Screen PCB that I chose to hand-solder them rather than reflow with solder paste
+and a stencil, but if you order a stencil, see the note above about selecting a "Customized size" to be easier to
+handle and save on shipping. Also make sure to select the **Bottom** side only; all the components are on the bottom
+side of the screen PCB.
 
 Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
@@ -213,7 +228,7 @@ Highlights:
 
 This is overall the easiest motor to get started with. Low cogging and a built-in diametric magnet are great!
 
-Sadly, does not seem to be available any longer.
+Available [from SparkFun](https://www.sparkfun.com/products/20441)!
 
 # Firmware
 TODO: document this

@@ -2956,8 +2956,8 @@ F 0 "Z10" H 8050 2087 60  0000 C CNN
 F 1 "BLDCMotor" H 8050 1981 60  0000 C CNN
 F 2 "BOM_Only:bom_only_no_pin" H 8050 1800 60  0001 C CNN
 F 3 "" H 8050 1800 60  0001 C CNN
-F 4 "" H 8050 1800 50  0001 C CNN "Note"
-F 5 "https://www.aliexpress.com/item/1005001384349991.html" H 8050 1800 50  0001 C CNN "AliExpress"
+F 4 "SparkFun: https://www.sparkfun.com/products/20441" H 8050 1800 50  0001 C CNN "Note"
+F 5 "" H 8050 1800 50  0001 C CNN "AliExpress"
 	1    8050 1800
 	1    0    0    -1  
 $EndComp
