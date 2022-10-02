@@ -438,5 +438,9 @@
       ""
     ]
   ],
-  "text_variables": {}
+  "text_variables": {
+    "COMMIT_DATE_LONG": "2022-10-02 11:07:48 -0700",
+    "COMMIT_HASH": "a8b8665",
+    "RELEASE_VERSION": "v12345"
+  }
 }

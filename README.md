@@ -4,8 +4,8 @@ SmartKnob is an open-source input device with software-configurable endstops and
 A brushless gimbal motor is paired with a magnetic encoder to provide closed-loop torque feedback control, making it
 possible to dynamically create and adjust the feel of detents and endstops.
 
-[![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml/badge.svg?branch=master)](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml)
-[![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml/badge.svg?branch=master)](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml)
+[![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml/badge.svg?branch=dev/kicad6)](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml)
+[![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml/badge.svg?branch=dev/kicad6)](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml)
 
 # Designs
 
@@ -55,7 +55,7 @@ While this is a "DIY" open-source project, it is not yet a mature plug-and-play 
 
 More documentation on the BOM and what parts you need to order is coming in the future - thanks so much for your interest! Follow me on [Twitter](https://twitter.com/scottbez1) for the latest updates on this and other projects.
 
-View the latest auto-generated (untested) [Base PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-ibom.html) and [Screen PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-ibom.html) (or, the combined [BOM csv](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-bom.csv)) for electronics/hardware parts list. ⚠️ These are auto-generated from the latest untested revision on GitHub. For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
+View the latest auto-generated (untested) [Base PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-ibom.html) and [Screen PCB Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-ibom.html) (or, the combined [BOM csv](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-bom.csv)) for electronics/hardware parts list. ⚠️ These are auto-generated from the latest untested revision on GitHub. For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 A few miscellaneous notes in the meantime:
 
@@ -81,11 +81,11 @@ Future plans:
 
 #### Base PCB
 
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-front-3d.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-front-3d.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-front-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-front-3d.png" width="300" />
 </a>
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-back-3d.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-back-3d.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-back-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-back-3d.png" width="300" />
 </a>
 
 Ordering notes: use white soldermask, for reflecting light from RGB LED ring around the knob. Should be 1.2mm thick (not "standard" 1.6mm).
@@ -98,23 +98,23 @@ only has 2 SMT components - the motor connector and VEML7700 ALS - so it's not w
 
 Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
-[Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-schematic.pdf)
+[Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-schematic.pdf)
 
-[Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-ibom.html)
+[Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-ibom.html)
 
-[PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-pcb-packet.pdf)
+[PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-pcb-packet.pdf)
 
-[Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_base-jlc/gerbers.zip)
+[Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_base-jlc/gerbers.zip)
 
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 #### Screen PCB
 
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-front-3d.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-front-3d.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-front-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-front-3d.png" width="300" />
 </a>
-<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-back-3d.png">
-    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-back-3d.png" width="300" />
+<a href="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-back-3d.png">
+    <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-back-3d.png" width="300" />
 </a>
 
 Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design.
@@ -126,13 +126,13 @@ side of the screen PCB.
 
 Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
-[Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-schematic.pdf)
+[Schematic](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-schematic.pdf)
 
-[Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-ibom.html)
+[Interactive BOM](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-ibom.html)
 
-[PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-pcb-packet.pdf)
+[PCB Packet](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-pcb-packet.pdf)
 
-[Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-jlc/gerbers.zip)
+[Gerbers](https://smartknob-artifacts.s3.us-west-1.amazonaws.com/dev/kicad6/electronics/view_screen-jlc/gerbers.zip)
 
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 

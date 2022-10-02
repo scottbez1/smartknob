@@ -6,6 +6,13 @@ preflight:
   run_drc: true
   run_erc: true
   update_xml: true
+  set_text_variables:
+    - name: COMMIT_DATE_LONG
+      command: 'python3 util/rev_info.py git_date'
+    - name: COMMIT_HASH
+      command: 'python3 util/rev_info.py git_short_rev'
+    - name: RELEASE_VERSION
+      command: 'python3 util/rev_info.py git_release_version releases/view_base/'
   filters:
     - filter: 'Lines crossing edge cuts'
       error: 'silk_over_copper'

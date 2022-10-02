@@ -72,11 +72,9 @@ jobs:
       #     board: 'electronics/view_screen/view_screen.kicad_pcb'
 
       - name: Update 3D artifacts [view_base]
-        # Need to chown files back to runner, as ownership was set to root by the KiBot Actions
+        # Need to chown files back to runner, as ownership gets set to root by the KiBot Actions
         run: |
-          ls -lah electronics/build/outputs
           sudo chown runner:docker electronics/build/outputs/*
-          ls -lah electronics/build/outputs
           mv electronics/build/outputs/view_base-3D_top.png electronics/build/outputs/view_base-front-3d.png
           ./scripts/annotate_image.sh electronics/build/outputs/view_base-front-3d.png
           mv electronics/build/outputs/view_base-3D_bottom.png electronics/build/outputs/view_base-back-3d.png
