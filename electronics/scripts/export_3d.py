@@ -88,7 +88,7 @@ def _pcbnew_export_3d(output_file, width, height, transforms):
     if os.path.exists(output_file):
         os.remove(output_file)
 
-    wait_for_window('pcbnew', 'Pcbnew ', additional_commands=['windowfocus'])
+    wait_for_window('pcbnew', 'PCB Editor ', additional_commands=['windowfocus'])
 
     time.sleep(1)
 

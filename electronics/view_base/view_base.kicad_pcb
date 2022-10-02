@@ -1,7 +1,7 @@
 (kicad_pcb (version 20211014) (generator pcbnew)
 
   (general
-    (thickness 1.6)
+    (thickness 1.2)
   )
 
   (paper "A4")
@@ -30,15 +30,15 @@
 
   (setup
     (stackup
-      (layer "F.SilkS" (type "Top Silk Screen"))
+      (layer "F.SilkS" (type "Top Silk Screen") (color "Black"))
       (layer "F.Paste" (type "Top Solder Paste"))
-      (layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))
+      (layer "F.Mask" (type "Top Solder Mask") (color "White") (thickness 0.01))
       (layer "F.Cu" (type "copper") (thickness 0.035))
-      (layer "dielectric 1" (type "core") (thickness 1.51) (material "FR4") (epsilon_r 4.5) (loss_tangent 0.02))
+      (layer "dielectric 1" (type "core") (thickness 1.11) (material "FR4") (epsilon_r 4.5) (loss_tangent 0.02))
       (layer "B.Cu" (type "copper") (thickness 0.035))
-      (layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))
+      (layer "B.Mask" (type "Bottom Solder Mask") (color "White") (thickness 0.01))
       (layer "B.Paste" (type "Bottom Solder Paste"))
-      (layer "B.SilkS" (type "Bottom Silk Screen"))
+      (layer "B.SilkS" (type "Bottom Silk Screen") (color "Black"))
       (copper_finish "None")
       (dielectric_constraints no)
     )
@@ -1580,7 +1580,7 @@
     (fp_line (start 36.099999 -28.099999) (end 34.599999 -28.099999) (layer "B.Fab") (width 0.2) (tstamp fbd8d420-f19a-4bf5-8fdf-b2fd7b9713ba))
     (fp_line (start -4.999999 33.9) (end 4.999999 33.9) (layer "B.Fab") (width 0.2) (tstamp fdc069c5-d742-4791-b7ae-e387baba433b))
     (fp_arc (start 13.514575 -8.564826) (mid 14.706493 -6.302305) (end 15.522725 -3.878787) (layer "B.Fab") (width 0.2) (tstamp 00c4e538-733e-4e5c-a054-f8c5253375cc))
-    (fp_arc (start 15.522725 3.878788) (mid 14.706493 6.302306) (end 13.514574 8.564827) (layer "B.Fab") (width 0.2) (tstamp 041f63e1-79d1-4fb0-93ff-0edc5fbd5e80))
+    (fp_arc (start 15.522725 3.878788) (mid 14.706494 6.302306) (end 13.514574 8.564827) (layer "B.Fab") (width 0.2) (tstamp 041f63e1-79d1-4fb0-93ff-0edc5fbd5e80))
     (fp_arc (start -16.770509 -4.999999) (mid -15.856214 -7.404757) (end -14.599229 -9.649481) (layer "B.Fab") (width 0.2) (tstamp 0fca30f7-c307-4974-bdb2-4b2ecda205e8))
     (fp_arc (start -4.999999 16.770509) (mid -7.404757 15.856214) (end -9.649481 14.599229) (layer "B.Fab") (width 0.2) (tstamp 11527c6f-6046-48b9-94b7-0dc450aea666))
     (fp_arc (start 16.007811 -3.5) (mid 15.700077 -3.605911) (end 15.522725 -3.878787) (layer "B.Fab") (width 0.2) (tstamp 17b192cc-adca-48bf-a3a5-a0af7747c0fe))
@@ -1588,7 +1588,7 @@
     (fp_arc (start -3.878787 15.522725) (mid -3.605914 15.700081) (end -3.499999 16.00781) (layer "B.Fab") (width 0.2) (tstamp 38cfdd19-c1b0-4278-a746-3f318ce073c8))
     (fp_arc (start -3.5 -16.007811) (mid -3.605914 -15.700082) (end -3.878787 -15.522725) (layer "B.Fab") (width 0.2) (tstamp 3ae71597-c558-44fa-a67a-f90b666b772f))
     (fp_arc (start 4.999999 -16.770509) (mid 7.404757 -15.856214) (end 9.649481 -14.599229) (layer "B.Fab") (width 0.2) (tstamp 3e39fc4d-ad3c-4bed-bbce-9e054f18dcd7))
-    (fp_arc (start 3.878788 -15.522725) (mid 6.302306 -14.706493) (end 8.564827 -13.514574) (layer "B.Fab") (width 0.2) (tstamp 472a6d17-c9b5-4f45-9cac-95038567e3f1))
+    (fp_arc (start 3.878788 -15.522725) (mid 6.302306 -14.706494) (end 8.564827 -13.514574) (layer "B.Fab") (width 0.2) (tstamp 472a6d17-c9b5-4f45-9cac-95038567e3f1))
     (fp_arc (start 9.649481 14.599229) (mid 7.404757 15.856214) (end 4.999999 16.770509) (layer "B.Fab") (width 0.2) (tstamp 48534717-259a-4c4e-8ab5-0f2f7aba4529))
     (fp_arc (start -13.514575 8.564826) (mid -14.706493 6.302305) (end -15.522725 3.878787) (layer "B.Fab") (width 0.2) (tstamp 51a6bc79-0cc4-4a5a-bb1b-00580bf6db07))
     (fp_arc (start 16.770509 4.999999) (mid 15.856214 7.404757) (end 14.599229 9.649481) (layer "B.Fab") (width 0.2) (tstamp 57629023-f610-4c1b-9e0e-c0e762d3385b))
