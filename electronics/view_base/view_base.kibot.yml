@@ -6,6 +6,10 @@ preflight:
   run_drc: true
   run_erc: true
   update_xml: true
+  filters:
+    - filter: 'Lines crossing edge cuts'
+      error: 'silk_over_copper'
+      regex: 'Arc on Edge.Cuts'
 
 outputs:
   - name: ibom
@@ -25,8 +29,29 @@ outputs:
     options:
       use_alt: false
       number: 1
-      aggregate:
-        - file: electronics/view_screen/view_screen.sch
-          name: 'Screen'
-          number: 1
-          ref_id: 'SCREEN-'
+      # FIXME
+      # aggregate:
+      #   - file: electronics/view_screen/view_screen.kicad_sch
+      #     name: 'Screen'
+      #     number: 1
+      #     ref_id: 'SCREEN-'
+
+  - name: 3d
+    type: render_3d
+    options:
+      no_virtual: true
+      view: 'top'
+      copper: '#99967F'
+      board: '#C3BA9B'
+      copper: '#99967F'
+      zoom: 3
+      orthographic: true
+      ray_tracing: true
+      height: 1024
+      width: 1024
+
+  - name: 3d_back
+    type: render_3d
+    extends: 3d
+    options:
+      view: 'bottom'

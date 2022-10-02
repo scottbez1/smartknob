@@ -70,7 +70,7 @@ jobs:
         with:
           config: electronics/view_base/view_base.kibot.yml
           dir: electronics/build/outputs
-          schema: 'electronics/view_base/view_base.sch'
+          schema: 'electronics/view_base/view_base.kicad_sch'
           board: 'electronics/view_base/view_base.kicad_pcb'
 
       - name: Export artifacts (KiBot) [view_screen]
@@ -78,7 +78,7 @@ jobs:
         with:
           config: electronics/view_screen/view_screen.kibot.yml
           dir: electronics/build/outputs
-          schema: 'electronics/view_screen/view_screen.sch'
+          schema: 'electronics/view_screen/view_screen.kicad_sch'
           board: 'electronics/view_screen/view_screen.kicad_pcb'
 
       - name: Archive artifacts
