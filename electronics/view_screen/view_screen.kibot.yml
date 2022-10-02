@@ -15,6 +15,13 @@ preflight:
       command: 'python3 util/rev_info.py git_short_rev'
     - name: RELEASE_VERSION
       command: 'python3 util/rev_info.py git_release_version releases/view_base/'
+  filters:
+    - filter: 'Lines crossing edge cuts'
+      error: 'silk_over_copper'
+      regex: 'Line on B.Silkscreen'
+    - filter: 'Arc crossing hole'
+      error: 'silk_over_copper'
+      regex: 'Through hole pad 1'
 
 outputs:
   - name: ibom
