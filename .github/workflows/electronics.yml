@@ -74,6 +74,7 @@ jobs:
       - name: Update 3D artifacts [view_base]
         run: |
           mv electronics/build/outputs/view_base-3D_top.png electronics/build/outputs/view_base-front-3d.png
+          ls -lah electronics/build/outputs/view_base-front-3d.png
           ./scripts/annotate_image.sh electronics/build/outputs/view_base-front-3d.png
           mv electronics/build/outputs/view_base-3D_bottom.png electronics/build/outputs/view_base-back-3d.png
           ./scripts/annotate_image.sh electronics/build/outputs/view_base-back-3d.png
