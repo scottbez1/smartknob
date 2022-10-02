@@ -8,6 +8,7 @@ FONT="$DIR/RobotoMono-Bold.ttf"
 
 # Make sure font exists
 ls "$FONT"
+echo "$DIR"
 
 set -v
 
