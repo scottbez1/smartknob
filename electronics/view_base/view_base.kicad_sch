@@ -6,7 +6,10 @@
 
   (title_block
     (title "SmartKnob View")
+    (rev "${RELEASE_VERSION}")
     (company "Scott Bezek")
+    (comment 2 "${COMMIT_DATE_LONG}")
+    (comment 3 "${COMMIT_HASH}")
   )
 
   (lib_symbols
@@ -2081,7 +2084,6 @@
       )
     )
   )
-
 
   (junction (at 200.66 250.19) (diameter 0) (color 0 0 0 0)
     (uuid 00e38d63-5436-49db-81f5-697421f168fc)

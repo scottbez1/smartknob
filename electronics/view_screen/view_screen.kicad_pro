@@ -33,9 +33,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.0,
-          "height": 1.65,
-          "width": 1.65
+          "drill": 0.762,
+          "height": 1.524,
+          "width": 1.524
         },
         "silk_line_width": 0.12,
         "silk_text_italic": false,
@@ -56,10 +56,9 @@
         }
       ],
       "drc_exclusions": [
-        "silk_over_copper|105303300|105303300|00000000-0000-0000-0000-0000622ff9d4|a8470270-920a-4fed-9691-22526135f92c",
-        "silk_over_copper|93752779|95002779|00000000-0000-0000-0000-0000622ffa0d|34d3baf1-c1a6-463d-a7da-03fde565ea93",
-        "silk_over_copper|94343146|105656854|00000000-0000-0000-0000-0000622ff9e6|e26f0b22-8514-418f-977b-cb0a9761b0f5",
-        "silk_over_copper|95002779|93752779|00000000-0000-0000-0000-0000622ffa0d|00000000-0000-0000-0000-0000620a3355"
+        "silk_over_copper|106400000|116285093|baf1955b-6681-4a86-aa9e-3d3a086c1f0c|3481639a-8366-42d1-8849-c12d7cd54694",
+        "silk_over_copper|92999777|100182112|00000000-0000-0000-0000-0000620c0c43|c8c2fa70-d291-4070-8098-e10360210c12",
+        "silk_over_copper|94300000|116545391|baf1955b-6681-4a86-aa9e-3d3a086c1f0c|42adbe47-7f38-4bdc-b671-33cfe182fd3c"
       ],
       "meta": {
         "filename": "board_design_settings.json",
@@ -112,23 +111,21 @@
         "allow_microvias": false,
         "max_error": 0.005,
         "min_clearance": 0.0,
-        "min_copper_edge_clearance": 0.0,
+        "min_copper_edge_clearance": 0.09999999999999999,
         "min_hole_clearance": 0.25,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.19999999999999998,
         "min_microvia_drill": 0.09999999999999999,
         "min_silk_clearance": 0.0,
         "min_through_hole_diameter": 0.3,
-        "min_track_width": 0.127,
+        "min_track_width": 0.19999999999999998,
         "min_via_annular_width": 0.049999999999999996,
         "min_via_diameter": 0.39999999999999997,
         "use_height_for_length_calcs": true
       },
       "track_widths": [
         0.0,
-        0.25,
-        0.4,
-        0.65
+        0.4
       ],
       "via_dimensions": [
         {
@@ -355,14 +352,14 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "view_base.kicad_pro",
+    "filename": "view_screen.kicad_pro",
     "version": 1
   },
   "net_settings": {
     "classes": [
       {
         "bus_width": 12.0,
-        "clearance": 0.15,
+        "clearance": 0.2,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -372,7 +369,7 @@
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.15,
+        "track_width": 0.25,
         "via_diameter": 0.8,
         "via_drill": 0.4,
         "wire_width": 6.0
@@ -434,11 +431,12 @@
   },
   "sheets": [
     [
-      "5edcefbe-9766-42c8-9529-28d0ec865573",
+      "03c6bcc5-70e5-4ed1-8d53-27c57df043e2",
       ""
     ]
   ],
   "text_variables": {
+    "COMMIT_DATE": "YYYY-MM-DD",
     "COMMIT_DATE_LONG": "YYYY-MM-DD HH:MM:SS TZ",
     "COMMIT_HASH": "deadbeef",
     "RELEASE_VERSION": "v#.#"

@@ -78,7 +78,7 @@
     )
   )
 
-  (property "COMMIT_DATE_LONG" "YYYY-MM-DD TIME TZ")
+  (property "COMMIT_DATE_LONG" "YYYY-MM-DD HH:MM:SS TZ")
   (property "COMMIT_HASH" "deadbeef")
   (property "RELEASE_VERSION" "v#.#")
 

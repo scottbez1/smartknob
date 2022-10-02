@@ -97,7 +97,7 @@ def get_versioned_contents(filename, release_search_prefix):
                 release_version = tag_version
         return original_contents, original_contents \
             .replace('Date ""', 'Date "%s"' % date_long) \
-            .replace('DATE: YYYY-MM-DD TIME TZ', 'DATE: %s' % date_long) \
+            .replace('DATE: YYYY-MM-DD HH:MM:SS TZ', 'DATE: %s' % date_long) \
             .replace('DATE: YYYY-MM-DD', 'DATE: %s' % date) \
             .replace('Rev ""', 'Rev "%s"' % rev) \
             .replace('COMMIT: deadbeef', 'COMMIT: %s' % rev) \
