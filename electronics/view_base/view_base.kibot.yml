@@ -6,6 +6,19 @@ preflight:
   run_drc: true
   run_erc: true
   update_xml: true
+  set_text_variables:
+    - name: COMMIT_DATE_LONG
+      command: 'python3 util/rev_info.py git_date'
+    - name: COMMIT_DATE
+      command: 'python3 util/rev_info.py git_date --short'
+    - name: COMMIT_HASH
+      command: 'python3 util/rev_info.py git_short_rev'
+    - name: RELEASE_VERSION
+      command: 'python3 util/rev_info.py git_release_version releases/view_base/'
+  filters:
+    - filter: 'Lines crossing edge cuts'
+      error: 'silk_over_copper'
+      regex: 'Arc on Edge.Cuts'
 
 outputs:
   - name: ibom
@@ -26,7 +39,27 @@ outputs:
       use_alt: false
       number: 1
       aggregate:
-        - file: electronics/view_screen/view_screen.sch
+        - file: electronics/view_screen/view_screen.kicad_sch
           name: 'Screen'
           number: 1
           ref_id: 'SCREEN-'
+
+  - name: 3d
+    type: render_3d
+    options:
+      no_virtual: true
+      view: 'top'
+      copper: '#99967F'
+      board: '#C3BA9B'
+      copper: '#99967F'
+      zoom: 3
+      orthographic: true
+      ray_tracing: true
+      height: 1024
+      width: 1024
+
+  - name: 3d_back
+    type: render_3d
+    extends: 3d
+    options:
+      view: 'bottom'

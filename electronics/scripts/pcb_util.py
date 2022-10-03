@@ -55,7 +55,7 @@ class Plotter(object):
         self.plot_options.SetOutputDirectory(build_directory)
 
         self.plot_options.SetPlotFrameRef(False)
-        self.plot_options.SetLineWidth(pcbnew.FromMM(0.35))
+        # self.plot_options.SetLineWidth(pcbnew.FromMM(0.35))
         self.plot_options.SetScale(1)
         self.plot_options.SetUseAuxOrigin(True)
         self.plot_options.SetMirror(False)

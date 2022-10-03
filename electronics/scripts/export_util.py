@@ -97,11 +97,15 @@ def get_versioned_contents(filename, release_search_prefix):
                 release_version = tag_version
         return original_contents, original_contents \
             .replace('Date ""', 'Date "%s"' % date_long) \
-            .replace('DATE: YYYY-MM-DD TIME TZ', 'DATE: %s' % date_long) \
+            .replace('DATE: YYYY-MM-DD HH:MM:SS TZ', 'DATE: %s' % date_long) \
+            .replace('${COMMIT_DATE_LONG}', 'DATE: %s' % date_long) \
             .replace('DATE: YYYY-MM-DD', 'DATE: %s' % date) \
+            .replace('${COMMIT_DATE}', 'DATE: %s' % date) \
             .replace('Rev ""', 'Rev "%s"' % rev) \
             .replace('COMMIT: deadbeef', 'COMMIT: %s' % rev) \
-            .replace('v#.#', release_version)
+            .replace('${COMMIT_HASH}', 'COMMIT: %s' % rev) \
+            .replace('v#.#', release_version) \
+            .replace('${RELEASE_VERSION}', release_version)
 
 
 @contextmanager
