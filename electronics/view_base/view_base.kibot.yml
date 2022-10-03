@@ -38,12 +38,11 @@ outputs:
     options:
       use_alt: false
       number: 1
-      # FIXME
-      # aggregate:
-      #   - file: electronics/view_screen/view_screen.kicad_sch
-      #     name: 'Screen'
-      #     number: 1
-      #     ref_id: 'SCREEN-'
+      aggregate:
+        - file: electronics/view_screen/view_screen.kicad_sch
+          name: 'Screen'
+          number: 1
+          ref_id: 'SCREEN-'
 
   - name: 3d
     type: render_3d
