@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <SimpleFOC.h>
 #include <vector>
 
 #include "knob_data.h"
@@ -45,5 +46,10 @@ class MotorTask : public Task<MotorTask> {
 
         std::vector<QueueHandle_t> listeners_;
 
+        // BLDC motor & driver instance
+        BLDCMotor motor = BLDCMotor(1);
+        BLDCDriver6PWM driver = BLDCDriver6PWM(PIN_UH, PIN_UL, PIN_VH, PIN_VL, PIN_WH, PIN_WL);
+
         void publish(const KnobState& state);
+        void calibrate();
 };
