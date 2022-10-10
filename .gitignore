@@ -9,6 +9,7 @@
 fp-info-cache
 _autosave*.kicad_pcb
 *.kicad_prl
+*backups
 
 # Proprietary 3d model (for KiCAD)
 **/proprietary/*.stp
@@ -22,7 +23,6 @@ build/
 
 # Apple/Macintosh
 .DS_Store
-*backups
 
 # VSCode
 .vscode/*
