@@ -4020,8 +4020,8 @@
     (effects (font (size 2.0066 2.0066) (thickness 0.4013) bold italic) (justify left bottom))
     (uuid 1ae3634a-f90f-4c6a-8ba7-b38f98d4ccb2)
   )
-  (text "If your voltage reg follows\nthe 5V-GND-3V3 pinout\n(AP2114HA) populate your\nregulator on the footprint labled\nU6. If your regulator follows the\npinout of GND-3V3-5V (TS1117BCW33)\npopulate your reg on the\nfootprint labaled U9)."
-    (at 12.7 41.91 0)
+  (text "If your voltage regulator\nfollows the 5V-GND-3V3 pinout\n(AP2114HA) populate your\nregulator on the footprint labled\nU6. If your regulator follows the\npinout of GND-3V3-5V (TS1117BCW33)\npopulate your regulator on the\nfootprint labaled U9)."
+    (at 12.7 44.45 0)
     (effects (font (size 1 1)) (justify left bottom))
     (uuid 1e7b0997-eda5-4af5-a3de-5402c348d6bc)
   )
