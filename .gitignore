@@ -20,6 +20,10 @@ _autosave*.kicad_pcb
 # General build outputs
 build/
 
+# Apple/Macintosh
+.DS_Store
+*backups
+
 # VSCode
 .vscode/*
 !.vscode/settings.json
