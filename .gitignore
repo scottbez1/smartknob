@@ -9,7 +9,7 @@
 fp-info-cache
 _autosave*.kicad_pcb
 *.kicad_prl
-*backups
+electronics/*/*backups
 
 # Proprietary 3d model (for KiCAD)
 **/proprietary/*.stp
