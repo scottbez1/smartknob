@@ -4407,7 +4407,7 @@
     (property "Datasheet" "" (id 3) (at 58.42 195.58 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "LCSC" "C2856764" (id 4) (at 58.42 195.58 0)
+    (property "LCSC" "C2856764, or C3003196" (id 4) (at 58.42 195.58 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Digikey" "N/A" (id 5) (at 58.42 195.58 0)
