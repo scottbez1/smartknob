@@ -105,7 +105,11 @@ float MT6701Sensor::getSensorAngle() {
         x_ = new_x * ALPHA + x_ * (1-ALPHA);
         y_ = new_y * ALPHA + y_ * (1-ALPHA);
       } else {
-        Serial.printf("Bad CRC. expected %d, actual %d\n", calculated_crc, received_crc);
+        error_ = {
+          .error = true,
+          .received_crc = received_crc,
+          .calculated_crc = calculated_crc,
+        };
       }
 
       last_update_ = now;
@@ -115,6 +119,12 @@ float MT6701Sensor::getSensorAngle() {
         rad += 2*PI;
     }
     return rad;
+}
+
+MT6701Error MT6701Sensor::getAndClearError() {
+  MT6701Error out = error_;
+  error_ = {};
+  return out;
 }
 
 #endif

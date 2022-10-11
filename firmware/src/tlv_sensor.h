@@ -16,6 +16,8 @@ class TlvSensor : public Sensor {
         //    Calling this method directly does not update the base-class internal fields.
         //    Use update() when calling from outside code.
         float getSensorAngle();
+
+        bool getAndClearError();
     private:
         Tlv493d tlv_ = Tlv493d();
         float x_;
@@ -23,6 +25,8 @@ class TlvSensor : public Sensor {
         uint32_t last_update_;
         TwoWire* wire_;
         bool invert_;
+
+        bool error_ = false;
 
         uint8_t frame_counts_[3] = {};
         uint8_t cur_frame_count_index_ = 0;

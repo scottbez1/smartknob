@@ -29,7 +29,7 @@ static const float IDLE_CORRECTION_MAX_ANGLE_RAD = 5 * PI / 180;
 static const float IDLE_CORRECTION_RATE_ALPHA = 0.0005;
 
 
-MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 2048, 1, task_core) {
+MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 2500, 1, task_core) {
     queue_ = xQueueCreate(5, sizeof(Command));
     assert(queue_ != NULL);
 }
@@ -43,16 +43,13 @@ MotorTask::~MotorTask() {}
     MT6701Sensor encoder = MT6701Sensor();
 #endif
 
-Commander command = Commander(Serial);
-
-
 void MotorTask::run() {
 
     driver.voltage_power_supply = 5;
     driver.init();
 
     #if SENSOR_TLV
-    encoder.init(Wire, false);
+    encoder.init(&Wire, false);
     #endif
 
     #if SENSOR_MT6701
@@ -82,23 +79,6 @@ void MotorTask::run() {
     motor.pole_pairs = MOTOR_POLE_PAIRS;
     motor.initFOC(ZERO_ELECTRICAL_OFFSET, FOC_DIRECTION);
 
-    bool calibrate = false;
-
-    Serial.println("Press Y to run calibration");
-    uint32_t t = millis();
-    while (millis() - t < 3000) {
-        if (Serial.read() == 'Y') {
-            calibrate = true;
-            break;
-        }
-        delay(10);
-    }
-    if (calibrate) {
-        this->calibrate();
-    }
-
-    Serial.println(motor.zero_electric_angle);
-
     motor.monitor_downsample = 0; // disable monitor at first - optional
 
     // disableCore0WDT();
@@ -115,6 +95,8 @@ void MotorTask::run() {
     uint32_t last_idle_start = 0;
     uint32_t last_publish = 0;
 
+    KnobConfig latest_config = config;
+
     while (1) {
         motor.loopFOC();
 
@@ -122,10 +104,14 @@ void MotorTask::run() {
         Command command;
         if (xQueueReceive(queue_, &command, 0) == pdTRUE) {
             switch (command.command_type) {
+                case CommandType::CALIBRATE:
+                    calibrate();
+                    break;
                 case CommandType::CONFIG: {
                     // Change haptic input mode
                     config = command.data.config;
-                    Serial.println("Got new config");
+                    latest_config = config;
+                    log("Got new config");
                     current_detent_center = motor.shaft_angle;
                     #if SK_INVERT_ROTATION
                         current_detent_center = -motor.shaft_angle;
@@ -260,6 +246,16 @@ void MotorTask::playHaptic(bool press) {
     xQueueSend(queue_, &command, portMAX_DELAY);
 }
 
+void MotorTask::runCalibration() {
+    Command command = {
+        .command_type = CommandType::CALIBRATE,
+        .data = {
+            .unused = 0,
+        }
+    };
+    xQueueSend(queue_, &command, portMAX_DELAY);
+}
+
 
 void MotorTask::addListener(QueueHandle_t queue) {
     listeners_.push_back(queue);
@@ -277,7 +273,7 @@ void MotorTask::calibrate() {
     // So this value is based on experimentation.
     // TODO: dig into SimpleFOC calibration and find/fix the issue
 
-    Serial.println("\n\n\nStarting calibration, please do not touch to motor until complete!");
+    log("\n\n\nStarting calibration, please DO NOT TOUCH MOTOR until complete!");
 
     motor.controller = MotionControlType::angle_openloop;
     motor.pole_pairs = 1;
@@ -309,16 +305,16 @@ void MotorTask::calibrate() {
     motor.voltage_limit = 0;
     motor.move(a);
 
-    Serial.println();
+    log("");
 
     // TODO: check for no motor movement!
 
-    Serial.print("Sensor measures positive for positive motor rotation: ");
+    log("Sensor measures positive for positive motor rotation:");
     if (end_sensor > start_sensor) {
-        Serial.println("YES, Direction=CW");
+        log("YES, Direction=CW");
         motor.initFOC(0, Direction::CW);
     } else {
-        Serial.println("NO, Direction=CCW");
+        log("NO, Direction=CCW");
         motor.initFOC(0, Direction::CCW);
     }
 
@@ -326,22 +322,23 @@ void MotorTask::calibrate() {
     // #### Determine pole-pairs
     // Rotate 20 electrical revolutions and measure mechanical angle traveled, to calculate pole-pairs
     uint8_t electrical_revolutions = 20;
-    Serial.printf("Going to measure %d electrical revolutions...\n", electrical_revolutions);
+    snprintf(buf_, sizeof(buf_), "Going to measure %d electrical revolutions...", electrical_revolutions);
+    log(buf_);
     motor.voltage_limit = 5;
     motor.move(a);
-    Serial.println("Going to electrical zero...");
+    log("Going to electrical zero...");
     float destination = a + _2PI;
     for (; a < destination; a += 0.03) {
         encoder.update();
         motor.move(a);
         delay(1);
     }
-    Serial.println("pause..."); // Let momentum settle...
+    log("pause..."); // Let momentum settle...
     for (uint16_t i = 0; i < 1000; i++) {
         encoder.update();
         delay(1);
     }
-    Serial.println("Measuring...");
+    log("Measuring...");
 
     start_sensor = motor.sensor_direction * encoder.getAngle();
     destination = a + electrical_revolutions * _2PI;
@@ -360,16 +357,17 @@ void MotorTask::calibrate() {
     motor.move(a);
 
     if (fabsf(motor.shaft_angle - motor.target) > 1 * PI / 180) {
-        Serial.println("ERROR: motor did not reach target!");
+        log("ERROR: motor did not reach target!");
         while(1) {}
     }
 
     float electrical_per_mechanical = electrical_revolutions * _2PI / (end_sensor - start_sensor);
-    Serial.print("Electrical angle / mechanical angle (i.e. pole pairs) = ");
-    Serial.println(electrical_per_mechanical);
+    snprintf(buf_, sizeof(buf_), "Electrical angle / mechanical angle (i.e. pole pairs) = %.2f", electrical_per_mechanical);
+    log(buf_);
 
     int measured_pole_pairs = (int)round(electrical_per_mechanical);
-    Serial.printf("Pole pairs set to %d\n", measured_pole_pairs);
+    snprintf(buf_, sizeof(buf_), "Pole pairs set to %d", measured_pole_pairs);
+    log(buf_);
 
     delay(1000);
 
@@ -396,11 +394,8 @@ void MotorTask::calibrate() {
         offset_x += cosf(offset_angle);
         offset_y += sinf(offset_angle);
 
-        Serial.print(degrees(real_electrical_angle));
-        Serial.print(", ");
-        Serial.print(degrees(measured_electrical_angle));
-        Serial.print(", ");
-        Serial.println(degrees(_normalizeAngle(offset_angle)));
+        snprintf(buf_, sizeof(buf_), "%.2f, %.2f, %.2f", degrees(real_electrical_angle), degrees(measured_electrical_angle), degrees(_normalizeAngle(offset_angle)));
+        log(buf_);
     }
     for (; a > destination2; a -= 0.4) {
         motor.move(a);
@@ -416,11 +411,8 @@ void MotorTask::calibrate() {
         offset_x += cosf(offset_angle);
         offset_y += sinf(offset_angle);
 
-        Serial.print(degrees(real_electrical_angle));
-        Serial.print(", ");
-        Serial.print(degrees(measured_electrical_angle));
-        Serial.print(", ");
-        Serial.println(degrees(_normalizeAngle(offset_angle)));
+        snprintf(buf_, sizeof(buf_), "%.2f, %.2f, %.2f", degrees(real_electrical_angle), degrees(measured_electrical_angle), degrees(_normalizeAngle(offset_angle)));
+        log(buf_);
     }
     motor.voltage_limit = 0;
     motor.move(a);
@@ -435,14 +427,39 @@ void MotorTask::calibrate() {
     motor.voltage_limit = 5;
     motor.controller = MotionControlType::torque;
 
-    Serial.print("\n\nRESULTS:\n  Update these constants at the top of " __FILE__ "\n  ZERO_ELECTRICAL_OFFSET: ");
-    Serial.println(motor.zero_electric_angle);
-    Serial.print("  FOC_DIRECTION: ");
+    log("\n\nRESULTS:\n  Update these constants at the top of " __FILE__);
+    snprintf(buf_, sizeof(buf_), "  ZERO_ELECTRICAL_OFFSET: %.2f", motor.zero_electric_angle);
+    log(buf_);
     if (motor.sensor_direction == Direction::CW) {
-        Serial.println("Direction::CW");
+        log("  FOC_DIRECTION: Direction::CW");
     } else {
-        Serial.println("Direction::CCW");
+        log("  FOC_DIRECTION: Direction::CCW");
     }
-    Serial.printf("  MOTOR_POLE_PAIRS: %d\n", motor.pole_pairs);
+    snprintf(buf_, sizeof(buf_), "  MOTOR_POLE_PAIRS: %d", motor.pole_pairs);
+    log(buf_);
     delay(2000);
+}
+
+void MotorTask::checkSensorError() {
+#if SENSOR_TLV
+    if (encoder.getAndClearError()) {
+        log("LOCKED!");
+    }
+#elif SENSOR_MT6701
+    MT6701Error error = encoder.getAndClearError();
+    if (error.error) {
+        snprintf(buf_, sizeof(buf_), "CRC error. Received %d; calculated %d", error.received_crc, error.calculated_crc);
+        log(buf_);
+    }
+#endif
+}
+
+void MotorTask::setLogger(Logger* logger) {
+    logger_ = logger;
+}
+
+void MotorTask::log(const char* msg) {
+    if (logger_ != nullptr) {
+        logger_->log(msg);
+    }
 }

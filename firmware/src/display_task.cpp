@@ -6,7 +6,7 @@
 
 static const uint8_t LEDC_CHANNEL_LCD_BACKLIGHT = 0;
 
-DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 4048, 1, task_core} {
+DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 2048, 1, task_core} {
   knob_state_queue_ = xQueueCreate(1, sizeof(KnobState));
   assert(knob_state_queue_ != NULL);
 
@@ -19,63 +19,6 @@ DisplayTask::~DisplayTask() {
   vSemaphoreDelete(mutex_);
 }
 
-static void HSV_to_RGB(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_t *b)
-{
-  int i;
-  float f,p,q,t;
-  
-  h = fmax(0.0, fmin(360.0, h));
-  s = fmax(0.0, fmin(100.0, s));
-  v = fmax(0.0, fmin(100.0, v));
-  
-  s /= 100;
-  v /= 100;
-  
-  if(s == 0) {
-    // Achromatic (grey)
-    *r = *g = *b = round(v*255);
-    return;
-  }
-
-  h /= 60; // sector 0 to 5
-  i = floor(h);
-  f = h - i; // factorial part of h
-  p = v * (1 - s);
-  q = v * (1 - s * f);
-  t = v * (1 - s * (1 - f));
-  switch(i) {
-    case 0:
-      *r = round(255*v);
-      *g = round(255*t);
-      *b = round(255*p);
-      break;
-    case 1:
-      *r = round(255*q);
-      *g = round(255*v);
-      *b = round(255*p);
-      break;
-    case 2:
-      *r = round(255*p);
-      *g = round(255*v);
-      *b = round(255*t);
-      break;
-    case 3:
-      *r = round(255*p);
-      *g = round(255*q);
-      *b = round(255*v);
-      break;
-    case 4:
-      *r = round(255*t);
-      *g = round(255*p);
-      *b = round(255*v);
-      break;
-    default: // case 5:
-      *r = round(255*v);
-      *g = round(255*p);
-      *b = round(255*q);
-    }
-}
-
 void DisplayTask::run() {
     tft_.begin();
     tft_.invertDisplay(1);
@@ -86,13 +29,13 @@ void DisplayTask::run() {
     ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
     ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT16_MAX);
 
-    spr_.setColorDepth(16);
+    spr_.setColorDepth(8);
 
     if (spr_.createSprite(TFT_WIDTH, TFT_HEIGHT) == nullptr) {
-      Serial.println("ERROR: sprite allocation failed!");
+      log("ERROR: sprite allocation failed!");
       tft_.fillScreen(TFT_RED);
     } else {
-      Serial.println("Sprite created!");
+      log("Sprite created!");
       tft_.fillScreen(TFT_PURPLE);
     }
     spr_.setTextColor(0xFFFF, TFT_BLACK);
@@ -102,11 +45,6 @@ void DisplayTask::run() {
     const int RADIUS = TFT_WIDTH / 2;
     const uint16_t FILL_COLOR = spr_.color565(90, 18, 151);
     const uint16_t DOT_COLOR = spr_.color565(80, 100, 200);
-
-    int32_t pointer_center_x = TFT_WIDTH / 2;
-    int32_t pointer_center_y = TFT_HEIGHT / 2;
-    int32_t pointer_length_short = 10;
-    int32_t pointer_length_long = TFT_WIDTH / 2 - 5;
 
     spr_.setTextDatum(CC_DATUM);
     spr_.setTextColor(TFT_WHITE);
@@ -200,6 +138,16 @@ QueueHandle_t DisplayTask::getKnobStateQueue() {
 void DisplayTask::setBrightness(uint16_t brightness) {
   SemaphoreGuard lock(mutex_);
   brightness_ = brightness;
+}
+
+void DisplayTask::setLogger(Logger* logger) {
+    logger_ = logger;
+}
+
+void DisplayTask::log(const char* msg) {
+    if (logger_ != nullptr) {
+        logger_->log(msg);
+    }
 }
 
 #endif

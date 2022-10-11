@@ -5,10 +5,12 @@
 #include <vector>
 
 #include "knob_data.h"
+#include "logger.h"
 #include "task.h"
 
 
 enum class CommandType {
+    CALIBRATE,
     CONFIG,
     HAPTIC,
 };
@@ -20,6 +22,7 @@ struct HapticData {
 struct Command {
     CommandType command_type;
     union CommandData {
+        uint8_t unused;
         KnobConfig config;
         HapticData haptic;
     };
@@ -35,16 +38,19 @@ class MotorTask : public Task<MotorTask> {
 
         void setConfig(const KnobConfig& config);
         void playHaptic(bool press);
+        void runCalibration();
 
         void addListener(QueueHandle_t queue);
+        void setLogger(Logger* logger);
 
     protected:
         void run();
 
     private:
         QueueHandle_t queue_;
-
+        Logger* logger_;
         std::vector<QueueHandle_t> listeners_;
+        char buf_[72];
 
         // BLDC motor & driver instance
         BLDCMotor motor = BLDCMotor(1);
@@ -52,4 +58,6 @@ class MotorTask : public Task<MotorTask> {
 
         void publish(const KnobState& state);
         void calibrate();
+        void checkSensorError();
+        void log(const char* msg);
 };

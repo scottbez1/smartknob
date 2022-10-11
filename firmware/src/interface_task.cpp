@@ -123,7 +123,11 @@ static KnobConfig configs[] = {
     },
 };
 
-InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, DisplayTask* display_task) : Task("Interface", 4048, 1, task_core), motor_task_(motor_task), display_task_(display_task) {
+InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, DisplayTask* display_task) : 
+        Task("Interface", 2048, 1, task_core),
+        stream_(),
+        motor_task_(motor_task),
+        display_task_(display_task) {
     #if SK_DISPLAY
         assert(display_task != nullptr);
     #endif
@@ -132,6 +136,8 @@ InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, Dis
 InterfaceTask::~InterfaceTask() {}
 
 void InterfaceTask::run() {
+    stream_.begin();
+
     #if PIN_BUTTON_NEXT >= 34
         pinMode(PIN_BUTTON_NEXT, INPUT);
     #else
@@ -167,7 +173,7 @@ void InterfaceTask::run() {
             veml.setGain(VEML7700_GAIN_2);
             veml.setIntegrationTime(VEML7700_IT_400MS);
         } else {
-            Serial.println("ALS sensor not found!");
+            log("ALS sensor not found!");
         }
     #endif
 
@@ -176,16 +182,20 @@ void InterfaceTask::run() {
     // How far button is pressed, in range [0, 1]
     float press_value_unit = 0;
 
+    log("Interface starting.\nPress 'C' at any time to run calibration.");
+
     // Interface loop:
     while (1) {
         button_next.check();
         #if PIN_BUTTON_PREV > -1
             button_prev.check();
         #endif
-        if (Serial.available()) {
-            int v = Serial.read();
+        if (stream_.available()) {
+            int v = stream_.read();
             if (v == ' ') {
                 changeConfig(true);
+            } else if (v == 'C') {
+                motor_task_.runCalibration();
             }
         }
 
@@ -196,26 +206,28 @@ void InterfaceTask::run() {
             lux_avg = lux * LUX_ALPHA + lux_avg * (1 - LUX_ALPHA);
             static uint32_t last_als;
             if (millis() - last_als > 1000) {
-                Serial.print("millilux: "); Serial.println(lux*1000);
+                snprintf(buf_, sizeof(buf_), "millilux: %.2f", lux*1000);
+                log(buf_);
                 last_als = millis();
             }
         #endif
 
         #if SK_STRAIN
-            // TODO: calibrate and track (long term moving average) zero point (lower); allow calibration of set point offset
-            const int32_t lower = 950000;
-            const int32_t upper = 1800000;
             if (scale.wait_ready_timeout(100)) {
                 int32_t reading = scale.read();
 
+                static uint32_t last_reading_display;
+                if (millis() - last_reading_display > 1000) {
+                    snprintf(buf_, sizeof(buf_), "HX711 reading: %d", reading);
+                    log(buf_);
+                    last_reading_display = millis();
+                }
+
+                // TODO: calibrate and track (long term moving average) zero point (lower); allow calibration of set point offset
+                const int32_t lower = 950000;
+                const int32_t upper = 1800000;
                 // Ignore readings that are way out of expected bounds
                 if (reading >= lower - (upper - lower) && reading < upper + (upper - lower)*2) {
-                    static uint32_t last_reading_display;
-                    if (millis() - last_reading_display > 1000) {
-                        Serial.print("HX711 reading: ");
-                        Serial.println(reading);
-                        last_reading_display = millis();
-                    }
                     long value = CLAMP(reading, lower, upper);
                     press_value_unit = 1. * (value - lower) / (upper - lower);
 
@@ -230,7 +242,7 @@ void InterfaceTask::run() {
                     }
                 }
             } else {
-                Serial.println("HX711 not found.");
+                log("HX711 not found.");
 
                 #if SK_LEDS
                     for (uint8_t i = 0; i < NUM_LEDS; i++) {
@@ -284,6 +296,11 @@ void InterfaceTask::handleEvent(AceButton* button, uint8_t event_type, uint8_t b
     }
 }
 
+void InterfaceTask::log(const char* msg) {
+    // TODO: send to queue to make this threadsafe
+    stream_.println(msg);
+}
+
 void InterfaceTask::changeConfig(bool next) {
     if (next) {
         current_config_ = (current_config_ + 1) % COUNT_OF(configs);
@@ -295,9 +312,8 @@ void InterfaceTask::changeConfig(bool next) {
         }
     }
     
-    Serial.print("Changing config to ");
-    Serial.print(current_config_);
-    Serial.print(" -- ");
-    Serial.println(configs[current_config_].descriptor);
+    char buf_[256];
+    snprintf(buf_, sizeof(buf_), "Changing config to %d -- %s", current_config_, configs[current_config_].descriptor);
+    log(buf_);
     motor_task_.setConfig(configs[current_config_]);
 }
