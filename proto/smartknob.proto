@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+import "nanopb.proto";
+
+package PB;
+
+/*
+ * Message FROM the SmartKnob to USB host
+ */
+message FromSmartKnob {
+    oneof payload {
+        Ack ack = 1;
+        Log log = 2;
+        SmartKnobState smartknob_state = 3;
+    }
+}
+
+message Ack {
+    uint32 nonce = 1;
+}
+
+message Log {
+    string msg = 1 [(nanopb).max_length = 255];
+}
+
+message SmartKnobState {
+}
+
+/*
+ * Message TO the Smartknob from the USB host
+ */
+message ToSmartknob {
+    uint32 nonce = 1;
+
+    oneof payload {
+        RequestState request_state = 2;
+        SmartKnobConfig smartknob_config = 3;
+    }
+}
+
+message SmartKnobConfig {
+}
+
+message RequestState {}
+
