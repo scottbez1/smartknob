@@ -7,7 +7,7 @@
 static const uint8_t LEDC_CHANNEL_LCD_BACKLIGHT = 0;
 
 DisplayTask::DisplayTask(const uint8_t task_core) : Task{"Display", 2048, 1, task_core} {
-  knob_state_queue_ = xQueueCreate(1, sizeof(KnobState));
+  knob_state_queue_ = xQueueCreate(1, sizeof(PB_SmartKnobState));
   assert(knob_state_queue_ != NULL);
 
   mutex_ = xSemaphoreCreateMutex();
@@ -40,7 +40,7 @@ void DisplayTask::run() {
     }
     spr_.setTextColor(0xFFFF, TFT_BLACK);
     
-    KnobState state;
+    PB_SmartKnobState state;
 
     const int RADIUS = TFT_WIDTH / 2;
     const uint16_t FILL_COLOR = spr_.color565(90, 18, 151);
@@ -63,15 +63,15 @@ void DisplayTask::run() {
         spr_.drawString(String() + state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2 - VALUE_OFFSET, 1);
         spr_.setFreeFont(&DESCRIPTION_FONT);
         int32_t line_y = TFT_HEIGHT / 2 + DESCRIPTION_Y_OFFSET;
-        char* start = state.config.descriptor;
-        char* end = start + strlen(state.config.descriptor);
+        char* start = state.config.text;
+        char* end = start + strlen(state.config.text);
         while (start < end) {
           char* newline = strchr(start, '\n');
           if (newline == nullptr) {
             newline = end;
           }
           
-          char buf[sizeof(state.config.descriptor)] = {};
+          char buf[sizeof(state.config.text)] = {};
           strncat(buf, start, min(sizeof(buf) - 1, (size_t)(newline - start)));
           spr_.drawString(String(buf), TFT_WIDTH / 2, line_y, 1);
           start = newline + 1;

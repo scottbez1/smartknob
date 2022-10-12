@@ -24,6 +24,9 @@ message Log {
 }
 
 message SmartKnobState {
+    int32 current_position = 1;
+    float sub_position_unit = 2;
+    SmartKnobConfig config = 3;
 }
 
 /*
@@ -39,6 +42,13 @@ message ToSmartknob {
 }
 
 message SmartKnobConfig {
+    int32 num_positions = 1;
+    int32 position = 2;
+    float position_width_radians = 3;
+    float detent_strength_unit = 4;
+    float endstop_strength_unit = 5;
+    float snap_point = 6;
+    string text = 7 [(nanopb).max_length = 50];
 }
 
 message RequestState {}

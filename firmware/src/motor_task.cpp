@@ -84,7 +84,7 @@ void MotorTask::run() {
     // disableCore0WDT();
 
     float current_detent_center = motor.shaft_angle;
-    KnobConfig config = {
+    PB_SmartKnobConfig config = {
         .num_positions = 2,
         .position = 0,
         .position_width_radians = 60 * _PI / 180,
@@ -95,7 +95,7 @@ void MotorTask::run() {
     uint32_t last_idle_start = 0;
     uint32_t last_publish = 0;
 
-    KnobConfig latest_config = config;
+    PB_SmartKnobConfig latest_config = config;
 
     while (1) {
         motor.loopFOC();
@@ -212,6 +212,7 @@ void MotorTask::run() {
             publish({
                 .current_position = config.position,
                 .sub_position_unit = -angle_to_detent_center / config.position_width_radians,
+                .has_config = true,
                 .config = config,
             });
             last_publish = millis();
@@ -223,7 +224,7 @@ void MotorTask::run() {
     }
 }
 
-void MotorTask::setConfig(const KnobConfig& config) {
+void MotorTask::setConfig(const PB_SmartKnobConfig& config) {
     Command command = {
         .command_type = CommandType::CONFIG,
         .data = {
@@ -261,7 +262,7 @@ void MotorTask::addListener(QueueHandle_t queue) {
     listeners_.push_back(queue);
 }
 
-void MotorTask::publish(const KnobState& state) {
+void MotorTask::publish(const PB_SmartKnobState& state) {
     for (auto listener : listeners_) {
         xQueueOverwrite(listener, &state);
     }

@@ -4,8 +4,8 @@
 #include <SimpleFOC.h>
 #include <vector>
 
-#include "knob_data.h"
 #include "logger.h"
+#include "proto_gen/smartknob.pb.h"
 #include "task.h"
 
 
@@ -23,7 +23,7 @@ struct Command {
     CommandType command_type;
     union CommandData {
         uint8_t unused;
-        KnobConfig config;
+        PB_SmartKnobConfig config;
         HapticData haptic;
     };
     CommandData data;
@@ -36,7 +36,7 @@ class MotorTask : public Task<MotorTask> {
         MotorTask(const uint8_t task_core);
         ~MotorTask();
 
-        void setConfig(const KnobConfig& config);
+        void setConfig(const PB_SmartKnobConfig& config);
         void playHaptic(bool press);
         void runCalibration();
 
@@ -56,7 +56,7 @@ class MotorTask : public Task<MotorTask> {
         BLDCMotor motor = BLDCMotor(1);
         BLDCDriver6PWM driver = BLDCDriver6PWM(PIN_UH, PIN_UL, PIN_VH, PIN_VL, PIN_WH, PIN_WL);
 
-        void publish(const KnobState& state);
+        void publish(const PB_SmartKnobState& state);
         void calibrate();
         void checkSensorError();
         void log(const char* msg);

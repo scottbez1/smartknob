@@ -31,14 +31,14 @@ HX711 scale;
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
 #endif
 
-static KnobConfig configs[] = {
+static PB_SmartKnobConfig configs[] = {
     // int32_t num_positions;
     // int32_t position;
     // float position_width_radians;
     // float detent_strength_unit;
     // float endstop_strength_unit;
     // float snap_point;
-    // char descriptor[50];
+    // char text[51];
 
     {
         0,
@@ -313,7 +313,7 @@ void InterfaceTask::changeConfig(bool next) {
     }
     
     char buf_[256];
-    snprintf(buf_, sizeof(buf_), "Changing config to %d -- %s", current_config_, configs[current_config_].descriptor);
+    snprintf(buf_, sizeof(buf_), "Changing config to %d -- %s", current_config_, configs[current_config_].text);
     log(buf_);
     motor_task_.setConfig(configs[current_config_]);
 }

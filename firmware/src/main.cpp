@@ -29,7 +29,7 @@ void setup() {
   interface_task.begin();
 
   // // Create a queue and register it with motor_task to print knob state to serial (see loop() below)
-  // knob_state_debug_queue = xQueueCreate(1, sizeof(KnobState));
+  // knob_state_debug_queue = xQueueCreate(1, sizeof(PB_SmartKnobState));
   // assert(knob_state_debug_queue != NULL);
   // motor_task.addListener(knob_state_debug_queue);
 
