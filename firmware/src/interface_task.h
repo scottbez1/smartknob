@@ -30,5 +30,8 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger, public ace_butt
 
         int current_config_ = 0;
 
+        QueueHandle_t log_queue_;
+
         void changeConfig(bool next);
+        void updateHardware();
 };
