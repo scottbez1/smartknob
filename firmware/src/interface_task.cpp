@@ -1,5 +1,3 @@
-#include <AceButton.h>
-
 #if SK_LEDS
 #include <FastLED.h>
 #endif
@@ -14,8 +12,6 @@
 
 #include "interface_task.h"
 #include "util.h"
-
-using namespace ace_button;
 
 #define COUNT_OF(A) (sizeof(A) / sizeof(A[0]))
 
@@ -127,7 +123,9 @@ InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, Dis
         Task("Interface", 2048, 1, task_core),
         stream_(),
         motor_task_(motor_task),
-        display_task_(display_task) {
+        display_task_(display_task),
+        plaintext_protocol_(stream_),
+        proto_protocol_(stream_) {
     #if SK_DISPLAY
         assert(display_task != nullptr);
     #endif
@@ -140,24 +138,6 @@ InterfaceTask::~InterfaceTask() {}
 
 void InterfaceTask::run() {
     stream_.begin();
-
-    #if PIN_BUTTON_NEXT >= 34
-        pinMode(PIN_BUTTON_NEXT, INPUT);
-    #else
-        pinMode(PIN_BUTTON_NEXT, INPUT_PULLUP);
-    #endif
-    AceButton button_next((uint8_t) PIN_BUTTON_NEXT);
-    button_next.getButtonConfig()->setIEventHandler(this);
-
-    #if PIN_BUTTON_PREV > -1
-        #if PIN_BUTTON_PREV >= 34
-            pinMode(PIN_BUTTON_PREV, INPUT);
-        #else
-            pinMode(PIN_BUTTON_PREV, INPUT_PULLUP);
-        #endif
-        AceButton button_prev((uint8_t) PIN_BUTTON_PREV);
-        button_prev.getButtonConfig()->setIEventHandler(this);
-    #endif
     
     #if SK_LEDS
         FastLED.addLeds<SK6812, PIN_LED_DATA, GRB>(leds, NUM_LEDS);
@@ -182,22 +162,30 @@ void InterfaceTask::run() {
 
     motor_task_.setConfig(configs[0]);
 
-    log("Interface starting.\nPress 'C' at any time to run calibration.");
+
+    // Start in legacy protocol mode
+    plaintext_protocol_.init();
+    SerialProtocol* current_protocol = &plaintext_protocol_;
+
+    ProtocolChangeCallback protocol_change_callback = [this, &current_protocol] (uint8_t protocol) {
+        switch (protocol) {
+            case SERIAL_PROTOCOL_LEGACY:
+                current_protocol = &plaintext_protocol_;
+                break;
+            case SERIAL_PROTOCOL_PROTO:
+                current_protocol = &proto_protocol_;
+                break;
+            default:
+                log("Unknown protocol requested");
+                break;
+        }
+    };
+
+    plaintext_protocol_.setProtocolChangeCallback(protocol_change_callback);
+    proto_protocol_.setProtocolChangeCallback(protocol_change_callback);
 
     // Interface loop:
     while (1) {
-        button_next.check();
-        #if PIN_BUTTON_PREV > -1
-            button_prev.check();
-        #endif
-        if (stream_.available()) {
-            int v = stream_.read();
-            if (v == ' ') {
-                changeConfig(true);
-            } else if (v == 'C') {
-                motor_task_.runCalibration();
-            }
-        }
         std::string* log_string;
         while (xQueueReceive(log_queue_, &log_string, 0) == pdTRUE) {
             stream_.println(log_string->c_str());
@@ -207,23 +195,6 @@ void InterfaceTask::run() {
         updateHardware();
 
         delay(1);
-    }
-}
-
-void InterfaceTask::handleEvent(AceButton* button, uint8_t event_type, uint8_t button_state) {
-    switch (event_type) {
-        case AceButton::kEventPressed:
-            if (button->getPin() == PIN_BUTTON_NEXT) {
-                changeConfig(true);
-            }
-            #if PIN_BUTTON_PREV > -1
-                if (button->getPin() == PIN_BUTTON_PREV) {
-                    changeConfig(false);
-                }
-            #endif
-            break;
-        case AceButton::kEventReleased:
-            break;
     }
 }
 
