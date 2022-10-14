@@ -32,6 +32,7 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
         int current_config_ = 0;
 
         QueueHandle_t log_queue_;
+        QueueHandle_t knob_state_queue_;
         SerialProtocolPlaintext plaintext_protocol_;
         SerialProtocolProtobuf proto_protocol_;
 

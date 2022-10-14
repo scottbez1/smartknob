@@ -124,7 +124,7 @@ InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, Dis
         stream_(),
         motor_task_(motor_task),
         display_task_(display_task),
-        plaintext_protocol_(stream_),
+        plaintext_protocol_(stream_, motor_task_),
         proto_protocol_(stream_) {
     #if SK_DISPLAY
         assert(display_task != nullptr);
@@ -132,6 +132,9 @@ InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, Dis
 
     log_queue_ = xQueueCreate(10, sizeof(std::string *));
     assert(log_queue_ != NULL);
+
+    knob_state_queue_ = xQueueCreate(1, sizeof(PB_SmartKnobState));
+    assert(knob_state_queue_ != NULL);
 }
 
 InterfaceTask::~InterfaceTask() {}
@@ -161,10 +164,13 @@ void InterfaceTask::run() {
     #endif
 
     motor_task_.setConfig(configs[0]);
+    motor_task_.addListener(knob_state_queue_);
 
 
     // Start in legacy protocol mode
-    plaintext_protocol_.init();
+    plaintext_protocol_.init([this] () {
+        changeConfig(true);
+    });
     SerialProtocol* current_protocol = &plaintext_protocol_;
 
     ProtocolChangeCallback protocol_change_callback = [this, &current_protocol] (uint8_t protocol) {
@@ -186,6 +192,13 @@ void InterfaceTask::run() {
 
     // Interface loop:
     while (1) {
+        PB_SmartKnobState state;
+        if (xQueueReceive(knob_state_queue_, &state, 0) == pdTRUE) {
+            current_protocol->handleState(state);
+        }
+
+        current_protocol->loop();
+
         std::string* log_string;
         while (xQueueReceive(log_queue_, &log_string, 0) == pdTRUE) {
             stream_.println(log_string->c_str());

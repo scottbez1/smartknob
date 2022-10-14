@@ -20,15 +20,17 @@ void SerialProtocolPlaintext::loop() {
             }
             break;
         }
-        // TODO: implement calibration and mode change here
-        // if (v == ' ') {
-        //     changeConfig(true);
-        // } else if (v == 'C') {
-        //     motor_task_.runCalibration();
-        // }
+        if (b == ' ') {
+            if (demo_config_change_callback_) {
+                demo_config_change_callback_();
+            }
+        } else if (b == 'C') {
+            motor_task_.runCalibration();
+        }
     }
 }
 
-void SerialProtocolPlaintext::init() {
+void SerialProtocolPlaintext::init(DemoConfigChangeCallback cb) {
+    demo_config_change_callback_ = cb;
     stream_.println("SmartKnob starting!\n\nSerial mode: plaintext\nPress 'C' at any time to calibrate.\nPress <Space> to change haptic modes.");
 }
