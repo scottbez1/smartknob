@@ -3,7 +3,15 @@
 #include "serial_protocol_plaintext.h"
 
 void SerialProtocolPlaintext::handleState(const PB_SmartKnobState& state) {
+    bool substantial_change = (latest_state_.current_position != state.current_position)
+        || (latest_state_.config.detent_strength_unit != state.config.detent_strength_unit)
+        || (latest_state_.config.endstop_strength_unit != state.config.endstop_strength_unit)
+        || (latest_state_.config.num_positions != state.config.num_positions);
     latest_state_ = state;
+
+    if (substantial_change) {
+        stream_.printf("STATE: %d/%d  (detent strength: %0.2f, width: %0.0f deg, endstop strength: %0.2f)\n", state.current_position, state.config.num_positions - 1, state.config.detent_strength_unit, degrees(state.config.position_width_radians), state.config.endstop_strength_unit);
+    }
 }
 
 void SerialProtocolPlaintext::log(const char* msg) {

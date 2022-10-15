@@ -120,7 +120,7 @@ static PB_SmartKnobConfig configs[] = {
 };
 
 InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, DisplayTask* display_task) : 
-        Task("Interface", 2048, 1, task_core),
+        Task("Interface", 3000, 1, task_core),
         stream_(),
         motor_task_(motor_task),
         display_task_(display_task),
@@ -201,7 +201,7 @@ void InterfaceTask::run() {
 
         std::string* log_string;
         while (xQueueReceive(log_queue_, &log_string, 0) == pdTRUE) {
-            stream_.println(log_string->c_str());
+            current_protocol->log(log_string->c_str());
             delete log_string;
         }
 
