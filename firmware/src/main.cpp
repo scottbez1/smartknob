@@ -5,15 +5,15 @@
 #include "motor_task.h"
 
 #if SK_DISPLAY
-static DisplayTask display_task = DisplayTask(0);
+static DisplayTask display_task(0);
 static DisplayTask* display_task_p = &display_task;
 #else
 static DisplayTask* display_task_p = nullptr;
 #endif
-static MotorTask motor_task = MotorTask(1);
+static MotorTask motor_task(1);
 
 
-InterfaceTask interface_task = InterfaceTask(0, motor_task, display_task_p);
+InterfaceTask interface_task(0, motor_task, display_task_p);
 
 void setup() {
   #if SK_DISPLAY

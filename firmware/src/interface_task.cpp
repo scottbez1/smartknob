@@ -137,8 +137,6 @@ InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, Dis
     assert(knob_state_queue_ != NULL);
 }
 
-InterfaceTask::~InterfaceTask() {}
-
 void InterfaceTask::run() {
     stream_.begin();
     

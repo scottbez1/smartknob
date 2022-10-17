@@ -16,7 +16,7 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
 
     public:
         InterfaceTask(const uint8_t task_core, MotorTask& motor_task, DisplayTask* display_task);
-        ~InterfaceTask();
+        virtual ~InterfaceTask() {};
 
         void log(const char* msg) override;
 

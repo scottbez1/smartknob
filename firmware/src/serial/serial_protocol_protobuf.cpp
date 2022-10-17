@@ -1,7 +1,10 @@
+#include <PacketSerial.h>
+
 #include "../proto_gen/smartknob.pb.h"
 
+#include "../proto_helpers.h"
+
 #include "crc32.h"
-#include "PacketSerial.h"
 #include "pb_encode.h"
 #include "pb_decode.h"
 #include "serial_protocol_protobuf.h"
@@ -13,7 +16,8 @@ static const uint16_t PERIODIC_STATE_INTERVAL_MILLIS = 5000;
 
 SerialProtocolProtobuf::SerialProtocolProtobuf(Stream& stream) :
         SerialProtocol(),
-        stream_(stream) {
+        stream_(stream),
+        packet_serial_() {
     packet_serial_.setStream(&stream);
 
     // Note: not threadsafe or instance safe!! but PacketSerial requires a legacy function pointer, so we can't
@@ -52,7 +56,7 @@ void SerialProtocolProtobuf::loop() {
     } while (stream_.available());
 
     // Rate limit state change transmissions
-    bool state_changed = latest_state_ != last_sent_state_ && millis() - last_sent_state_millis_ >= MIN_STATE_INTERVAL_MILLIS;
+    bool state_changed = !state_eq(latest_state_, last_sent_state_) && millis() - last_sent_state_millis_ >= MIN_STATE_INTERVAL_MILLIS;
 
     // Send state periodically or when forced, regardless of rate limit for state changes
     bool force_send_state = state_requested_ || millis() - last_sent_state_millis_ > PERIODIC_STATE_INTERVAL_MILLIS;
