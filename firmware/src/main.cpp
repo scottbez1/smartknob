@@ -28,22 +28,11 @@ void setup() {
   motor_task.begin();
   interface_task.begin();
 
-  // // Create a queue and register it with motor_task to print knob state to serial (see loop() below)
-  // knob_state_debug_queue = xQueueCreate(1, sizeof(PB_SmartKnobState));
-  // assert(knob_state_debug_queue != NULL);
-  // motor_task.addListener(knob_state_debug_queue);
-
   // Free up the Arduino loop task
   vTaskDelete(NULL);
 }
 
 void loop() {
-  // // Print any new state, at most 5 times per second
-  // if (millis() - last_debug > 200 && xQueueReceive(knob_state_debug_queue, &state, portMAX_DELAY) == pdTRUE) {
-  //   Serial.println(state.current_position);
-  //   last_debug = millis();
-  // }
-
   // char buf[50];
   // static uint32_t last_stack_debug;
   // if (millis() - last_stack_debug > 1000) {

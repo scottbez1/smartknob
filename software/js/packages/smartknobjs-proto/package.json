@@ -1,0 +1,15 @@
+{
+  "name": "smartknobjs-proto",
+  "version": "0.1.0",
+  "description": "SmartKnob Protobuf Generated Code",
+  "main": "dist/smartknob_proto.js",
+  "types": "dist/smartknob_proto.d.ts",
+  "scripts": {
+    "build": "mkdir -p dist && pbjs --target static-module --out dist/smartknob_proto.js ../../../../proto/*.proto && pbts -o dist/smartknob_proto.d.ts dist/smartknob_proto.js"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "protobufjs": "^6.11.2"
+  }
+}

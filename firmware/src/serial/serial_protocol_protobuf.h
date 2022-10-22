@@ -4,12 +4,13 @@
 
 #include "../proto_gen/smartknob.pb.h"
 
+#include "motor_task.h"
 #include "serial_protocol.h"
 #include "uart_stream.h"
 
 class SerialProtocolProtobuf : public SerialProtocol {
     public:
-        SerialProtocolProtobuf(Stream& stream);
+        SerialProtocolProtobuf(Stream& stream, MotorTask& motor_task);
         ~SerialProtocolProtobuf(){}
         void log(const char* msg) override;
         void loop() override;
@@ -17,6 +18,8 @@ class SerialProtocolProtobuf : public SerialProtocol {
     
     private:
         Stream& stream_;
+        MotorTask& motor_task_;
+        
         PB_FromSmartKnob pb_tx_buffer_;
         PB_ToSmartknob pb_rx_buffer_;
 

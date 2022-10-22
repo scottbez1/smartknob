@@ -11,12 +11,13 @@
 
 static SerialProtocolProtobuf* singleton_for_packet_serial = 0;
 
-static const uint16_t MIN_STATE_INTERVAL_MILLIS = 250;
+static const uint16_t MIN_STATE_INTERVAL_MILLIS = 5;
 static const uint16_t PERIODIC_STATE_INTERVAL_MILLIS = 5000;
 
-SerialProtocolProtobuf::SerialProtocolProtobuf(Stream& stream) :
+SerialProtocolProtobuf::SerialProtocolProtobuf(Stream& stream, MotorTask& motor_task) :
         SerialProtocol(),
         stream_(stream),
+        motor_task_(motor_task),
         packet_serial_() {
     packet_serial_.setStream(&stream);
 
@@ -117,8 +118,7 @@ void SerialProtocolProtobuf::handlePacket(const uint8_t* buffer, size_t size) {
     
     switch (pb_rx_buffer_.which_payload) {
         case PB_ToSmartknob_smartknob_config_tag: {
-            PB_SmartKnobConfig config = pb_rx_buffer_.payload.smartknob_config;
-            // TODO: do something with this
+            motor_task_.setConfig(pb_rx_buffer_.payload.smartknob_config);
             break;
         }
         default: {

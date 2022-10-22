@@ -208,7 +208,7 @@ void MotorTask::run() {
         }
 
         // Publish current status to other registered tasks periodically
-        if (millis() - last_publish > 10) {
+        if (millis() - last_publish > 5) {
             publish({
                 .current_position = config.position,
                 .sub_position_unit = -angle_to_detent_center / config.position_width_radians,

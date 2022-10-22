@@ -1,0 +1,12 @@
+{
+    "eslint.workingDirectories": [
+        "./software/js/packages/example",
+        "./software/js/packages/smartknobjs",
+        "./software/js"
+    ],
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+}

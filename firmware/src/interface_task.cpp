@@ -125,7 +125,7 @@ InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, Dis
         motor_task_(motor_task),
         display_task_(display_task),
         plaintext_protocol_(stream_, motor_task_),
-        proto_protocol_(stream_) {
+        proto_protocol_(stream_, motor_task_) {
     #if SK_DISPLAY
         assert(display_task != nullptr);
     #endif
