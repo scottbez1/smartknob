@@ -9,7 +9,7 @@ const main = async () => {
         // Implement a check for your device's vendor+product+serial
         // (this is more robust than the alternative of just hardcoding a "path" like "/dev/ttyUSB0")
         return (
-            portInfo.vendorId === '1a86' && portInfo.productId === '7523'
+            portInfo.vendorId === '1A86' && portInfo.productId === '7523'
             // && portInfo.serialNumber === 'DEADBEEF'
         )
     })
