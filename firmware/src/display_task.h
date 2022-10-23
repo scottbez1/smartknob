@@ -5,7 +5,8 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 
-#include "knob_data.h"
+#include "logger.h"
+#include "proto_gen/smartknob.pb.h"
 #include "task.h"
 
 class DisplayTask : public Task<DisplayTask> {
@@ -18,6 +19,7 @@ class DisplayTask : public Task<DisplayTask> {
         QueueHandle_t getKnobStateQueue();
 
         void setBrightness(uint16_t brightness);
+        void setLogger(Logger* logger);
 
     protected:
         void run();
@@ -30,11 +32,11 @@ class DisplayTask : public Task<DisplayTask> {
 
         QueueHandle_t knob_state_queue_;
 
-        KnobState state_;
-
+        PB_SmartKnobState state_;
         SemaphoreHandle_t mutex_;
-
         uint16_t brightness_;
+        Logger* logger_;
+        void log(const char* msg);
 };
 
 #else

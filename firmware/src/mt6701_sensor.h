@@ -3,6 +3,12 @@
 #include <SimpleFOC.h>
 #include "driver/spi_master.h"
 
+struct MT6701Error {
+    bool error;
+    uint8_t received_crc;
+    uint8_t calculated_crc;
+};
+
 class MT6701Sensor : public Sensor {
     public:
         MT6701Sensor();
@@ -16,6 +22,8 @@ class MT6701Sensor : public Sensor {
         //    Calling this method directly does not update the base-class internal fields.
         //    Use update() when calling from outside code.
         float getSensorAngle();
+
+        MT6701Error getAndClearError();
     private:
 
         spi_device_handle_t spi_device_;
@@ -24,4 +32,6 @@ class MT6701Sensor : public Sensor {
         float x_;
         float y_;
         uint32_t last_update_;
+
+        MT6701Error error_ = {};
 };

@@ -35,7 +35,7 @@ float TlvSensor::getSensorAngle() {
         }
       }
       if (all_same) {
-        Serial.println("LOCKED!");
+        error_ = true;
         init(wire_, invert_);
         // Force unique frame counts to avoid reset loop
         for (uint8_t i = 1; i < sizeof(frame_counts_); i++) {
@@ -48,4 +48,10 @@ float TlvSensor::getSensorAngle() {
         rad += 2*PI;
     }
     return rad;
+}
+
+bool TlvSensor::getAndClearError() {
+  bool error = error_;
+  error_ = false;
+  return error;
 }

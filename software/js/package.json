@@ -1,0 +1,24 @@
+{
+  "name": "root",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "npm": ">=8.19.2",
+    "node": ">=18.11.0"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "example": "npm run -w example main"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "packages/smartknobjs-proto",
+    "packages/smartknobjs",
+    "packages/example"
+  ],
+  "devDependencies": {
+    "eslint-config-prettier": "^8.5.0"
+  }
+}
