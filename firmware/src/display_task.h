@@ -4,10 +4,13 @@
 
 #include <Arduino.h>
 #include <TFT_eSPI.h>
+#include "lvgl.h"
 
 #include "logger.h"
 #include "proto_gen/smartknob.pb.h"
 #include "task.h"
+
+#define DISP_BUF_SIZE  (TFT_WIDTH * 10)
 
 class DisplayTask : public Task<DisplayTask> {
     friend class Task<DisplayTask>; // Allow base Task to invoke protected run()
@@ -25,10 +28,16 @@ class DisplayTask : public Task<DisplayTask> {
         void run();
 
     private:
-        TFT_eSPI tft_ = TFT_eSPI();
 
-        /** Full-size sprite used as a framebuffer */
-        TFT_eSprite spr_ = TFT_eSprite(&tft_);
+        lv_obj_t * screen;
+        lv_obj_t * label_cur_pos;
+        lv_obj_t * label_desc;
+        lv_obj_t * arc;
+        lv_obj_t * gauge;
+        lv_obj_t * roller;
+        lv_obj_t * line_left_bound;
+        lv_obj_t * line_right_bound;
+        lv_obj_t * arc_dot;
 
         QueueHandle_t knob_state_queue_;
 
