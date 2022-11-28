@@ -110,6 +110,10 @@ void MotorTask::run() {
                 case CommandType::CONFIG: {
                     // Change haptic input mode
                     config = command.data.config;
+                    if (config.position == INT32_MIN) {
+                        // INT32_MIN indicates no change to position, so restore from latest_config
+                        config.position = latest_config.position;
+                    }
                     latest_config = config;
                     log("Got new config");
                     current_detent_center = motor.shaft_angle;
@@ -130,7 +134,9 @@ void MotorTask::run() {
                     const float derivative_position_width_lower = radians(3);
                     const float derivative_position_width_upper = radians(8);
                     const float raw = derivative_lower_strength + (derivative_upper_strength - derivative_lower_strength)/(derivative_position_width_upper - derivative_position_width_lower)*(config.position_width_radians - derivative_position_width_lower);
-                    motor.PID_velocity.D = CLAMP(
+                    // When there are intermittent detents (set via detent_positions), disable derivative factor as this adds extra "clicks" when nearing
+                    // a detent.
+                    motor.PID_velocity.D = config.detent_positions_count > 0 ? 0 : CLAMP(
                         raw,
                         min(derivative_lower_strength, derivative_upper_strength),
                         max(derivative_lower_strength, derivative_upper_strength)
@@ -200,7 +206,20 @@ void MotorTask::run() {
             // Don't apply torque if velocity is too high (helps avoid positive feedback loop/runaway)
             motor.move(0);
         } else {
-            float torque = motor.PID_velocity(-angle_to_detent_center + dead_zone_adjustment);
+            float input = -angle_to_detent_center + dead_zone_adjustment;
+            if (!out_of_bounds && config.detent_positions_count > 0) {
+                bool in_detent = false;
+                for (uint8_t i = 0; i < config.detent_positions_count; i++) {
+                    if (config.detent_positions[i] == config.position) {
+                        in_detent = true;
+                        break;
+                    }
+                }
+                if (!in_detent) {
+                    input = 0;
+                }
+            }
+            float torque = motor.PID_velocity(input);
             #if SK_INVERT_ROTATION
                 torque = -torque;
             #endif

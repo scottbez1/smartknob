@@ -35,6 +35,8 @@ static PB_SmartKnobConfig configs[] = {
     // float endstop_strength_unit;
     // float snap_point;
     // char text[51];
+    // pb_size_t detent_positions_count;
+    // int32_t detent_positions[5];
 
     {
         0,
@@ -116,6 +118,17 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Coarse values\nWeak detents",
+    },
+    {
+        32,
+        0,
+        7 * PI / 180,
+        2.5,
+        1,
+        0.7,
+        "Coarse values\nMagnetic detents",
+        4,
+        {2, 10, 21, 22},
     },
 };
 
@@ -271,13 +284,22 @@ void InterfaceTask::updateHardware() {
                 press_value_unit = 1. * (value - lower) / (upper - lower);
 
                 static bool pressed;
+                static uint8_t press_count;
                 if (!pressed && press_value_unit > 0.75) {
-                    motor_task_.playHaptic(true);
-                    pressed = true;
-                    changeConfig(true);
+                    press_count++;
+                    if (press_count > 2) {
+                        motor_task_.playHaptic(true);
+                        pressed = true;
+                        changeConfig(true);
+                    }
                 } else if (pressed && press_value_unit < 0.25) {
-                    motor_task_.playHaptic(false);
-                    pressed = false;
+                    press_count++;
+                    if (press_count > 2) {
+                        motor_task_.playHaptic(false);
+                        pressed = false;
+                    }
+                } else {
+                    press_count = 0;
                 }
             }
         } else {
