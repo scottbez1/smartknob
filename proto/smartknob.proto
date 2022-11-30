@@ -50,6 +50,8 @@ message SmartKnobConfig {
     float snap_point = 6;
     string text = 7 [(nanopb).max_length = 50];
     repeated int32 detent_positions = 8 [(nanopb).max_count = 5];
+    float snap_point_bias = 9;
+    int32 snap_point_bias_center_position = 10;
 }
 
 message RequestState {}

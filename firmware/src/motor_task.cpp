@@ -108,6 +108,36 @@ void MotorTask::run() {
                     calibrate();
                     break;
                 case CommandType::CONFIG: {
+                    // Check new config for validity
+                    if (command.data.config.num_positions < 0) {
+                        log("Ignoring invalid config: num_positions cannot be negative");
+                        break;
+                    }
+                    if (command.data.config.detent_strength_unit < 0) {
+                        log("Ignoring invalid config: detent_strength_unit cannot be negative");
+                        break;
+                    }
+                    if (command.data.config.endstop_strength_unit < 0) {
+                        log("Ignoring invalid config: endstop_strength_unit cannot be negative");
+                        break;
+                    }
+                    if (command.data.config.snap_point < 0.5) {
+                        log("Ignoring invalid config: snap_point must be >= 0.5 for stability");
+                        break;
+                    }
+                    if (command.data.config.detent_positions_count > COUNT_OF(command.data.config.detent_positions)) {
+                        log("Ignoring invalid config: detent_positions_count is too large");
+                        break;
+                    }
+                    if (command.data.config.snap_point_bias < 0) {
+                        log("Ignoring invalid config: snap_point_bias cannot be negative or there is risk of instability");
+                        break;
+                    }
+                    if (command.data.config.snap_point_bias_center_position < 0 || command.data.config.snap_point_bias_center_position > command.data.config.num_positions || (command.data.config.num_positions > 0 && command.data.config.snap_point_bias_center_position == command.data.config.num_positions)) {
+                        log("Ignoring invalid config: snap_point_bias_center_position out of range");
+                        break;
+                    }
+
                     // Change haptic input mode
                     config = command.data.config;
                     if (config.position == INT32_MIN) {
@@ -181,11 +211,17 @@ void MotorTask::run() {
         #if SK_INVERT_ROTATION
             angle_to_detent_center = -motor.shaft_angle - current_detent_center;
         #endif
-        if (angle_to_detent_center > config.position_width_radians * config.snap_point && (config.num_positions <= 0 || config.position > 0)) {
+
+        float snap_point_radians = config.position_width_radians * config.snap_point;
+        float bias_radians = config.position_width_radians * config.snap_point_bias;
+        float snap_point_radians_decrease = snap_point_radians + (config.position <= config.snap_point_bias_center_position ? bias_radians : -bias_radians);
+        float snap_point_radians_increase = -snap_point_radians + (config.position >= config.snap_point_bias_center_position ? -bias_radians : bias_radians); 
+
+        if (angle_to_detent_center > snap_point_radians_decrease && (config.num_positions <= 0 || config.position > 0)) {
             current_detent_center += config.position_width_radians;
             angle_to_detent_center -= config.position_width_radians;
             config.position--;
-        } else if (angle_to_detent_center < -config.position_width_radians * config.snap_point && (config.num_positions <= 0 || config.position < config.num_positions - 1)) {
+        } else if (angle_to_detent_center < snap_point_radians_increase && (config.num_positions <= 0 || config.position < config.num_positions - 1)) {
             current_detent_center -= config.position_width_radians;
             angle_to_detent_center += config.position_width_radians;
             config.position++;

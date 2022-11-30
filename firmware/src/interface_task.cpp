@@ -13,8 +13,6 @@
 #include "interface_task.h"
 #include "util.h"
 
-#define COUNT_OF(A) (sizeof(A) / sizeof(A[0]))
-
 #if SK_LEDS
 CRGB leds[NUM_LEDS];
 #endif
@@ -37,6 +35,8 @@ static PB_SmartKnobConfig configs[] = {
     // char text[51];
     // pb_size_t detent_positions_count;
     // int32_t detent_positions[5];
+    // float snap_point_bias;
+    // int32_t snap_point_bias_center_position;
 
     {
         0,
@@ -46,6 +46,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Unbounded\nNo detents",
+        0,
+        {},
+        0,
+        0,
     },
     {
         11,
@@ -55,6 +59,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Bounded 0-10\nNo detents",
+        0,
+        {},
+        0,
+        0,
     },
     {
         73,
@@ -64,6 +72,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Multi-rev\nNo detents",
+        0,
+        {},
+        0,
+        0,
     },
     {
         2,
@@ -73,6 +85,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         0.55, // Note the snap point is slightly past the midpoint (0.5); compare to normal detents which use a snap point *past* the next value (i.e. > 1)
         "On/off\nStrong detent",
+        0,
+        {},
+        0,
+        0,
     },
     {
         1,
@@ -82,6 +98,10 @@ static PB_SmartKnobConfig configs[] = {
         0.6,
         1.1,
         "Return-to-center",
+        0,
+        {},
+        0,
+        0,
     },
     {
         256,
@@ -91,6 +111,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Fine values\nNo detents",
+        0,
+        {},
+        0,
+        0,
     },
     {
         256,
@@ -100,6 +124,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Fine values\nWith detents",
+        0,
+        {},
+        0,
+        0,
     },
     {
         32,
@@ -109,6 +137,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Coarse values\nStrong detents",
+        0,
+        {},
+        0,
+        0,
     },
     {
         32,
@@ -118,6 +150,10 @@ static PB_SmartKnobConfig configs[] = {
         1,
         1.1,
         "Coarse values\nWeak detents",
+        0,
+        {},
+        0,
+        0,
     },
     {
         32,
@@ -126,9 +162,24 @@ static PB_SmartKnobConfig configs[] = {
         2.5,
         1,
         0.7,
-        "Coarse values\nMagnetic detents",
+        "Magnetic detents",
         4,
         {2, 10, 21, 22},
+        0,
+        0,
+    },
+    {
+        13,
+        6,
+        60 * PI / 180,
+        1,
+        1,
+        0.55,
+        "Return-to-center\nwith detents",
+        0,
+        {},
+        0.4,
+        6
     },
 };
 
