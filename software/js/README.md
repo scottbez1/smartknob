@@ -1,4 +1,4 @@
-# Typescript SmartKnob protobuf interface library
+# Typescript SmartKnob protobuf interface library and examples
 
 ### Requirements (nvm is recommended)
 
@@ -14,6 +14,7 @@ npm run build
 
 ### Example
 
+A basic Node.js CLI example.
 Connect the SmartKnob via USB, then run the example:
 
 ```
