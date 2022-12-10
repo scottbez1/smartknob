@@ -7,8 +7,8 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import {PB} from 'smartknobjs-proto'
 import {VideoInfo} from './types'
-import {Button, Card, CardActions, CardContent} from '@mui/material'
-import {exhaustiveCheck} from './util'
+import {Card, CardActions, CardContent} from '@mui/material'
+import {exhaustiveCheck, lerp, NoUndefinedField} from './util'
 
 const socket = io()
 
@@ -18,6 +18,12 @@ enum Mode {
     Speed = 'Speed',
 }
 
+type State = {
+    mode: Mode
+    playbackSpeed: number
+    currentFrame: number
+}
+
 export type AppProps = {
     info: VideoInfo
 }
@@ -25,14 +31,15 @@ export const App: React.FC<AppProps> = ({info}) => {
     const [isConnected, setIsConnected] = useState(socket.connected)
     const [state, setState] = useState<string>('')
 
-    const [mode, setRawMode] = useState<Mode>(Mode.Scroll)
+    const [derivedState, setDerivedState] = useState<State>({
+        mode: Mode.Scroll,
+        playbackSpeed: 0,
+        currentFrame: 0,
+    })
 
-    const [playbackSpeed, setPlaybackSpeed] = useState<number>(0)
-    const [currentFrame, setCurrentFrame] = useState<number>(0)
-
-    const pushCurrentConfig = () => {
+    const pushConfig = (state: State) => {
         let config: PB.SmartKnobConfig
-        if (mode === Mode.Scroll) {
+        if (state.mode === Mode.Scroll) {
             // TODO
             config = PB.SmartKnobConfig.create({
                 numPositions: 32,
@@ -46,10 +53,10 @@ export const App: React.FC<AppProps> = ({info}) => {
                 snapPointBias: 0,
                 snapPointBiasCenterPosition: 0,
             })
-        } else if (mode === Mode.Frames) {
+        } else if (state.mode === Mode.Frames) {
             config = PB.SmartKnobConfig.create({
                 numPositions: info.totalFrames,
-                position: currentFrame,
+                position: state.currentFrame,
                 positionWidthRadians: (1 * Math.PI) / 180,
                 detentStrengthUnit: 1,
                 endstopStrengthUnit: 1,
@@ -59,10 +66,10 @@ export const App: React.FC<AppProps> = ({info}) => {
                 snapPointBias: 0,
                 snapPointBiasCenterPosition: 0,
             })
-        } else if (mode === Mode.Speed) {
+        } else if (state.mode === Mode.Speed) {
             config = PB.SmartKnobConfig.create({
                 numPositions: 13,
-                position: 6 + Math.trunc(playbackSpeed),
+                position: 6 + Math.trunc(state.playbackSpeed),
                 positionWidthRadians: (60 * Math.PI) / 180,
                 detentStrengthUnit: 1,
                 endstopStrengthUnit: 1,
@@ -73,21 +80,34 @@ export const App: React.FC<AppProps> = ({info}) => {
                 snapPointBiasCenterPosition: 6,
             })
         } else {
-            throw exhaustiveCheck(mode)
+            throw exhaustiveCheck(state.mode)
         }
         socket.emit('set_config', config)
     }
 
+    const setCurrentFrame = (fn: (oldFrame: number) => number) => {
+        setDerivedState((cur) => {
+            const newState = {...cur}
+            if (cur.mode === Mode.Speed) {
+                newState.currentFrame = fn(cur.currentFrame)
+            }
+            return newState
+        })
+    }
+
     useEffect(() => {
-        const fps = info.frameRate * playbackSpeed
+        const fps = info.frameRate * derivedState.playbackSpeed
         const msPerFrame = 1000 / fps
-        if (fps !== 0) {
+        if (derivedState.mode === Mode.Speed && fps !== 0) {
             const timer = setInterval(() => {
                 setCurrentFrame((oldFrame) => {
-                    const newFrame = oldFrame + Math.sign(playbackSpeed)
+                    const newFrame = oldFrame + Math.sign(derivedState.playbackSpeed)
                     if (newFrame < 0 || newFrame >= info.totalFrames) {
-                        setPlaybackSpeed(0)
-                        pushCurrentConfig()
+                        pushConfig({
+                            mode: derivedState.mode,
+                            playbackSpeed: 0,
+                            currentFrame: -1, // unused
+                        })
                         return oldFrame
                     } else {
                         return newFrame
@@ -96,15 +116,7 @@ export const App: React.FC<AppProps> = ({info}) => {
             }, msPerFrame)
             return () => clearInterval(timer)
         }
-    }, [playbackSpeed, info.totalFrames, info.frameRate])
-
-    const setMode = (m: Mode) => {
-        setRawMode(m)
-        if (m !== Mode.Speed) {
-            setPlaybackSpeed(0)
-        }
-        pushCurrentConfig()
-    }
+    }, [derivedState.mode, derivedState.playbackSpeed, info.totalFrames, info.frameRate])
 
     useEffect(() => {
         socket.on('connect', () => {
@@ -117,10 +129,40 @@ export const App: React.FC<AppProps> = ({info}) => {
 
         socket.on('state', (input: {pb: PB.SmartKnobState}) => {
             const {pb: state} = input
-            const stateObj = PB.SmartKnobState.toObject(state, {defaults: true})
+            const stateObj = PB.SmartKnobState.toObject(state, {
+                defaults: true,
+            }) as NoUndefinedField<PB.ISmartKnobState>
             setState(JSON.stringify(stateObj, undefined, 4))
+            setDerivedState((cur) => {
+                const modeText = stateObj.config.text
+                if (modeText === Mode.Scroll) {
+                    return {
+                        mode: Mode.Scroll,
+                        playbackSpeed: 0,
+                        currentFrame: cur.currentFrame, // TODO - map from state
+                    }
+                } else if (modeText === Mode.Frames) {
+                    return {
+                        mode: Mode.Frames,
+                        playbackSpeed: 0,
+                        currentFrame: stateObj.currentPosition ?? 0,
+                    }
+                } else if (modeText === Mode.Speed) {
+                    const normalizedWholeValue = stateObj.currentPosition - stateObj.config.snapPointBiasCenterPosition
+                    const normalizedFractional =
+                        Math.sign(stateObj.subPositionUnit) *
+                        lerp(stateObj.subPositionUnit * Math.sign(stateObj.subPositionUnit), 0.1, 0.9, 0, 1)
+                    const normalized = normalizedWholeValue + normalizedFractional
+                    const speed = Math.sign(normalized) * Math.pow(2, Math.abs(normalized) - 1)
+                    return {
+                        mode: Mode.Speed,
+                        playbackSpeed: speed,
+                        currentFrame: cur.currentFrame,
+                    }
+                }
+                return cur
+            })
         })
-
         return () => {
             socket.off('connect')
             socket.off('disconnect')
@@ -136,13 +178,17 @@ export const App: React.FC<AppProps> = ({info}) => {
                     </Typography>
                     <ToggleButtonGroup
                         color="primary"
-                        value={mode}
+                        value={derivedState.mode}
                         exclusive
                         onChange={(e, value: Mode | null) => {
                             if (value === null) {
                                 return
                             }
-                            setMode(value)
+                            pushConfig({
+                                mode: value,
+                                currentFrame: derivedState.currentFrame,
+                                playbackSpeed: derivedState.playbackSpeed,
+                            })
                         }}
                         aria-label="Mode"
                     >
@@ -153,15 +199,17 @@ export const App: React.FC<AppProps> = ({info}) => {
                         ))}
                     </ToggleButtonGroup>
                     <Typography component="h1" variant="h5">
-                        Frame {currentFrame} / {info.totalFrames - 1}
+                        Frame {derivedState.currentFrame} / {info.totalFrames - 1}
+                        <br />
+                        Speed {derivedState.playbackSpeed}
                     </Typography>
                 </CardContent>
                 <CardActions>
-                    {mode === Mode.Speed && (
+                    {/* {derivedState.mode === Mode.Speed && (
                         <Button
                             size="small"
                             onClick={() => {
-                                if (playbackSpeed !== 0) {
+                                if (derivedState.playbackSpeed !== 0) {
                                     setPlaybackSpeed(0)
                                 } else {
                                     setPlaybackSpeed(1)
@@ -171,7 +219,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         >
                             Play
                         </Button>
-                    )}
+                    )} */}
                 </CardActions>
             </Card>
             <Card>
