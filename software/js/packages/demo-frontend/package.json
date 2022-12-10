@@ -14,6 +14,7 @@
         "@types/node": "^16.18.4",
         "@types/react": "^18.0.25",
         "@types/react-dom": "^18.0.9",
+        "lodash": "^4.17.21",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-scripts": "^5.0.1",
@@ -46,5 +47,8 @@
             "last 1 safari version"
         ]
     },
-    "proxy": "http://localhost:3001"
+    "proxy": "http://localhost:3001",
+    "devDependencies": {
+        "@types/lodash": "^4.14.191"
+    }
 }
