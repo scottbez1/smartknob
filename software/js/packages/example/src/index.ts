@@ -9,7 +9,8 @@ const main = async () => {
         // Implement a check for your device's vendor+product+serial
         // (this is more robust than the alternative of just hardcoding a "path" like "/dev/ttyUSB0")
         return (
-            portInfo.vendorId?.toLowerCase() === '1a86'.toLowerCase() && portInfo.productId?.toLowerCase() === '7523'.toLowerCase()
+            portInfo.vendorId?.toLowerCase() === '1a86'.toLowerCase() &&
+            portInfo.productId?.toLowerCase() === '7523'.toLowerCase()
             // && portInfo.serialNumber === 'DEADBEEF'
         )
     })
@@ -48,8 +49,9 @@ const main = async () => {
         PB.SmartKnobConfig.create({
             detentStrengthUnit: 1,
             endstopStrengthUnit: 1,
-            numPositions: 5,
             position: 0,
+            minPosition: 0,
+            maxPosition: 4,
             positionWidthRadians: (10 * Math.PI) / 180,
             snapPoint: 1.1,
             text: 'From TS!',

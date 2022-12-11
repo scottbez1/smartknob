@@ -8,9 +8,12 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import {PB} from 'smartknobjs-proto'
 import {VideoInfo} from './types'
 import {Card, CardActions, CardContent} from '@mui/material'
-import {exhaustiveCheck, lerp, NoUndefinedField} from './util'
+import {exhaustiveCheck, INT32_MIN, lerp, NoUndefinedField} from './util'
 
 const socket = io()
+
+// const MIN_ZOOM = 0.01
+// const MAX_ZOOM = 40
 
 enum Mode {
     Scroll = 'Scroll',
@@ -22,6 +25,7 @@ type State = {
     mode: Mode
     playbackSpeed: number
     currentFrame: number
+    zoomTimelinePixelsPerFrame: number
 }
 
 export type AppProps = {
@@ -35,6 +39,7 @@ export const App: React.FC<AppProps> = ({info}) => {
         mode: Mode.Scroll,
         playbackSpeed: 0,
         currentFrame: 0,
+        zoomTimelinePixelsPerFrame: 0.1,
     })
 
     const pushConfig = (state: State) => {
@@ -42,8 +47,9 @@ export const App: React.FC<AppProps> = ({info}) => {
         if (state.mode === Mode.Scroll) {
             // TODO
             config = PB.SmartKnobConfig.create({
-                numPositions: 32,
                 position: 0,
+                minPosition: 0,
+                maxPosition: 31,
                 positionWidthRadians: (7 * Math.PI) / 180,
                 detentStrengthUnit: 2.5,
                 endstopStrengthUnit: 1,
@@ -51,12 +57,12 @@ export const App: React.FC<AppProps> = ({info}) => {
                 text: Mode.Scroll,
                 detentPositions: [0, 10, 21, 22],
                 snapPointBias: 0,
-                snapPointBiasCenterPosition: 0,
             })
         } else if (state.mode === Mode.Frames) {
             config = PB.SmartKnobConfig.create({
-                numPositions: info.totalFrames,
                 position: state.currentFrame,
+                minPosition: 0,
+                maxPosition: info.totalFrames - 1,
                 positionWidthRadians: (1 * Math.PI) / 180,
                 detentStrengthUnit: 1,
                 endstopStrengthUnit: 1,
@@ -64,12 +70,12 @@ export const App: React.FC<AppProps> = ({info}) => {
                 text: Mode.Frames,
                 detentPositions: [],
                 snapPointBias: 0,
-                snapPointBiasCenterPosition: 0,
             })
         } else if (state.mode === Mode.Speed) {
             config = PB.SmartKnobConfig.create({
-                numPositions: 13,
-                position: 6 + Math.trunc(state.playbackSpeed),
+                position: state.playbackSpeed === 0 ? 0 : INT32_MIN,
+                minPosition: state.currentFrame === 0 ? 0 : -6,
+                maxPosition: state.currentFrame === info.totalFrames - 1 ? 0 : 6,
                 positionWidthRadians: (60 * Math.PI) / 180,
                 detentStrengthUnit: 1,
                 endstopStrengthUnit: 1,
@@ -77,7 +83,6 @@ export const App: React.FC<AppProps> = ({info}) => {
                 text: Mode.Speed,
                 detentPositions: [],
                 snapPointBias: 0.4,
-                snapPointBiasCenterPosition: 6,
             })
         } else {
             throw exhaustiveCheck(state.mode)
@@ -96,24 +101,43 @@ export const App: React.FC<AppProps> = ({info}) => {
     }
 
     useEffect(() => {
+        const refreshInterval = 20
         const fps = info.frameRate * derivedState.playbackSpeed
-        const msPerFrame = 1000 / fps
         if (derivedState.mode === Mode.Speed && fps !== 0) {
             const timer = setInterval(() => {
                 setCurrentFrame((oldFrame) => {
-                    const newFrame = oldFrame + Math.sign(derivedState.playbackSpeed)
+                    const newFrame = oldFrame + (fps * refreshInterval) / 1000
+
+                    const oldFrameTrunc = Math.trunc(oldFrame)
+                    const newFrameTrunc = Math.trunc(newFrame)
+
                     if (newFrame < 0 || newFrame >= info.totalFrames) {
+                        const clampedNewFrame = Math.min(Math.max(newFrame, 0), info.totalFrames - 1)
+                        // TODO: figure out how to avoid sending this config repeatedly
                         pushConfig({
-                            mode: derivedState.mode,
+                            mode: Mode.Speed,
                             playbackSpeed: 0,
-                            currentFrame: -1, // unused
+                            currentFrame: Math.trunc(clampedNewFrame),
+                            zoomTimelinePixelsPerFrame: derivedState.zoomTimelinePixelsPerFrame,
                         })
-                        return oldFrame
+                        return clampedNewFrame
                     } else {
+                        if (
+                            (oldFrameTrunc === 0 && newFrameTrunc > 0) ||
+                            (oldFrameTrunc === info.totalFrames - 1 && newFrameTrunc < info.totalFrames - 1)
+                        ) {
+                            // If we've left a boundary condition, push a config to reset the bounds
+                            pushConfig({
+                                mode: derivedState.mode,
+                                playbackSpeed: 0,
+                                currentFrame: newFrameTrunc,
+                                zoomTimelinePixelsPerFrame: derivedState.zoomTimelinePixelsPerFrame,
+                            })
+                        }
                         return newFrame
                     }
                 })
-            }, msPerFrame)
+            }, refreshInterval)
             return () => clearInterval(timer)
         }
     }, [derivedState.mode, derivedState.playbackSpeed, info.totalFrames, info.frameRate])
@@ -121,6 +145,7 @@ export const App: React.FC<AppProps> = ({info}) => {
     useEffect(() => {
         socket.on('connect', () => {
             setIsConnected(true)
+            pushConfig(derivedState)
         })
 
         socket.on('disconnect', () => {
@@ -139,16 +164,18 @@ export const App: React.FC<AppProps> = ({info}) => {
                     return {
                         mode: Mode.Scroll,
                         playbackSpeed: 0,
-                        currentFrame: cur.currentFrame, // TODO - map from state
+                        currentFrame: cur.currentFrame, // TODO - map from state and zoom
+                        zoomTimelinePixelsPerFrame: cur.zoomTimelinePixelsPerFrame,
                     }
                 } else if (modeText === Mode.Frames) {
                     return {
                         mode: Mode.Frames,
                         playbackSpeed: 0,
                         currentFrame: stateObj.currentPosition ?? 0,
+                        zoomTimelinePixelsPerFrame: cur.zoomTimelinePixelsPerFrame,
                     }
                 } else if (modeText === Mode.Speed) {
-                    const normalizedWholeValue = stateObj.currentPosition - stateObj.config.snapPointBiasCenterPosition
+                    const normalizedWholeValue = stateObj.currentPosition
                     const normalizedFractional =
                         Math.sign(stateObj.subPositionUnit) *
                         lerp(stateObj.subPositionUnit * Math.sign(stateObj.subPositionUnit), 0.1, 0.9, 0, 1)
@@ -158,6 +185,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         mode: Mode.Speed,
                         playbackSpeed: speed,
                         currentFrame: cur.currentFrame,
+                        zoomTimelinePixelsPerFrame: cur.zoomTimelinePixelsPerFrame,
                     }
                 }
                 return cur
@@ -185,9 +213,8 @@ export const App: React.FC<AppProps> = ({info}) => {
                                 return
                             }
                             pushConfig({
+                                ...derivedState,
                                 mode: value,
-                                currentFrame: derivedState.currentFrame,
-                                playbackSpeed: derivedState.playbackSpeed,
                             })
                         }}
                         aria-label="Mode"
@@ -199,9 +226,9 @@ export const App: React.FC<AppProps> = ({info}) => {
                         ))}
                     </ToggleButtonGroup>
                     <Typography component="h1" variant="h5">
-                        Frame {derivedState.currentFrame} / {info.totalFrames - 1}
+                        Frame {Math.trunc(derivedState.currentFrame)} / {info.totalFrames - 1}
                         <br />
-                        Speed {derivedState.playbackSpeed}
+                        Speed {Math.trunc(derivedState.playbackSpeed * 10) / 10}
                     </Typography>
                 </CardContent>
                 <CardActions>

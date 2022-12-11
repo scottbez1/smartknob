@@ -15,11 +15,11 @@
   "author": "",
   "license": "Apache-2.0",
   "workspaces": [
+    "packages/smartknobjs-proto",
+    "packages/smartknobjs",
     "packages/demo-backend",
     "packages/demo-frontend",
-    "packages/example",
-    "packages/smartknobjs-proto",
-    "packages/smartknobjs"
+    "packages/example"
   ],
   "devDependencies": {
     "concurrently": "^7.6.0",

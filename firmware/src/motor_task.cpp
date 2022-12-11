@@ -13,7 +13,7 @@
 // #### 
 // Hardware-specific motor calibration constants.
 // Run calibration once at startup, then update these constants with the calibration results.
-static const float ZERO_ELECTRICAL_OFFSET = 2.77;
+static const float ZERO_ELECTRICAL_OFFSET = 7.81;
 static const Direction FOC_DIRECTION = Direction::CW;
 static const int MOTOR_POLE_PAIRS = 7;
 // ####
@@ -85,8 +85,9 @@ void MotorTask::run() {
 
     float current_detent_center = motor.shaft_angle;
     PB_SmartKnobConfig config = {
-        .num_positions = 2,
         .position = 0,
+        .min_position = 0,
+        .max_position = 1,
         .position_width_radians = 60 * _PI / 180,
         .detent_strength_unit = 0,
     };
@@ -109,10 +110,6 @@ void MotorTask::run() {
                     break;
                 case CommandType::CONFIG: {
                     // Check new config for validity
-                    if (command.data.config.num_positions < 0) {
-                        log("Ignoring invalid config: num_positions cannot be negative");
-                        break;
-                    }
                     if (command.data.config.detent_strength_unit < 0) {
                         log("Ignoring invalid config: detent_strength_unit cannot be negative");
                         break;
@@ -133,10 +130,6 @@ void MotorTask::run() {
                         log("Ignoring invalid config: snap_point_bias cannot be negative or there is risk of instability");
                         break;
                     }
-                    if (command.data.config.snap_point_bias_center_position < 0 || command.data.config.snap_point_bias_center_position > command.data.config.num_positions || (command.data.config.num_positions > 0 && command.data.config.snap_point_bias_center_position == command.data.config.num_positions)) {
-                        log("Ignoring invalid config: snap_point_bias_center_position out of range");
-                        break;
-                    }
 
                     // Change haptic input mode
                     config = command.data.config;
@@ -144,12 +137,16 @@ void MotorTask::run() {
                         // INT32_MIN indicates no change to position, so restore from latest_config
                         config.position = latest_config.position;
                     }
+                    if (config.position != latest_config.position
+                            || config.position_width_radians != latest_config.position_width_radians) {
+                        // Only adjust the detent center if the position or width has changed
+                        current_detent_center = motor.shaft_angle;
+                        #if SK_INVERT_ROTATION
+                            current_detent_center = -motor.shaft_angle;
+                        #endif
+                    }
                     latest_config = config;
                     log("Got new config");
-                    current_detent_center = motor.shaft_angle;
-                    #if SK_INVERT_ROTATION
-                        current_detent_center = -motor.shaft_angle;
-                    #endif
 
                     // Update derivative factor of torque controller based on detent width.
                     // If the D factor is large on coarse detents, the motor ends up making noise because the P&D factors amplify the noise from the sensor.
@@ -214,14 +211,15 @@ void MotorTask::run() {
 
         float snap_point_radians = config.position_width_radians * config.snap_point;
         float bias_radians = config.position_width_radians * config.snap_point_bias;
-        float snap_point_radians_decrease = snap_point_radians + (config.position <= config.snap_point_bias_center_position ? bias_radians : -bias_radians);
-        float snap_point_radians_increase = -snap_point_radians + (config.position >= config.snap_point_bias_center_position ? -bias_radians : bias_radians); 
+        float snap_point_radians_decrease = snap_point_radians + (config.position <= 0 ? bias_radians : -bias_radians);
+        float snap_point_radians_increase = -snap_point_radians + (config.position >= 0 ? -bias_radians : bias_radians); 
 
-        if (angle_to_detent_center > snap_point_radians_decrease && (config.num_positions <= 0 || config.position > 0)) {
+        int32_t num_positions = config.max_position - config.min_position + 1;
+        if (angle_to_detent_center > snap_point_radians_decrease && (num_positions <= 0 || config.position > config.min_position)) {
             current_detent_center += config.position_width_radians;
             angle_to_detent_center -= config.position_width_radians;
             config.position--;
-        } else if (angle_to_detent_center < snap_point_radians_increase && (config.num_positions <= 0 || config.position < config.num_positions - 1)) {
+        } else if (angle_to_detent_center < snap_point_radians_increase && (num_positions <= 0 || config.position < config.max_position)) {
             current_detent_center -= config.position_width_radians;
             angle_to_detent_center += config.position_width_radians;
             config.position++;
@@ -232,7 +230,7 @@ void MotorTask::run() {
             fmaxf(-config.position_width_radians*DEAD_ZONE_DETENT_PERCENT, -DEAD_ZONE_RAD),
             fminf(config.position_width_radians*DEAD_ZONE_DETENT_PERCENT, DEAD_ZONE_RAD));
 
-        bool out_of_bounds = config.num_positions > 0 && ((angle_to_detent_center > 0 && config.position == 0) || (angle_to_detent_center < 0 && config.position == config.num_positions - 1));
+        bool out_of_bounds = num_positions > 0 && ((angle_to_detent_center > 0 && config.position == config.min_position) || (angle_to_detent_center < 0 && config.position == config.max_position));
         motor.PID_velocity.limit = 10; //out_of_bounds ? 10 : 3;
         motor.PID_velocity.P = out_of_bounds ? config.endstop_strength_unit * 4 : config.detent_strength_unit * 4;
 

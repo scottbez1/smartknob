@@ -49,15 +49,7 @@ export class SmartKnob {
             this.port = null
         }
 
-        this.currentConfig = PB.SmartKnobConfig.create({
-            detentStrengthUnit: 1,
-            endstopStrengthUnit: 1,
-            numPositions: 5,
-            position: 0,
-            positionWidthRadians: (10 * Math.PI) / 180,
-            snapPoint: 1.1,
-            text: 'From TS!',
-        })
+        this.currentConfig = PB.SmartKnobConfig.create({})
 
         this.lastNonce = Math.floor(Math.random() * (2 ^ (32 - 1)))
     }

@@ -17,3 +17,5 @@ export const lerp = (value: number, inMin: number, inMax: number, min: number, m
 export type NoUndefinedField<T> = {
     [P in keyof T]-?: NoUndefinedField<NonNullable<T[P]>>
 }
+
+export const INT32_MIN = -2147483648
