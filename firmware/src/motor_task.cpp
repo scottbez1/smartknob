@@ -13,7 +13,7 @@
 // #### 
 // Hardware-specific motor calibration constants.
 // Run calibration once at startup, then update these constants with the calibration results.
-static const float ZERO_ELECTRICAL_OFFSET = 7.81;
+static const float ZERO_ELECTRICAL_OFFSET = 7.61;
 static const Direction FOC_DIRECTION = Direction::CW;
 static const int MOTOR_POLE_PAIRS = 7;
 // ####
@@ -96,8 +96,6 @@ void MotorTask::run() {
     uint32_t last_idle_start = 0;
     uint32_t last_publish = 0;
 
-    PB_SmartKnobConfig latest_config = config;
-
     while (1) {
         motor.loopFOC();
 
@@ -132,20 +130,22 @@ void MotorTask::run() {
                     }
 
                     // Change haptic input mode
-                    config = command.data.config;
-                    if (config.position == INT32_MIN) {
+                    PB_SmartKnobConfig newConfig = command.data.config;
+                    if (newConfig.position == INT32_MIN) {
                         // INT32_MIN indicates no change to position, so restore from latest_config
-                        config.position = latest_config.position;
+                        log("maintaining position");
+                        newConfig.position = config.position;
                     }
-                    if (config.position != latest_config.position
-                            || config.position_width_radians != latest_config.position_width_radians) {
+                    if (newConfig.position != config.position
+                            || newConfig.position_width_radians != config.position_width_radians) {
                         // Only adjust the detent center if the position or width has changed
+                        log("adjusting detent center");
                         current_detent_center = motor.shaft_angle;
                         #if SK_INVERT_ROTATION
                             current_detent_center = -motor.shaft_angle;
                         #endif
                     }
-                    latest_config = config;
+                    config = newConfig;
                     log("Got new config");
 
                     // Update derivative factor of torque controller based on detent width.

@@ -19,3 +19,13 @@ export type NoUndefinedField<T> = {
 }
 
 export const INT32_MIN = -2147483648
+
+export function findNClosest(numbers: number[], target: number, n: number): number[] {
+    // First, we sort the numbers in ascending order based on their absolute difference
+    // from the target number. This means that the numbers that are closest to the target
+    // will come first in the sorted array.
+    const sortedNumbers = numbers.sort((a, b) => Math.abs(a - target) - Math.abs(b - target))
+
+    // Next, we return the first N numbers from the sorted array as the N closest numbers.
+    return sortedNumbers.slice(0, n)
+}

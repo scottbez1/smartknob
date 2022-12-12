@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
-import App from './App'
+import {App} from './App'
 import reportWebVitals from './reportWebVitals'
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
@@ -18,7 +18,7 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 const info: VideoInfo = {
     totalFrames: 30 * 60 * 5,
     frameRate: 30,
-    boundaryFrames: [1234, 1290, 3000],
+    boundaryFrames: [312, 400, 1234, 1290, 3000, 4000],
 }
 root.render(
     <React.StrictMode>
