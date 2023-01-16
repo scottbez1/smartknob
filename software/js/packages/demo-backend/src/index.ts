@@ -2,7 +2,11 @@ import SerialPort = require('serialport')
 import {SmartKnob} from 'smartknobjs'
 import {PB} from 'smartknobjs-proto'
 
-const main = async () => {
+import {Server, Socket} from 'socket.io'
+
+const io = new Server(parseInt(process.env.PORT ?? '3001'))
+
+const start = async () => {
     const ports = await SerialPort.list()
 
     const matchingPorts = ports.filter((portInfo) => {
@@ -24,23 +28,20 @@ const main = async () => {
     }
 
     const portInfo = matchingPorts[0]
+    console.info('Connecting to ', portInfo)
 
     let lastLoggedState: PB.ISmartKnobState | undefined
     const smartknob = new SmartKnob(portInfo.path, (message: PB.FromSmartKnob) => {
         if (message.payload === 'log' && message.log) {
             console.log('LOG', message.log.msg)
         } else if (message.payload === 'smartknobState' && message.smartknobState) {
+            const state = PB.SmartKnobState.toObject(message.smartknobState as PB.SmartKnobState, {defaults: true})
+            io.emit('state', {pb: message.smartknobState})
             if (
                 message.smartknobState.currentPosition !== lastLoggedState?.currentPosition ||
                 Math.abs((message.smartknobState.subPositionUnit ?? 0) - (lastLoggedState?.subPositionUnit ?? 0)) > 1
             ) {
-                console.log(
-                    `State:\n${JSON.stringify(
-                        PB.SmartKnobState.toObject(message.smartknobState as PB.SmartKnobState, {defaults: true}),
-                        undefined,
-                        4,
-                    )}`,
-                )
+                console.log(`State:\n${JSON.stringify(state, undefined, 4)}`)
                 lastLoggedState = message.smartknobState
             }
         }
@@ -50,13 +51,25 @@ const main = async () => {
             detentStrengthUnit: 1,
             endstopStrengthUnit: 1,
             position: 0,
-            minPosition: 0,
-            maxPosition: 4,
+            minPosition: -5,
+            maxPosition: 5,
             positionWidthRadians: (10 * Math.PI) / 180,
             snapPoint: 1.1,
             text: 'From TS!',
         }),
     )
+
+    let currentSocket: Socket | null = null
+    io.on('connection', (socket) => {
+        if (currentSocket !== null) {
+            currentSocket.disconnect(true)
+        }
+        currentSocket = socket
+        socket.on('set_config', (config) => {
+            console.log(config)
+            smartknob.sendConfig(config)
+        })
+    })
 }
 
-main()
+start()

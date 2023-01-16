@@ -5,11 +5,15 @@
 bool config_eq(PB_SmartKnobConfig& first, PB_SmartKnobConfig& second) {
     return first.detent_strength_unit == second.detent_strength_unit
         && first.endstop_strength_unit == second.endstop_strength_unit
-        && first.num_positions == second.num_positions
         && first.position == second.position
+        && first.min_position == second.min_position
+        && first.max_position == second.max_position
         && first.position_width_radians == second.position_width_radians
         && first.snap_point == second.snap_point
-        && strcmp(first.text, second.text) == 0;
+        && strcmp(first.text, second.text) == 0
+        && first.detent_positions_count == second.detent_positions_count
+        && memcmp(first.detent_positions, second.detent_positions, first.detent_positions_count * sizeof(first.detent_positions[0]))
+        && first.snap_point_bias == second.snap_point_bias;
 }
 
 bool state_eq(PB_SmartKnobState& first, PB_SmartKnobState& second) {

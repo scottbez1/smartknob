@@ -1,6 +1,6 @@
 {
   "name": "smartknobjs-proto",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SmartKnob Protobuf Generated Code",
   "main": "dist/smartknob_proto.js",
   "types": "dist/smartknob_proto.d.ts",

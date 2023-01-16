@@ -22,7 +22,7 @@ DisplayTask::~DisplayTask() {
 void DisplayTask::run() {
     tft_.begin();
     tft_.invertDisplay(1);
-    tft_.setRotation(0);
+    tft_.setRotation(SK_DISPLAY_ROTATION);
     tft_.fillScreen(TFT_DARKGREEN);
 
     ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
@@ -54,8 +54,10 @@ void DisplayTask::run() {
         }
 
         spr_.fillSprite(TFT_BLACK);
-        if (state.config.num_positions > 1) {
-          int32_t height = state.current_position * TFT_HEIGHT / (state.config.num_positions - 1);
+
+        int32_t num_positions = state.config.max_position - state.config.min_position + 1;
+        if (num_positions > 1) {
+          int32_t height = (state.current_position - state.config.min_position) * TFT_HEIGHT / (state.config.max_position - state.config.min_position);
           spr_.fillRect(0, TFT_HEIGHT - height, TFT_WIDTH, height, FILL_COLOR);
         }
 
@@ -80,8 +82,8 @@ void DisplayTask::run() {
 
         float left_bound = PI / 2;
 
-        if (state.config.num_positions > 0) {
-          float range_radians = (state.config.num_positions - 1) * state.config.position_width_radians;
+        if (num_positions > 0) {
+          float range_radians = (state.config.max_position - state.config.min_position) * state.config.position_width_radians;
           left_bound = PI / 2 + range_radians / 2;
           float right_bound = PI / 2 - range_radians / 2;
           spr_.drawLine(TFT_WIDTH/2 + RADIUS * cosf(left_bound), TFT_HEIGHT/2 - RADIUS * sinf(left_bound), TFT_WIDTH/2 + (RADIUS - 10) * cosf(left_bound), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(left_bound), TFT_WHITE);
@@ -92,18 +94,18 @@ void DisplayTask::run() {
         }
 
         float adjusted_sub_position = state.sub_position_unit * state.config.position_width_radians;
-        if (state.config.num_positions > 0) {
-          if (state.current_position == 0 && state.sub_position_unit < 0) {
+        if (num_positions > 0) {
+          if (state.current_position == state.config.min_position && state.sub_position_unit < 0) {
             adjusted_sub_position = -logf(1 - state.sub_position_unit  * state.config.position_width_radians / 5 / PI * 180) * 5 * PI / 180;
-          } else if (state.current_position == state.config.num_positions - 1 && state.sub_position_unit > 0) {
+          } else if (state.current_position == state.config.max_position && state.sub_position_unit > 0) {
             adjusted_sub_position = logf(1 + state.sub_position_unit  * state.config.position_width_radians / 5 / PI * 180)  * 5 * PI / 180;
           }
         }
 
-        float raw_angle = left_bound - state.current_position * state.config.position_width_radians;
+        float raw_angle = left_bound - (state.current_position - state.config.min_position) * state.config.position_width_radians;
         float adjusted_angle = raw_angle - adjusted_sub_position;
 
-        if (state.config.num_positions > 0 && ((state.current_position == 0 && state.sub_position_unit < 0) || (state.current_position == state.config.num_positions - 1 && state.sub_position_unit > 0))) {
+        if (num_positions > 0 && ((state.current_position == state.config.min_position && state.sub_position_unit < 0) || (state.current_position == state.config.max_position && state.sub_position_unit > 0))) {
 
           spr_.fillCircle(TFT_WIDTH/2 + (RADIUS - 10) * cosf(raw_angle), TFT_HEIGHT/2 - (RADIUS - 10) * sinf(raw_angle), 5, DOT_COLOR);
           if (raw_angle < adjusted_angle) {

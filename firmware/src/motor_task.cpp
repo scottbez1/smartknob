@@ -13,7 +13,7 @@
 // #### 
 // Hardware-specific motor calibration constants.
 // Run calibration once at startup, then update these constants with the calibration results.
-static const float ZERO_ELECTRICAL_OFFSET = 2.77;
+static const float ZERO_ELECTRICAL_OFFSET = 7.61;
 static const Direction FOC_DIRECTION = Direction::CW;
 static const int MOTOR_POLE_PAIRS = 7;
 // ####
@@ -85,8 +85,9 @@ void MotorTask::run() {
 
     float current_detent_center = motor.shaft_angle;
     PB_SmartKnobConfig config = {
-        .num_positions = 2,
         .position = 0,
+        .min_position = 0,
+        .max_position = 1,
         .position_width_radians = 60 * _PI / 180,
         .detent_strength_unit = 0,
     };
@@ -94,8 +95,6 @@ void MotorTask::run() {
     float idle_check_velocity_ewma = 0;
     uint32_t last_idle_start = 0;
     uint32_t last_publish = 0;
-
-    PB_SmartKnobConfig latest_config = config;
 
     while (1) {
         motor.loopFOC();
@@ -108,14 +107,46 @@ void MotorTask::run() {
                     calibrate();
                     break;
                 case CommandType::CONFIG: {
+                    // Check new config for validity
+                    if (command.data.config.detent_strength_unit < 0) {
+                        log("Ignoring invalid config: detent_strength_unit cannot be negative");
+                        break;
+                    }
+                    if (command.data.config.endstop_strength_unit < 0) {
+                        log("Ignoring invalid config: endstop_strength_unit cannot be negative");
+                        break;
+                    }
+                    if (command.data.config.snap_point < 0.5) {
+                        log("Ignoring invalid config: snap_point must be >= 0.5 for stability");
+                        break;
+                    }
+                    if (command.data.config.detent_positions_count > COUNT_OF(command.data.config.detent_positions)) {
+                        log("Ignoring invalid config: detent_positions_count is too large");
+                        break;
+                    }
+                    if (command.data.config.snap_point_bias < 0) {
+                        log("Ignoring invalid config: snap_point_bias cannot be negative or there is risk of instability");
+                        break;
+                    }
+
                     // Change haptic input mode
-                    config = command.data.config;
-                    latest_config = config;
+                    PB_SmartKnobConfig newConfig = command.data.config;
+                    if (newConfig.position == INT32_MIN) {
+                        // INT32_MIN indicates no change to position, so restore from latest_config
+                        log("maintaining position");
+                        newConfig.position = config.position;
+                    }
+                    if (newConfig.position != config.position
+                            || newConfig.position_width_radians != config.position_width_radians) {
+                        // Only adjust the detent center if the position or width has changed
+                        log("adjusting detent center");
+                        current_detent_center = motor.shaft_angle;
+                        #if SK_INVERT_ROTATION
+                            current_detent_center = -motor.shaft_angle;
+                        #endif
+                    }
+                    config = newConfig;
                     log("Got new config");
-                    current_detent_center = motor.shaft_angle;
-                    #if SK_INVERT_ROTATION
-                        current_detent_center = -motor.shaft_angle;
-                    #endif
 
                     // Update derivative factor of torque controller based on detent width.
                     // If the D factor is large on coarse detents, the motor ends up making noise because the P&D factors amplify the noise from the sensor.
@@ -130,7 +161,9 @@ void MotorTask::run() {
                     const float derivative_position_width_lower = radians(3);
                     const float derivative_position_width_upper = radians(8);
                     const float raw = derivative_lower_strength + (derivative_upper_strength - derivative_lower_strength)/(derivative_position_width_upper - derivative_position_width_lower)*(config.position_width_radians - derivative_position_width_lower);
-                    motor.PID_velocity.D = CLAMP(
+                    // When there are intermittent detents (set via detent_positions), disable derivative factor as this adds extra "clicks" when nearing
+                    // a detent.
+                    motor.PID_velocity.D = config.detent_positions_count > 0 ? 0 : CLAMP(
                         raw,
                         min(derivative_lower_strength, derivative_upper_strength),
                         max(derivative_lower_strength, derivative_upper_strength)
@@ -175,11 +208,18 @@ void MotorTask::run() {
         #if SK_INVERT_ROTATION
             angle_to_detent_center = -motor.shaft_angle - current_detent_center;
         #endif
-        if (angle_to_detent_center > config.position_width_radians * config.snap_point && (config.num_positions <= 0 || config.position > 0)) {
+
+        float snap_point_radians = config.position_width_radians * config.snap_point;
+        float bias_radians = config.position_width_radians * config.snap_point_bias;
+        float snap_point_radians_decrease = snap_point_radians + (config.position <= 0 ? bias_radians : -bias_radians);
+        float snap_point_radians_increase = -snap_point_radians + (config.position >= 0 ? -bias_radians : bias_radians); 
+
+        int32_t num_positions = config.max_position - config.min_position + 1;
+        if (angle_to_detent_center > snap_point_radians_decrease && (num_positions <= 0 || config.position > config.min_position)) {
             current_detent_center += config.position_width_radians;
             angle_to_detent_center -= config.position_width_radians;
             config.position--;
-        } else if (angle_to_detent_center < -config.position_width_radians * config.snap_point && (config.num_positions <= 0 || config.position < config.num_positions - 1)) {
+        } else if (angle_to_detent_center < snap_point_radians_increase && (num_positions <= 0 || config.position < config.max_position)) {
             current_detent_center -= config.position_width_radians;
             angle_to_detent_center += config.position_width_radians;
             config.position++;
@@ -190,7 +230,7 @@ void MotorTask::run() {
             fmaxf(-config.position_width_radians*DEAD_ZONE_DETENT_PERCENT, -DEAD_ZONE_RAD),
             fminf(config.position_width_radians*DEAD_ZONE_DETENT_PERCENT, DEAD_ZONE_RAD));
 
-        bool out_of_bounds = config.num_positions > 0 && ((angle_to_detent_center > 0 && config.position == 0) || (angle_to_detent_center < 0 && config.position == config.num_positions - 1));
+        bool out_of_bounds = num_positions > 0 && ((angle_to_detent_center > 0 && config.position == config.min_position) || (angle_to_detent_center < 0 && config.position == config.max_position));
         motor.PID_velocity.limit = 10; //out_of_bounds ? 10 : 3;
         motor.PID_velocity.P = out_of_bounds ? config.endstop_strength_unit * 4 : config.detent_strength_unit * 4;
 
@@ -200,7 +240,20 @@ void MotorTask::run() {
             // Don't apply torque if velocity is too high (helps avoid positive feedback loop/runaway)
             motor.move(0);
         } else {
-            float torque = motor.PID_velocity(-angle_to_detent_center + dead_zone_adjustment);
+            float input = -angle_to_detent_center + dead_zone_adjustment;
+            if (!out_of_bounds && config.detent_positions_count > 0) {
+                bool in_detent = false;
+                for (uint8_t i = 0; i < config.detent_positions_count; i++) {
+                    if (config.detent_positions[i] == config.position) {
+                        in_detent = true;
+                        break;
+                    }
+                }
+                if (!in_detent) {
+                    input = 0;
+                }
+            }
+            float torque = motor.PID_velocity(input);
             #if SK_INVERT_ROTATION
                 torque = -torque;
             #endif

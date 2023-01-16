@@ -23,13 +23,17 @@ typedef struct _PB_Log {
 } PB_Log;
 
 typedef struct _PB_SmartKnobConfig {
-    int32_t num_positions;
     int32_t position;
+    int32_t min_position;
+    int32_t max_position;
     float position_width_radians;
     float detent_strength_unit;
     float endstop_strength_unit;
     float snap_point;
     char text[51];
+    pb_size_t detent_positions_count;
+    int32_t detent_positions[5];
+    float snap_point_bias;
 } PB_SmartKnobConfig;
 
 typedef struct _PB_SmartKnobState {
@@ -70,26 +74,29 @@ extern "C" {
 #define PB_Log_init_default                      {""}
 #define PB_SmartKnobState_init_default           {0, 0, false, PB_SmartKnobConfig_init_default}
 #define PB_ToSmartknob_init_default              {0, 0, {PB_RequestState_init_default}}
-#define PB_SmartKnobConfig_init_default          {0, 0, 0, 0, 0, 0, ""}
+#define PB_SmartKnobConfig_init_default          {0, 0, 0, 0, 0, 0, 0, "", 0, {0, 0, 0, 0, 0}, 0}
 #define PB_RequestState_init_default             {0}
 #define PB_FromSmartKnob_init_zero               {0, {PB_Ack_init_zero}}
 #define PB_Ack_init_zero                         {0}
 #define PB_Log_init_zero                         {""}
 #define PB_SmartKnobState_init_zero              {0, 0, false, PB_SmartKnobConfig_init_zero}
 #define PB_ToSmartknob_init_zero                 {0, 0, {PB_RequestState_init_zero}}
-#define PB_SmartKnobConfig_init_zero             {0, 0, 0, 0, 0, 0, ""}
+#define PB_SmartKnobConfig_init_zero             {0, 0, 0, 0, 0, 0, 0, "", 0, {0, 0, 0, 0, 0}, 0}
 #define PB_RequestState_init_zero                {0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define PB_Ack_nonce_tag                         1
 #define PB_Log_msg_tag                           1
-#define PB_SmartKnobConfig_num_positions_tag     1
-#define PB_SmartKnobConfig_position_tag          2
-#define PB_SmartKnobConfig_position_width_radians_tag 3
-#define PB_SmartKnobConfig_detent_strength_unit_tag 4
-#define PB_SmartKnobConfig_endstop_strength_unit_tag 5
-#define PB_SmartKnobConfig_snap_point_tag        6
-#define PB_SmartKnobConfig_text_tag              7
+#define PB_SmartKnobConfig_position_tag          1
+#define PB_SmartKnobConfig_min_position_tag      2
+#define PB_SmartKnobConfig_max_position_tag      3
+#define PB_SmartKnobConfig_position_width_radians_tag 4
+#define PB_SmartKnobConfig_detent_strength_unit_tag 5
+#define PB_SmartKnobConfig_endstop_strength_unit_tag 6
+#define PB_SmartKnobConfig_snap_point_tag        7
+#define PB_SmartKnobConfig_text_tag              8
+#define PB_SmartKnobConfig_detent_positions_tag  9
+#define PB_SmartKnobConfig_snap_point_bias_tag   10
 #define PB_SmartKnobState_current_position_tag   1
 #define PB_SmartKnobState_sub_position_unit_tag  2
 #define PB_SmartKnobState_config_tag             3
@@ -139,13 +146,16 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (payload,smartknob_config,payload.smartknob_c
 #define PB_ToSmartknob_payload_smartknob_config_MSGTYPE PB_SmartKnobConfig
 
 #define PB_SmartKnobConfig_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    num_positions,     1) \
-X(a, STATIC,   SINGULAR, INT32,    position,          2) \
-X(a, STATIC,   SINGULAR, FLOAT,    position_width_radians,   3) \
-X(a, STATIC,   SINGULAR, FLOAT,    detent_strength_unit,   4) \
-X(a, STATIC,   SINGULAR, FLOAT,    endstop_strength_unit,   5) \
-X(a, STATIC,   SINGULAR, FLOAT,    snap_point,        6) \
-X(a, STATIC,   SINGULAR, STRING,   text,              7)
+X(a, STATIC,   SINGULAR, INT32,    position,          1) \
+X(a, STATIC,   SINGULAR, INT32,    min_position,      2) \
+X(a, STATIC,   SINGULAR, INT32,    max_position,      3) \
+X(a, STATIC,   SINGULAR, FLOAT,    position_width_radians,   4) \
+X(a, STATIC,   SINGULAR, FLOAT,    detent_strength_unit,   5) \
+X(a, STATIC,   SINGULAR, FLOAT,    endstop_strength_unit,   6) \
+X(a, STATIC,   SINGULAR, FLOAT,    snap_point,        7) \
+X(a, STATIC,   SINGULAR, STRING,   text,              8) \
+X(a, STATIC,   REPEATED, INT32,    detent_positions,   9) \
+X(a, STATIC,   SINGULAR, FLOAT,    snap_point_bias,  10)
 #define PB_SmartKnobConfig_CALLBACK NULL
 #define PB_SmartKnobConfig_DEFAULT NULL
 
@@ -176,9 +186,9 @@ extern const pb_msgdesc_t PB_RequestState_msg;
 #define PB_FromSmartKnob_size                    261
 #define PB_Log_size                              258
 #define PB_RequestState_size                     0
-#define PB_SmartKnobConfig_size                  94
-#define PB_SmartKnobState_size                   112
-#define PB_ToSmartknob_size                      102
+#define PB_SmartKnobConfig_size                  165
+#define PB_SmartKnobState_size                   184
+#define PB_ToSmartknob_size                      174
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -42,13 +42,16 @@ message ToSmartknob {
 }
 
 message SmartKnobConfig {
-    int32 num_positions = 1;
-    int32 position = 2;
-    float position_width_radians = 3;
-    float detent_strength_unit = 4;
-    float endstop_strength_unit = 5;
-    float snap_point = 6;
-    string text = 7 [(nanopb).max_length = 50];
+    int32 position = 1;
+    int32 min_position = 2;
+    int32 max_position = 3;
+    float position_width_radians = 4;
+    float detent_strength_unit = 5;
+    float endstop_strength_unit = 6;
+    float snap_point = 7;
+    string text = 8 [(nanopb).max_length = 50];
+    repeated int32 detent_positions = 9 [(nanopb).max_count = 5];
+    float snap_point_bias = 10;
 }
 
 message RequestState {}
