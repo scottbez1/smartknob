@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react'
-import './App.css'
 import io from 'socket.io-client'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'

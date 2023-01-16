@@ -22,7 +22,7 @@ DisplayTask::~DisplayTask() {
 void DisplayTask::run() {
     tft_.begin();
     tft_.invertDisplay(1);
-    tft_.setRotation(2);
+    tft_.setRotation(SK_DISPLAY_ROTATION);
     tft_.fillScreen(TFT_DARKGREEN);
 
     ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
