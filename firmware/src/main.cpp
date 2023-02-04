@@ -3,6 +3,7 @@
 #include "display_task.h"
 #include "interface_task.h"
 #include "motor_task.h"
+#include "mqtt_task.h"
 
 #if SK_DISPLAY
 static DisplayTask display_task(0);
@@ -14,6 +15,10 @@ static MotorTask motor_task(1);
 
 
 InterfaceTask interface_task(0, motor_task, display_task_p);
+
+#if SK_MQTT
+static MQTTTask mqtt_task(0, motor_task, interface_task);
+#endif
 
 void setup() {
   #if SK_DISPLAY
@@ -27,6 +32,7 @@ void setup() {
   motor_task.setLogger(&interface_task);
   motor_task.begin();
   interface_task.begin();
+  mqtt_task.begin();
 
   // Free up the Arduino loop task
   vTaskDelete(NULL);
