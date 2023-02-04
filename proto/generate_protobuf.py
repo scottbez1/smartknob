@@ -1,11 +1,12 @@
-#!/usr/bin/env python3
+import os
+import sys
+if __name__ == '__main__':
+    if 'PIPENV_ACTIVE' not in os.environ:
+        sys.exit(f'This script should be run in a Pipenv.\n\nRun it as:\npipenv run python {os.path.basename(__file__)}')
 
 from pathlib import Path
-
-import os
 import shutil
 import subprocess
-import sys
 
 def run():
     SCRIPT_PATH = Path(__file__).absolute().parent
@@ -28,6 +29,21 @@ def run():
 
     # Generate C files via nanopb
     subprocess.check_call(['python3', nanopb_generator_path, '-D', c_generated_output_path] + proto_files, cwd=proto_path)
+
+
+    # Use nanopb's packaged protoc to generate python bindings
+    protoc_path = nanopb_path / 'generator' / 'protoc'
+    python_generated_output_path = REPO_ROOT / 'software' / 'python' / 'proto_gen'
+    python_generated_output_path.mkdir(parents=True, exist_ok=True)
+    subprocess.check_call([protoc_path, '--version'])
+    subprocess.check_call([
+        protoc_path,
+        '--python_out',
+        python_generated_output_path,
+    ] + proto_files, cwd=proto_path)
+
+    # Copy nanopb's compiled options proto
+    shutil.copy2(nanopb_path / 'generator' / 'proto' / 'nanopb_pb2.py', python_generated_output_path)
 
 
 if __name__ == '__main__':
