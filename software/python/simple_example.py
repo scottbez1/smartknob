@@ -6,6 +6,8 @@ if __name__ == '__main__':
 
 # Place imports below this line
 import logging
+import math
+
 from smartknob_io import (
     ask_for_serial_port,
     smartknob_context
@@ -26,8 +28,19 @@ def _run_example():
         s.add_handler('smartknob_state', log_state)
         s.request_state()
 
-        # Keep running until enter is pressed
-        input()
+        # Run forever, set config when enter is pressed
+        while True:
+            input()
+            config = smartknob_pb2.SmartKnobConfig()
+            config.position = 0
+            config.min_position = 0
+            config.max_position = 5
+            config.position_width_radians = math.radians(10)
+            config.detent_strength_unit = 1
+            config.endstop_strength_unit = 1
+            config.snap_point = 1.1
+            config.text = "From Python!"
+            s.set_config(config)
 
 if __name__ == '__main__':
     _run_example()

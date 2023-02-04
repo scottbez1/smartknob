@@ -50,8 +50,6 @@ class Smartknob(object):
         self._lock = Lock()
         self._message_handlers = defaultdict(list)
 
-        self._current_config = smartknob_pb2.SmartKnobConfig()
-
     def _read_loop(self):
         self._logger.debug('Read loop started')
         buffer = b''
@@ -166,22 +164,10 @@ class Smartknob(object):
         if approx_q_length > 10:
             self._logger.warning(f'Output queue length is high! ({approx_q_length}) Is the smartknob still connected and functional?')
 
-    # def set_positions(self, positions, force_movement=None):
-    #     assert self._num_modules is not None, 'Cannot set positions before number of modules is known'
-
-    #     assert len(positions) <= self._num_modules, 'More positions specified than modules'
-    #     if force_movement is not None:
-    #         assert len(positions) == len(force_movement), 'positions and force_movement list length must match'
-
-    #     for i in range(len(positions)):
-    #         if positions[i] is not None:
-    #             self._current_config.modules[i].target_flap_index = positions[i]
-    #         if force_movement is not None and force_movement[i]:
-    #             self._current_config.modules[i].movement_nonce = (self._current_config.modules[i].movement_nonce + 1) % 256
-
-    #     message = splitflap_pb2.ToSplitflap()
-    #     message.splitflap_config.CopyFrom(self._current_config)
-    #     self._enqueue_message(message)
+    def set_config(self, config):
+        message = smartknob_pb2.ToSmartknob()
+        message.smartknob_config.CopyFrom(config)
+        self._enqueue_message(message)
 
     def start(self):
         self.read_thread = Thread(target=self._read_loop)
