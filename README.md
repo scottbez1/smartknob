@@ -12,13 +12,13 @@ Join the [Discord community](https://discord.gg/5jyhjcbTnR) to discuss the proje
 # Designs
 
 ## SmartKnob View
-Premium SmartKnob experience. Under active development.
+The "SmartKnob View" is the premium SmartKnob experience with an integrated display shown in my [demo video](https://www.youtube.com/watch?v=ip641WmY4pA). Under active development.
 
 🎉 **Motors are [now available](https://www.sparkfun.com/products/20441)!** If you've been following this project,
 you'll know that the recommended motors went out of stock nearly immediately after it was published.
 Thanks to [the community](https://github.com/scottbez1/smartknob/issues/16#issuecomment-1094482805%5D), we were able to
-identify the likely original manufacturer, and recently SparkFun Electronics funded a new production run and are now
-[selling them](https://www.sparkfun.com/products/20441)! Thanks to everyone who helped search and investigate different
+identify the likely original manufacturer, and recently SparkFun Electronics has been getting them produced and regularly
+[stocking them](https://www.sparkfun.com/products/20441)! (However, they've been selling out quickly each time they restock, so definitely sign up for backorder notifications if they're out of stock when you check). Thanks to everyone who helped search and investigate different
 motor options along the way!
 
 Features:
@@ -75,7 +75,6 @@ Future plans:
  - Bluetooth HID support?
  - get wifi configured and working (probably MQTT?). Currently memory is an issue with the full display framebuffer sprite. PSRAM might fix this (requires newer ESP-IDF & unreleased Arduino core, and from a brief test I got horrible performance with PSRAM enabled), or the next item might help reduce memory:
  - migrate to LVGL, for better display rendering and easy support for menus, etc. Shouldn't require a full 240x240x24b framebuffer in memory, freeing some for wifi, etc.
- - integrate nanopb for structured serial data (see [splitflap protobuf protocol](https://github.com/scottbez1/splitflap/blob/1440aba54d5b0d822ec5da68762431879988d7ef/arduino/splitflap/esp32/splitflap/serial_proto_protocol.cpp) for example)
  - Home Assistant integration, or other real-world applications
  - ???
  - [Profit](https://github.com/sponsors/scottbez1/) 😉
@@ -147,11 +146,11 @@ Planned for the future.
 
 **How much does it cost?**
 
-I wish I could tell you now, but I don't actually know off the top of my head. Check back soon - I've only built 1 so far, which was the result of a bunch of tinkering and prototyping over an extended period, so I don't have all the expenses tallied up yet. Certainly less than $200 in parts, and maybe closer to $100?
+I wish I could tell you now, but I don't actually know off the top of my head. Check back soon - I've only built a few so far, which was the result of a bunch of tinkering and prototyping over an extended period, so I don't have all the expenses tallied up yet. Probably less than $200 in parts? But some items have gotten more expensive, and you may be limited by minimum order quantities or shipping charges from multiple separate suppliers.
 
 **Does it work with XYZ?**
 
-Not yet. So far I've only implemented enough firmware for the demo shown in the video, so you can't actually use it for anything productive yet. The basic detent configuration API is there, but not much else. Lots of firmware work remains to be done. If you build one, I'd love your help adding support for XYZ though!
+Not yet, regardless of whatever "XYZ" you're thinking of. So far I've only implemented enough firmware for the demo shown in the video, so you can't actually use it for anything productive yet. The basic detent configuration API is there, but not much else. Lots of firmware work remains to be done. If you build one, I'd love your help adding support for "XYZ" though!
 
 **Can I buy one as a kit or already assembled?**
 
@@ -160,6 +159,8 @@ Probably not? Or at least, I don't have any immediate plans to sell them myself.
 It's open source with a fairly permissive license though, so in theory anyone could start offering kits/assemblies. If someone does go down that route of selling them, note that attribution is
  _required_ (and I wouldn't say no to [royalties/tips/thanks](https://github.com/sponsors/scottbez1/) if you're in a giving mood 🙂).
 
+# Firmware and Software
+More extensive documentation of the firmware and software (and how to get started) can be found in the dedicated [SmartKnob Firmware and Software Guide](https://paper.dropbox.com/doc/SmartKnob-firmware-and-software--Byho6npe9XvZLZLxJ_8bK5TqAg-VUb9nq7btuhnHw5KlgJIH#:h2=Calibration)
 
 ## General Component Info
 
@@ -178,12 +179,12 @@ Excellent sensor at a reasonable price - highly recommended. Less noisy than TLV
 [Ordering (LCSC)](https://lcsc.com/product-detail/Angle-Linear-Position-Sensors_Magn-Tek-MT6701CT-STD_C2856764.html)
 
 #### TLV493D (Infineon)
-A mediocre choice. Easy to prototype with using [Adafruit's QWIIC breakout board](https://www.adafruit.com/product/4366).
+Not used in the SmartKnob view, but a common/popular magnetic encoder in general. It's a mediocre choice for a haptic feedback implementation. Easy to prototype with using [Adafruit's QWIIC breakout board](https://www.adafruit.com/product/4366).
 
-In my testing, it is a little noisy, requiring filtering/smoothing that can slow responsiveness, hurting control loop stability. Or, with less filtering, the noise
+In my testing, it's noisy, requiring filtering/smoothing that can slow responsiveness, hurting control loop stability. Or, with less filtering, the noise
 can easily be "amplified" by the derivative component in the PID motor torque controller, causing audible (and tactile) humming/buzzing.
 
-There is also apparently a known silicon issue that causes the internal ADC to sometimes completely lock up, requiring a full reset and re-configuration. See section
+But the bigger issue is that there is apparently a known silicon issue that causes the internal ADC to sometimes completely lock up, requiring a full reset and re-configuration, which can cause delays/gaps in data! See section
 5.6 in the [User Manual](https://www.infineon.com/dgdl/Infineon-TLV493D-A1B6_3DMagnetic-UM-v01_03-EN.pdf?fileId=5546d46261d5e6820161e75721903ddd)
 
     In the Master Controlled Mode (MCM) or the Fast Mode (FM) the ADC conversion may hang up. A hang up can
@@ -231,11 +232,6 @@ Highlights:
 This is overall the easiest motor to get started with. Low cogging and a built-in diametric magnet are great!
 
 Available [from SparkFun](https://www.sparkfun.com/products/20441)!
-
-# Firmware
-TODO: document this
-
-Also TODO: implement a lot more of the firmware
 
 # Acknowledgements
 This project was greatly inspired by Jesse Schoch's video "[haptic textures and virtual detents](https://www.youtube.com/watch?v=1gPQfDkX3BU)" and the
