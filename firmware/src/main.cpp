@@ -16,6 +16,8 @@ static MotorTask motor_task(1);
 InterfaceTask interface_task(0, motor_task, display_task_p);
 
 void setup() {
+  Serial.begin(115200);
+
   #if SK_DISPLAY
   display_task.setLogger(&interface_task);
   display_task.begin();

@@ -9,12 +9,13 @@
 #endif
 #include "util.h"
 
+#define MAQ_SS 4
 
 // #### 
 // Hardware-specific motor calibration constants.
 // Run calibration once at startup, then update these constants with the calibration results.
-static const float ZERO_ELECTRICAL_OFFSET = 7.61;
-static const Direction FOC_DIRECTION = Direction::CW;
+static const float ZERO_ELECTRICAL_OFFSET = 2.53;
+static const Direction FOC_DIRECTION = Direction::CCW;
 static const int MOTOR_POLE_PAIRS = 7;
 // ####
 
@@ -36,6 +37,7 @@ MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 2500, 1, task_core
 
 MotorTask::~MotorTask() {}
 
+MagneticSensorSPI encoder = MagneticSensorSPI(MAQ430_SPI, MAQ_SS); 
 
 #if SENSOR_TLV
     TlvSensor encoder = TlvSensor();
@@ -56,7 +58,10 @@ void MotorTask::run() {
     encoder.init();
     #endif
 
+    encoder.init(new SPIClass(HSPI));
+
     motor.linkDriver(&driver);
+    motor.useMonitoring(Serial);
 
     motor.controller = MotionControlType::torque;
     motor.voltage_limit = 5;
@@ -65,11 +70,13 @@ void MotorTask::run() {
 
     // Not actually using the velocity loop built into SimpleFOC; but I'm using those PID variables
     // to run PID for torque (and SimpleFOC studio supports updating them easily over serial for tuning)
-    motor.PID_velocity.P = 4;
+    motor.PID_velocity.P = 1;
     motor.PID_velocity.I = 0;
-    motor.PID_velocity.D = 0.04;
-    motor.PID_velocity.output_ramp = 10000;
-    motor.PID_velocity.limit = 10;
+    motor.PID_velocity.D = 0.48;
+    motor.PID_velocity.output_ramp = 5000;
+    motor.PID_velocity.limit = 3;
+
+    motor.LPF_angle.Tf = 0.0075;
 
     motor.init();
 
@@ -478,7 +485,7 @@ void MotorTask::calibrate() {
     // TODO: save to non-volatile storage
     motor.pole_pairs = measured_pole_pairs;
     motor.zero_electric_angle = avg_offset_angle + _3PI_2;
-    motor.voltage_limit = 5;
+    motor.voltage_limit = 3;
     motor.controller = MotionControlType::torque;
 
     log("\n\nRESULTS:\n  Update these constants at the top of " __FILE__);
