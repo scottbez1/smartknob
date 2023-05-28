@@ -3,13 +3,13 @@
 #include "motor_task.h"
 #if SENSOR_MT6701
 #include "mt6701_sensor.h"
-#endif
-#if SENSOR_TLV
+#elif SENSOR_TLV
 #include "tlv_sensor.h"
-#endif
-#if SENSOR_MAQ430
+#elif SENSOR_MAQ430
 #include "maq430_sensor.h"
 #endif
+
+#include "motors/motor_config.h"
 #include "util.h"
 
 // #### 
