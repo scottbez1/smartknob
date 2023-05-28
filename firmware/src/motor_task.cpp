@@ -7,15 +7,16 @@
 #if SENSOR_TLV
 #include "tlv_sensor.h"
 #endif
+#if SENSOR_MAQ430
+#include "maq430_sensor.h"
+#endif
 #include "util.h"
-
-#define MAQ_SS 4
 
 // #### 
 // Hardware-specific motor calibration constants.
 // Run calibration once at startup, then update these constants with the calibration results.
-static const float ZERO_ELECTRICAL_OFFSET = 2.53;
-static const Direction FOC_DIRECTION = Direction::CCW;
+static const float ZERO_ELECTRICAL_OFFSET = 2.82;
+static const Direction FOC_DIRECTION = Direction::CW;
 static const int MOTOR_POLE_PAIRS = 7;
 // ####
 
@@ -37,12 +38,13 @@ MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 2500, 1, task_core
 
 MotorTask::~MotorTask() {}
 
-MagneticSensorSPI encoder = MagneticSensorSPI(MAQ430_SPI, MAQ_SS); 
 
 #if SENSOR_TLV
     TlvSensor encoder = TlvSensor();
 #elif SENSOR_MT6701
     MT6701Sensor encoder = MT6701Sensor();
+#elif SENSOR_MAQ430
+    MagneticSensorSPI encoder = MagneticSensorSPI(MAQ430_SPI, PIN_MAQ_SS);
 #endif
 
 void MotorTask::run() {
@@ -52,31 +54,32 @@ void MotorTask::run() {
 
     #if SENSOR_TLV
     encoder.init(&Wire, false);
-    #endif
-
-    #if SENSOR_MT6701
+    #elif SENSOR_MT6701
     encoder.init();
+    #elif SENSOR_MAQ430
+    SPIClass* spi = new SPIClass(HSPI);
+    spi->begin(PIN_MAQ_SCK, PIN_MAQ_MISO, PIN_MAQ_MOSI, PIN_MAQ_SS);
+    encoder.init(spi);
     #endif
-
-    encoder.init(new SPIClass(HSPI));
 
     motor.linkDriver(&driver);
-    motor.useMonitoring(Serial);
 
     motor.controller = MotionControlType::torque;
-    motor.voltage_limit = 5;
+    motor.voltage_limit = FOC_VOLTAGE_LIMIT;
     motor.velocity_limit = 10000;
     motor.linkSensor(&encoder);
 
     // Not actually using the velocity loop built into SimpleFOC; but I'm using those PID variables
     // to run PID for torque (and SimpleFOC studio supports updating them easily over serial for tuning)
-    motor.PID_velocity.P = 1;
-    motor.PID_velocity.I = 0;
-    motor.PID_velocity.D = 0.48;
-    motor.PID_velocity.output_ramp = 5000;
-    motor.PID_velocity.limit = 3;
+    motor.PID_velocity.P = FOC_PID_P;
+    motor.PID_velocity.I = FOC_PID_I;
+    motor.PID_velocity.D = FOC_PID_D;
+    motor.PID_velocity.output_ramp = FOC_PID_OUTPUT_RAMP;
+    motor.PID_velocity.limit = FOC_PID_LIMIT;
 
-    motor.LPF_angle.Tf = 0.0075;
+    #ifdef FOC_LPF
+    motor.LPF_angle.Tf = FOC_LPF;
+    #endif
 
     motor.init();
 
@@ -378,6 +381,8 @@ void MotorTask::calibrate() {
         log("NO, Direction=CCW");
         motor.initFOC(0, Direction::CCW);
     }
+    snprintf(buf_, sizeof(buf_), "  (start was %.1f, end was %.1f)", start_sensor, end_sensor);
+    log(buf_);
 
 
     // #### Determine pole-pairs
@@ -385,7 +390,7 @@ void MotorTask::calibrate() {
     uint8_t electrical_revolutions = 20;
     snprintf(buf_, sizeof(buf_), "Going to measure %d electrical revolutions...", electrical_revolutions);
     log(buf_);
-    motor.voltage_limit = 5;
+    motor.voltage_limit = FOC_VOLTAGE_LIMIT;
     motor.move(a);
     log("Going to electrical zero...");
     float destination = a + _2PI;
@@ -435,7 +440,7 @@ void MotorTask::calibrate() {
 
     // #### Determine mechanical offset to electrical zero
     // Measure mechanical angle at every electrical zero for several revolutions
-    motor.voltage_limit = 5;
+    motor.voltage_limit = FOC_VOLTAGE_LIMIT;
     motor.move(a);
     float offset_x = 0;
     float offset_y = 0;
@@ -485,7 +490,7 @@ void MotorTask::calibrate() {
     // TODO: save to non-volatile storage
     motor.pole_pairs = measured_pole_pairs;
     motor.zero_electric_angle = avg_offset_angle + _3PI_2;
-    motor.voltage_limit = 3;
+    motor.voltage_limit = FOC_VOLTAGE_LIMIT;
     motor.controller = MotionControlType::torque;
 
     log("\n\nRESULTS:\n  Update these constants at the top of " __FILE__);

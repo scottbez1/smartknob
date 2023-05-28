@@ -25,14 +25,11 @@ void DisplayTask::run() {
     tft_.setRotation(SK_DISPLAY_ROTATION);
     tft_.fillScreen(TFT_DARKGREEN);
 
-    // ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
-    // ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
-    // ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT16_MAX);
+    ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
+    ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
+    ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT16_MAX);
 
-    pinMode(PIN_LCD_BACKLIGHT, OUTPUT);
-    digitalWrite(PIN_LCD_BACKLIGHT, HIGH);
-
-    spr_.setColorDepth(16);
+    spr_.setColorDepth(8);
 
     if (spr_.createSprite(TFT_WIDTH, TFT_HEIGHT) == nullptr) {
       log("ERROR: sprite allocation failed!");
@@ -128,10 +125,10 @@ void DisplayTask::run() {
 
         spr_.pushSprite(0, 0);
 
-        // {
-        //   SemaphoreGuard lock(mutex_);
-        //   // ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, brightness_);
-        // }
+        {
+          SemaphoreGuard lock(mutex_);
+          ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, brightness_);
+        }
         delay(2);
     }
 }

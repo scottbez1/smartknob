@@ -11,14 +11,7 @@ void SerialProtocolPlaintext::handleState(const PB_SmartKnobState& state) {
     latest_state_ = state;
 
     if (substantial_change) {
-        // stream_.printf("STATE: %d [%d, %d]  (detent strength: %0.2f, width: %0.0f deg, endstop strength: %0.2f)\n", 
-        //     state.current_position,
-        //     state.config.min_position,
-        //     state.config.max_position,
-        //     state.config.detent_strength_unit,
-        //     degrees(state.config.position_width_radians),
-        //     state.config.endstop_strength_unit);
-        Serial.printf("STATE: %d [%d, %d]  (detent strength: %0.2f, width: %0.0f deg, endstop strength: %0.2f)\n", 
+        stream_.printf("STATE: %d [%d, %d]  (detent strength: %0.2f, width: %0.0f deg, endstop strength: %0.2f)\n", 
             state.current_position,
             state.config.min_position,
             state.config.max_position,
@@ -29,31 +22,13 @@ void SerialProtocolPlaintext::handleState(const PB_SmartKnobState& state) {
 }
 
 void SerialProtocolPlaintext::log(const char* msg) {
-    Serial.print("LOG: ");
-    Serial.println(msg);
-    // stream_.print("LOG: ");
-    // stream_.println(msg);
+    stream_.print("LOG: ");
+    stream_.println(msg);
 }
 
 void SerialProtocolPlaintext::loop() {
-    // while (stream_.available() > 0) {
-    //     int b = stream_.read();
-    //     if (b == 0) {
-    //         if (protocol_change_callback_) {
-    //             protocol_change_callback_(SERIAL_PROTOCOL_PROTO);
-    //         }
-    //         break;
-    //     }
-    //     if (b == ' ') {
-    //         if (demo_config_change_callback_) {
-    //             demo_config_change_callback_();
-    //         }
-    //     } else if (b == 'C') {
-    //         motor_task_.runCalibration();
-    //     }
-    // }
-    while (Serial.available() > 0) {
-        int b = Serial.read();
+    while (stream_.available() > 0) {
+        int b = stream_.read();
         if (b == 0) {
             if (protocol_change_callback_) {
                 protocol_change_callback_(SERIAL_PROTOCOL_PROTO);
@@ -72,6 +47,5 @@ void SerialProtocolPlaintext::loop() {
 
 void SerialProtocolPlaintext::init(DemoConfigChangeCallback cb) {
     demo_config_change_callback_ = cb;
-    // stream_.println("SmartKnob starting!\n\nSerial mode: plaintext\nPress 'C' at any time to calibrate.\nPress <Space> to change haptic modes.");
-    Serial.println("SmartKnob starting!\n\nSerial mode: plaintext\nPress 'C' at any time to calibrate.\nPress <Space> to change haptic modes.");
+    stream_.println("SmartKnob starting!\n\nSerial mode: plaintext\nPress 'C' at any time to calibrate.\nPress <Space> to change haptic modes.");
 }

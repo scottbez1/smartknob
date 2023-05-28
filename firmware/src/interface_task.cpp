@@ -134,7 +134,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         31,
         8.225806452 * PI / 180,
-        1.5,
+        2,
         1,
         1.1,
         "Coarse values\nStrong detents",
@@ -371,9 +371,9 @@ void InterfaceTask::updateHardware() {
         brightness = (uint16_t)CLAMP(lux_avg * 13000, (float)1280, (float)UINT16_MAX);
     #endif
 
-    // #if SK_DISPLAY
-    //     display_task_->setBrightness(brightness); // TODO: apply gamma correction
-    // #endif
+    #if SK_DISPLAY
+        display_task_->setBrightness(brightness); // TODO: apply gamma correction
+    #endif
 
     #if SK_LEDS
         for (uint8_t i = 0; i < NUM_LEDS; i++) {
