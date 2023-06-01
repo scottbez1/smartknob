@@ -138,9 +138,17 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 
-## SmartKnob Mini
-Planned for the future.
+## NanoFOC (3rd party)
+If you're looking to tinker with FOC/haptic feedback, but don't want to build a full SmartKnob View yourself, I can
+recommend the NanoFOC DevKit++, an [open-source design](https://github.com/katbinaris/nanofoc_devkit) made and
+[sold](https://store.binaris.io/products/nanofoc-devkit) by a member of the SmartKnob community! It's super compact
+and is a great testbed or core for building your own BLDC-based haptic input device.
 
+![Image of the NanoFOC PCB](https://cdn.shopify.com/s/files/1/0729/7433/6335/products/IMG_20230418_120554-01.jpg?width=416)
+
+
+The NanoFOC uses an ESP32-S3, and the SmartKnob firmware works on it out of the box; just select the `nanofoc`
+environment in PlatformIO rather than the `view` environment when uploading.
 
 # Frequently Asked Questions (FAQ)
 
