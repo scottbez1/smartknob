@@ -1,7 +1,7 @@
 {
     "name": "example",
     "version": "0.1.0",
-    "description": "SmartKnob Interface Library",
+    "description": "SmartKnob Interface Example",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
@@ -14,7 +14,7 @@
     "license": "Apache-2.0",
     "dependencies": {
         "serialport": "^9.2.4",
-        "smartknobjs": "^0.1.0"
+        "smartknobjs": "^1.0.0"
     },
     "devDependencies": {
         "@types/serialport": "^8.0.2",

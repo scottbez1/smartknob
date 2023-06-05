@@ -17,7 +17,7 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 const info: VideoInfo = {
     totalFrames: 30 * 60 * 5,
     frameRate: 30,
-    boundaryFrames: [312, 400, 1234, 1290, 3000, 4000],
+    boundaryFrames: [312, 400, 1234, 1290, 3000, 3300, 4000, 8000, 8100],
 }
 root.render(
     <React.StrictMode>

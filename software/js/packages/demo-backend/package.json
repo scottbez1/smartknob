@@ -1,32 +1,32 @@
 {
-  "name": "demo-backend",
-  "version": "0.1.0",
-  "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "format": "prettier --write \"**/*.+(js|ts|json)\"",
-    "lint": "eslint --ext .js,.ts .",
-    "start": "PORT=3001 ts-node src/index.ts"
-  },
-  "author": "",
-  "license": "Apache-2.0",
-  "dependencies": {
-    "serialport": "^9.2.4",
-    "smartknobjs": "^0.1.0",
-    "socket.io": "^4.5.4"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.14",
-    "@types/node": "^18.11.10",
-    "@types/serialport": "^8.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.40.1",
-    "@typescript-eslint/parser": "^5.40.1",
-    "eslint": "^8.25.0",
-    "nodemon": "^2.0.20",
-    "prettier": "^2.4.1",
-    "ts-node": "^10.2.1",
-    "typescript": "^4.9.3"
-  }
+    "name": "demo-backend",
+    "version": "0.1.0",
+    "description": "",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "format": "prettier --write \"**/*.+(js|ts|json)\"",
+        "lint": "eslint --ext .js,.ts .",
+        "start": "PORT=3001 ts-node src/index.ts"
+    },
+    "author": "",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "serialport": "^9.2.4",
+        "smartknobjs": "^1.0.0",
+        "socket.io": "^4.5.4"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.14",
+        "@types/node": "^18.11.10",
+        "@types/serialport": "^8.0.2",
+        "@typescript-eslint/eslint-plugin": "^5.40.1",
+        "@typescript-eslint/parser": "^5.40.1",
+        "eslint": "^8.25.0",
+        "nodemon": "^2.0.20",
+        "prettier": "^2.4.1",
+        "ts-node": "^10.2.1",
+        "typescript": "^4.9.3"
+    }
 }

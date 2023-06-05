@@ -2,7 +2,7 @@
 
 #include "../proto_gen/smartknob.pb.h"
 
-#include "../proto_helpers.h"
+#include "proto_helpers.h"
 
 #include "crc32.h"
 #include "pb_encode.h"
@@ -37,7 +37,7 @@ void SerialProtocolProtobuf::handleState(const PB_SmartKnobState& state) {
 
 void SerialProtocolProtobuf::ack(uint32_t nonce) {
     pb_tx_buffer_ = {};
-    pb_tx_buffer_.which_payload = PB_FromSmartKnob_ack_tag;
+    pb_tx_buffer_.which_payload = PB_FromSmartKnob_ack_tag;\
     pb_tx_buffer_.payload.ack.nonce = nonce;
     sendPbTxBuffer();
 }
@@ -105,6 +105,13 @@ void SerialProtocolProtobuf::handlePacket(const uint8_t* buffer, size_t size) {
         return;
     }
 
+    if (pb_rx_buffer_.protocol_version != PROTOBUF_PROTOCOL_VERSION) {
+        char buf[200];
+        snprintf(buf, sizeof(buf), "Invalid protocol version. Expected %u, received %u", PROTOBUF_PROTOCOL_VERSION, pb_rx_buffer_.protocol_version);
+        log(buf);
+        return;
+    }
+
     // Always ACK immediately
     ack(pb_rx_buffer_.nonce);
     if (pb_rx_buffer_.nonce == last_nonce_) {
@@ -133,6 +140,7 @@ void SerialProtocolProtobuf::handlePacket(const uint8_t* buffer, size_t size) {
 void SerialProtocolProtobuf::sendPbTxBuffer() {
     // Encode protobuf message to byte buffer
     pb_ostream_t stream = pb_ostream_from_buffer(tx_buffer_, sizeof(tx_buffer_));
+    pb_tx_buffer_.protocol_version = PROTOBUF_PROTOCOL_VERSION;
     if (!pb_encode(&stream, PB_FromSmartKnob_fields, &pb_tx_buffer_)) {
         stream_.println(stream.errmsg);
         stream_.flush();
