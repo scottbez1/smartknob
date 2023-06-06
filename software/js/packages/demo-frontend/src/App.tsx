@@ -32,6 +32,10 @@ type InterfaceState = {
     zoomTimelinePixelsPerFrame: number
 }
 
+type Config = NoUndefinedField<PB.ISmartKnobConfig> & {
+    zoomTimelinePixelsPerFrame: number
+}
+
 export type AppProps = {
     info: VideoInfo
 }
@@ -43,19 +47,21 @@ export const App: React.FC<AppProps> = ({info}) => {
             defaults: true,
         }) as NoUndefinedField<PB.ISmartKnobState>,
     )
-    const [smartKnobConfig, setSmartKnobConfig] = useState<NoUndefinedField<PB.ISmartKnobConfig>>({
+    const [smartKnobConfig, setSmartKnobConfig] = useState<Config>({
         position: 0,
         subPositionUnit: 0,
         positionNonce: Math.floor(Math.random() * 255),
         minPosition: 0,
         maxPosition: 0,
-        positionWidthRadians: (8 * Math.PI) / 180,
+        positionWidthRadians: (15 * Math.PI) / 180,
         detentStrengthUnit: 0,
         endstopStrengthUnit: 1,
         snapPoint: 0.7,
         text: Mode.Scroll,
         detentPositions: [],
         snapPointBias: 0,
+
+        zoomTimelinePixelsPerFrame: 0.1,
     })
     useEffect(() => {
         console.log('send config', smartKnobConfig)
@@ -83,23 +89,25 @@ export const App: React.FC<AppProps> = ({info}) => {
     })
 
     const totalPositions = Math.ceil(
-        (info.totalFrames * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
+        (info.totalFrames * smartKnobConfig.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
     )
     const detentPositions = useMemo(() => {
         // Always include the first and last positions at detents
         const positionsToFrames = groupBy([0, ...info.boundaryFrames, info.totalFrames - 1], (frame) =>
-            Math.round((frame * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION),
+            Math.round((frame * smartKnobConfig.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION),
         )
         console.log(JSON.stringify(positionsToFrames))
         return positionsToFrames
-    }, [info, totalPositions, interfaceState])
+    }, [info.boundaryFrames, info.totalFrames, totalPositions, smartKnobConfig.zoomTimelinePixelsPerFrame])
 
     const scrollPositionWholeMemo = useMemo(() => {
-        const position = (playbackState.currentFrame * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION
+        const position = (playbackState.currentFrame * smartKnobConfig.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION
         return Math.round(position)
-    }, [playbackState.currentFrame, interfaceState.zoomTimelinePixelsPerFrame])
+    }, [playbackState.currentFrame, smartKnobConfig.zoomTimelinePixelsPerFrame])
     const nClosestMemo = useMemo(() => {
-        return findNClosest(Object.keys(detentPositions).map(parseInt), scrollPositionWholeMemo, 5)
+        return findNClosest(Object.keys(detentPositions).map(parseInt), scrollPositionWholeMemo, 5).sort(
+            (a, b) => a - b,
+        )
     }, [scrollPositionWholeMemo])
 
     const changeMode = useCallback(
@@ -107,7 +115,7 @@ export const App: React.FC<AppProps> = ({info}) => {
             if (newMode === Mode.Scroll) {
                 setSmartKnobConfig((curConfig) => {
                     const position =
-                        (playbackState.currentFrame * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION
+                        (playbackState.currentFrame * curConfig.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION
                     const positionWhole = Math.round(position)
                     const subPositionUnit = position - positionWhole
                     return {
@@ -116,15 +124,17 @@ export const App: React.FC<AppProps> = ({info}) => {
                         positionNonce: (curConfig.positionNonce + 1) % 256,
                         minPosition: 0,
                         maxPosition: Math.trunc(
-                            ((info.totalFrames - 1) * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
+                            ((info.totalFrames - 1) * curConfig.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
                         ),
-                        positionWidthRadians: (5 * Math.PI) / 180,
-                        detentStrengthUnit: 4,
+                        positionWidthRadians: (8 * Math.PI) / 180,
+                        detentStrengthUnit: 3,
                         endstopStrengthUnit: 1,
-                        snapPoint: 0.8,
+                        snapPoint: 0.7,
                         text: Mode.Scroll,
                         detentPositions: findNClosest(Object.keys(detentPositions).map(parseInt), position, 5),
                         snapPointBias: 0,
+
+                        zoomTimelinePixelsPerFrame: curConfig.zoomTimelinePixelsPerFrame,
                     }
                 })
             } else if (newMode === Mode.Frames) {
@@ -142,6 +152,8 @@ export const App: React.FC<AppProps> = ({info}) => {
                         text: Mode.Frames,
                         detentPositions: [],
                         snapPointBias: 0,
+
+                        zoomTimelinePixelsPerFrame: curConfig.zoomTimelinePixelsPerFrame,
                     }
                 })
             } else if (newMode === Mode.Speed) {
@@ -159,13 +171,15 @@ export const App: React.FC<AppProps> = ({info}) => {
                         text: Mode.Speed,
                         detentPositions: [],
                         snapPointBias: 0.4,
+
+                        zoomTimelinePixelsPerFrame: curConfig.zoomTimelinePixelsPerFrame,
                     }
                 })
             } else {
                 exhaustiveCheck(newMode)
             }
         },
-        [detentPositions, info.totalFrames, interfaceState, playbackState],
+        [detentPositions, info.totalFrames, playbackState],
     )
 
     useEffect(() => {
@@ -185,27 +199,38 @@ export const App: React.FC<AppProps> = ({info}) => {
             // TODO: round input based on zoom level to avoid noise
             const rawFrame = Math.trunc(
                 ((smartKnobState.currentPosition + smartKnobState.subPositionUnit) * PIXELS_PER_POSITION) /
-                    interfaceState.zoomTimelinePixelsPerFrame,
+                    smartKnobConfig.zoomTimelinePixelsPerFrame,
             )
+            const frame =
+                detentPositions[smartKnobState.currentPosition]?.[0] ??
+                Math.min(Math.max(rawFrame, 0), info.totalFrames - 1)
             setPlaybackState({
                 speed: 0,
-                currentFrame: Math.min(Math.max(rawFrame, 0), info.totalFrames - 1),
+                currentFrame: frame,
             })
 
-            // TODO: Update config with N nearest detents
+            // Update config with N nearest detents
             setSmartKnobConfig((curConfig) => {
-                // const positionWhole = Math.round(position)
-                // const subPositionUnit = position - positionWhole
+                let positionInfo: Partial<Config> = {}
+                if (interfaceState.zoomTimelinePixelsPerFrame !== curConfig.zoomTimelinePixelsPerFrame) {
+                    const position =
+                        (playbackState.currentFrame * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION
+                    const positionWhole = Math.round(position)
+                    const subPositionUnit = position - positionWhole
+                    positionInfo = {
+                        position,
+                        subPositionUnit,
+                        positionNonce: (curConfig.positionNonce + 1) % 256,
+                        minPosition: 0,
+                        maxPosition: Math.trunc(
+                            ((info.totalFrames - 1) * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
+                        ),
+                        zoomTimelinePixelsPerFrame: interfaceState.zoomTimelinePixelsPerFrame,
+                    }
+                }
                 return {
-                    // TODO: These should only change if zoom level changes
-                    // position: positionWhole,
-                    // subPositionUnit,
-                    // positionNonce: (curConfig.positionNonce + 1) % 256,
-                    // minPosition: 0,
-                    // maxPosition: Math.trunc(
-                    //     ((info.totalFrames - 1) * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
-                    // ),
                     ...curConfig,
+                    ...positionInfo,
                     detentPositions: nClosestMemo,
                 }
             })
@@ -214,7 +239,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                 speed: 0,
                 currentFrame: smartKnobState.currentPosition,
             })
-            // TODO: No config updates needed
+            // No config updates needed
         } else if (currentMode === Mode.Speed) {
             const normalizedWholeValue = smartKnobState.currentPosition
             const normalizedFractional =
@@ -234,6 +259,9 @@ export const App: React.FC<AppProps> = ({info}) => {
             exhaustiveCheck(currentMode)
         }
     }, [
+        detentPositions,
+        nClosestMemo,
+        info.totalFrames,
         smartKnobState.config.text,
         smartKnobState.currentPosition,
         smartKnobState.subPositionUnit,
@@ -379,7 +407,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                 />
                 <Card>
                     <CardContent>
-                        <div>{JSON.stringify(detentPositions)}</div>
+                        <div>{JSON.stringify(smartKnobConfig)}</div>
                     </CardContent>
                 </Card>
             </Container>
