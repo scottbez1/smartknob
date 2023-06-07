@@ -247,14 +247,22 @@ export const App: React.FC<AppProps> = ({info}) => {
                 lerp(smartKnobState.subPositionUnit * Math.sign(smartKnobState.subPositionUnit), 0.1, 0.9, 0, 1)
             const normalized = normalizedWholeValue + normalizedFractional
             const speed = Math.sign(normalized) * Math.pow(2, Math.abs(normalized) - 1)
+            const roundedSpeed = Math.trunc(speed * 10) / 10
             setPlaybackState((cur) => {
                 return {
-                    speed,
+                    speed: roundedSpeed,
                     currentFrame: cur.currentFrame,
                 }
             })
 
-            // TODO: Update config with bounds depending on current frame
+            // Update config with bounds depending on current frame
+            setSmartKnobConfig((curConfig) => {
+                return {
+                    ...curConfig,
+                    minPosition: playbackState.currentFrame === 0 ? 0 : -6,
+                    maxPosition: playbackState.currentFrame === info.totalFrames - 1 ? 0 : 6,
+                }
+            })
         } else {
             exhaustiveCheck(currentMode)
         }
@@ -271,60 +279,40 @@ export const App: React.FC<AppProps> = ({info}) => {
         interfaceState.zoomTimelinePixelsPerFrame,
     ])
 
-    // const setCurrentFrame = (fn: (oldFrame: number) => number) => {
-    //     setDerivedState((cur) => {
-    //         const newState = {...cur}
-    //         if (cur.mode === Mode.Speed) {
-    //             newState.currentFrame = fn(cur.currentFrame)
-    //         }
-    //         return newState
-    //     })
-    // }
+    const refreshInterval = 20
+    const updateFrame = useCallback(() => {
+        const fps = info.frameRate * playbackState.speed
+        setPlaybackState((cur) => {
+            const newFrame = cur.currentFrame + (fps * refreshInterval) / 1000
+            const clampedNewFrame = Math.min(Math.max(newFrame, 0), info.totalFrames - 1)
+            return {
+                speed: cur.speed,
+                currentFrame: clampedNewFrame,
+            }
+        })
+    }, [info.frameRate, playbackState.speed])
 
-    // // Timer for speed-based playback
-    // useEffect(() => {
-    //     const refreshInterval = 20
-    //     const fps = info.frameRate * derivedState.playbackSpeed
-    //     if (derivedState.mode === Mode.Speed && fps !== 0) {
-    //         const timer = setInterval(() => {
-    //             setCurrentFrame((oldFrame) => {
-    //                 const newFrame = oldFrame + (fps * refreshInterval) / 1000
+    // Store the latest callback in a ref so the long-lived interval closure can invoke the latest version.
+    // See https://overreacted.io/making-setinterval-declarative-with-react-hooks/ for more
+    const savedCallback = useRef<() => void | null>()
+    useEffect(() => {
+        savedCallback.current = updateFrame
+    }, [updateFrame])
 
-    //                 const oldFrameTrunc = Math.trunc(oldFrame)
-    //                 const newFrameTrunc = Math.trunc(newFrame)
+    const isPlaying = useMemo(() => {
+        return playbackState.speed !== 0
+    }, [playbackState.speed])
 
-    //                 if (newFrame < 0 || newFrame >= info.totalFrames) {
-    //                     const clampedNewFrame = Math.min(Math.max(newFrame, 0), info.totalFrames - 1)
-    //                     if (oldFrame !== clampedNewFrame) {
-    //                         // If we've hit a boundary, push a config to set the bounds
-    //                         pushConfig({
-    //                             mode: Mode.Speed,
-    //                             playbackSpeed: 0,
-    //                             currentFrame: Math.trunc(clampedNewFrame),
-    //                             zoomTimelinePixelsPerFrame: derivedState.zoomTimelinePixelsPerFrame,
-    //                         })
-    //                     }
-    //                     return clampedNewFrame
-    //                 } else {
-    //                     if (
-    //                         (oldFrameTrunc === 0 && newFrameTrunc > 0) ||
-    //                         (oldFrameTrunc === info.totalFrames - 1 && newFrameTrunc < info.totalFrames - 1)
-    //                     ) {
-    //                         // If we've left a boundary condition, push a config to reset the bounds
-    //                         pushConfig({
-    //                             mode: derivedState.mode,
-    //                             playbackSpeed: 0,
-    //                             currentFrame: newFrameTrunc,
-    //                             zoomTimelinePixelsPerFrame: derivedState.zoomTimelinePixelsPerFrame,
-    //                         })
-    //                     }
-    //                     return newFrame
-    //                 }
-    //             })
-    //         }, refreshInterval)
-    //         return () => clearInterval(timer)
-    //     }
-    // }, [derivedState.mode, derivedState.playbackSpeed, info.totalFrames, info.frameRate])
+    useEffect(() => {
+        if (smartKnobState.config.text === Mode.Speed && isPlaying) {
+            const timer = setInterval(() => {
+                if (savedCallback.current) {
+                    savedCallback.current()
+                }
+            }, refreshInterval)
+            return () => clearInterval(timer)
+        }
+    }, [smartKnobState.config.text, isPlaying])
 
     // Socket.io subscription
     useEffect(() => {
@@ -383,7 +371,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         <Typography>
                             Frame {Math.trunc(playbackState.currentFrame)} / {info.totalFrames - 1}
                             <br />
-                            Speed {Math.trunc(playbackState.speed * 10) / 10}
+                            Speed {playbackState.speed}
                         </Typography>
                     </CardContent>
                 </Card>
