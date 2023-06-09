@@ -57,7 +57,7 @@ static PB_SmartKnobConfig configs[] = {
     },
     {
         0,
-        -10,
+        0,
         1,
         0,
         10,
@@ -87,7 +87,7 @@ static PB_SmartKnobConfig configs[] = {
     },
     {
         0,
-        0.4,
+        0,
         3,
         0,
         1,

@@ -15,7 +15,7 @@
 // #### 
 // Hardware-specific motor calibration constants.
 // Run calibration once at startup, then update these constants with the calibration results.
-static const float ZERO_ELECTRICAL_OFFSET = 7.61;
+static const float ZERO_ELECTRICAL_OFFSET = 6.44;
 static const Direction FOC_DIRECTION = Direction::CW;
 static const int MOTOR_POLE_PAIRS = 7;
 // ####
@@ -122,60 +122,60 @@ void MotorTask::run() {
                     break;
                 case CommandType::CONFIG: {
                     // Check new config for validity
-                    PB_SmartKnobConfig& newConfig = command.data.config;
-                    if (newConfig.detent_strength_unit < 0) {
+                    PB_SmartKnobConfig& new_config = command.data.config;
+                    if (new_config.detent_strength_unit < 0) {
                         log("Ignoring invalid config: detent_strength_unit cannot be negative");
                         break;
                     }
-                    if (newConfig.endstop_strength_unit < 0) {
+                    if (new_config.endstop_strength_unit < 0) {
                         log("Ignoring invalid config: endstop_strength_unit cannot be negative");
                         break;
                     }
-                    if (newConfig.snap_point < 0.5) {
+                    if (new_config.snap_point < 0.5) {
                         log("Ignoring invalid config: snap_point must be >= 0.5 for stability");
                         break;
                     }
-                    if (newConfig.detent_positions_count > COUNT_OF(newConfig.detent_positions)) {
+                    if (new_config.detent_positions_count > COUNT_OF(new_config.detent_positions)) {
                         log("Ignoring invalid config: detent_positions_count is too large");
                         break;
                     }
-                    if (newConfig.snap_point_bias < 0) {
+                    if (new_config.snap_point_bias < 0) {
                         log("Ignoring invalid config: snap_point_bias cannot be negative or there is risk of instability");
                         break;
                     }
 
                     // Change haptic input mode
                     bool position_updated = false;
-                    if (newConfig.position != config.position
-                            || newConfig.sub_position_unit != config.sub_position_unit
-                            || newConfig.position_nonce != config.position_nonce) {
+                    if (new_config.position != config.position
+                            || new_config.sub_position_unit != config.sub_position_unit
+                            || new_config.position_nonce != config.position_nonce) {
                         log("applying position change");
-                        current_position = newConfig.position;
+                        current_position = new_config.position;
                         position_updated = true;
                     }
 
-                    if (newConfig.min_position <= newConfig.max_position) {
+                    if (new_config.min_position <= new_config.max_position) {
                         // Only check bounds if min/max indicate bounds are active (min >= max)
-                        if (current_position < newConfig.min_position) {
-                            current_position = newConfig.min_position;
+                        if (current_position < new_config.min_position) {
+                            current_position = new_config.min_position;
                             log("adjusting position to min");
-                        } else if (current_position > newConfig.max_position) {
-                            current_position = newConfig.max_position;
+                        } else if (current_position > new_config.max_position) {
+                            current_position = new_config.max_position;
                             log("adjusting position to max");
                         }
                     }
 
-                    if (position_updated || newConfig.position_width_radians != config.position_width_radians) {
+                    if (position_updated || new_config.position_width_radians != config.position_width_radians) {
                         log("adjusting detent center");
-                        float new_sub_position = position_updated ? newConfig.sub_position_unit : latest_sub_position_unit;
+                        float new_sub_position = position_updated ? new_config.sub_position_unit : latest_sub_position_unit;
                         #if SK_INVERT_ROTATION
                             float shaft_angle = -motor.shaft_angle;
                         #else
                             float shaft_angle = motor.shaft_angle;
                         #endif
-                        current_detent_center = shaft_angle + new_sub_position * newConfig.position_width_radians;
+                        current_detent_center = shaft_angle + new_sub_position * new_config.position_width_radians;
                     }
-                    config = newConfig;
+                    config = new_config;
                     log("Got new config");
 
                     // Update derivative factor of torque controller based on detent width.
