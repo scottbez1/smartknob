@@ -27,4 +27,10 @@ PB_BIND(PB_SmartKnobConfig, PB_SmartKnobConfig, AUTO)
 PB_BIND(PB_RequestState, PB_RequestState, AUTO)
 
 
+PB_BIND(PB_PersistentConfiguration, PB_PersistentConfiguration, AUTO)
+
+
+PB_BIND(PB_MotorCalibration, PB_MotorCalibration, AUTO)
+
+
 

@@ -12,15 +12,6 @@
 #include "motors/motor_config.h"
 #include "util.h"
 
-// #### 
-// Hardware-specific motor calibration constants.
-// Run calibration once at startup, then update these constants with the calibration results.
-static const float ZERO_ELECTRICAL_OFFSET = 7.61;
-static const Direction FOC_DIRECTION = Direction::CW;
-static const int MOTOR_POLE_PAIRS = 7;
-// ####
-
-
 static const float DEAD_ZONE_DETENT_PERCENT = 0.2;
 static const float DEAD_ZONE_RAD = 1 * _PI / 180;
 
@@ -31,7 +22,7 @@ static const float IDLE_CORRECTION_MAX_ANGLE_RAD = 5 * PI / 180;
 static const float IDLE_CORRECTION_RATE_ALPHA = 0.0005;
 
 
-MotorTask::MotorTask(const uint8_t task_core) : Task("Motor", 2500, 1, task_core) {
+MotorTask::MotorTask(const uint8_t task_core, Configuration& configuration) : Task("Motor", 3000, 1, task_core), configuration_(configuration) {
     queue_ = xQueueCreate(5, sizeof(Command));
     assert(queue_ != NULL);
 }
@@ -86,8 +77,9 @@ void MotorTask::run() {
     encoder.update();
     delay(10);
 
-    motor.pole_pairs = MOTOR_POLE_PAIRS;
-    motor.initFOC(ZERO_ELECTRICAL_OFFSET, FOC_DIRECTION);
+    PB_PersistentConfiguration c = configuration_.get();
+    motor.pole_pairs = c.motor.calibrated ? c.motor.pole_pairs : 7;
+    motor.initFOC(c.motor.zero_electrical_offset, c.motor.direction_cw ? Direction::CW : Direction::CCW);
 
     motor.monitor_downsample = 0; // disable monitor at first - optional
 
@@ -524,13 +516,13 @@ void MotorTask::calibrate() {
 
 
     // #### Apply settings
-    // TODO: save to non-volatile storage
     motor.pole_pairs = measured_pole_pairs;
     motor.zero_electric_angle = avg_offset_angle + _3PI_2;
     motor.voltage_limit = FOC_VOLTAGE_LIMIT;
     motor.controller = MotionControlType::torque;
 
-    log("\n\nRESULTS:\n  Update these constants at the top of " __FILE__);
+    log("");
+    log("RESULTS:");
     snprintf(buf_, sizeof(buf_), "  ZERO_ELECTRICAL_OFFSET: %.2f", motor.zero_electric_angle);
     log(buf_);
     if (motor.sensor_direction == Direction::CW) {
@@ -540,7 +532,18 @@ void MotorTask::calibrate() {
     }
     snprintf(buf_, sizeof(buf_), "  MOTOR_POLE_PAIRS: %d", motor.pole_pairs);
     log(buf_);
-    delay(2000);
+
+    log("");
+    log("Saving to persistent configuration...");
+    PB_MotorCalibration calibration = {
+        .calibrated = true,
+        .zero_electrical_offset = motor.zero_electric_angle,
+        .direction_cw = motor.sensor_direction == Direction::CW,
+        .pole_pairs = motor.pole_pairs,
+    };
+    if (configuration_.setMotorCalibrationAndSave(calibration)) {
+        log("Success!");
+    }
 }
 
 void MotorTask::checkSensorError() {
