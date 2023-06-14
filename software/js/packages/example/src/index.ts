@@ -30,9 +30,11 @@ const main = async () => {
         if (message.payload === 'log' && message.log) {
             console.log('LOG', message.log.msg)
         } else if (message.payload === 'smartknobState' && message.smartknobState) {
+            // Only log if it's a significant change (major position change, or at least 5 degrees)
+            const radianChange = (message.smartknobState.subPositionUnit ?? 0) * (message.smartknobState.config?.positionWidthRadians ?? 0) - (lastLoggedState?.subPositionUnit ?? 0) * (lastLoggedState?.config?.positionWidthRadians ?? 0)
             if (
                 message.smartknobState.currentPosition !== lastLoggedState?.currentPosition ||
-                Math.abs((message.smartknobState.subPositionUnit ?? 0) - (lastLoggedState?.subPositionUnit ?? 0)) > 1
+                Math.abs(radianChange)*180/Math.PI > 5
             ) {
                 console.log(
                     `State:\n${JSON.stringify(
@@ -50,6 +52,8 @@ const main = async () => {
             detentStrengthUnit: 1,
             endstopStrengthUnit: 1,
             position: 0,
+            subPositionUnit: 0,
+            positionNonce: Math.floor(Math.random()*255), // Pick a random nonce to force a position reset on start
             minPosition: 0,
             maxPosition: 4,
             positionWidthRadians: (10 * Math.PI) / 180,

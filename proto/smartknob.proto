@@ -5,13 +5,27 @@ import "nanopb.proto";
 package PB;
 
 /*
- * Message FROM the SmartKnob to USB host
+ * Message FROM the SmartKnob to the host
  */
 message FromSmartKnob {
+    uint32 protocol_version = 1 [(nanopb).int_size = IS_8];
     oneof payload {
-        Ack ack = 1;
-        Log log = 2;
-        SmartKnobState smartknob_state = 3;
+        Ack ack = 2;
+        Log log = 3;
+        SmartKnobState smartknob_state = 4;
+    }
+}
+
+/*
+ * Message TO the Smartknob from the host
+ */
+ message ToSmartknob {
+    uint32 protocol_version = 1 [(nanopb).int_size = IS_8];
+    uint32 nonce = 2;
+
+    oneof payload {
+        RequestState request_state = 3;
+        SmartKnobConfig smartknob_config = 4;
     }
 }
 
@@ -29,29 +43,29 @@ message SmartKnobState {
     SmartKnobConfig config = 3;
 }
 
-/*
- * Message TO the Smartknob from the USB host
- */
-message ToSmartknob {
-    uint32 nonce = 1;
-
-    oneof payload {
-        RequestState request_state = 2;
-        SmartKnobConfig smartknob_config = 3;
-    }
-}
 
 message SmartKnobConfig {
     int32 position = 1;
-    int32 min_position = 2;
-    int32 max_position = 3;
-    float position_width_radians = 4;
-    float detent_strength_unit = 5;
-    float endstop_strength_unit = 6;
-    float snap_point = 7;
-    string text = 8 [(nanopb).max_length = 50];
-    repeated int32 detent_positions = 9 [(nanopb).max_count = 5];
-    float snap_point_bias = 10;
+    float sub_position_unit = 2;
+    
+    /**
+     * Position is normally only applied when it changes, but sometimes it's desirable
+     * to reset the position to the same value, so a nonce change can be used to force
+     * the position values to be applied as well.
+     *
+     * NOTE: Must be < 256
+     */
+    uint32 position_nonce = 3 [(nanopb).int_size = IS_8];
+
+    int32 min_position = 4;
+    int32 max_position = 5;
+    float position_width_radians = 6;
+    float detent_strength_unit = 7;
+    float endstop_strength_unit = 8;
+    float snap_point = 9;
+    string text = 10 [(nanopb).max_length = 50];
+    repeated int32 detent_positions = 11 [(nanopb).max_count = 5];
+    float snap_point_bias = 12;
 }
 
 message RequestState {}

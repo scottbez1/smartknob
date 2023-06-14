@@ -1,6 +1,6 @@
 {
     "name": "smartknobjs",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "SmartKnob Interface Library",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
         "cobs": "^0.2.1",
         "crc-32": "^1.2.0",
         "serialport": "^9.2.4",
-        "smartknobjs-proto": "^0.1.0"
+        "smartknobjs-proto": "^1.0.0"
     },
     "devDependencies": {
         "@types/serialport": "^8.0.2",

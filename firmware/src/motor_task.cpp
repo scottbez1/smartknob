@@ -96,11 +96,15 @@ void MotorTask::run() {
     float current_detent_center = motor.shaft_angle;
     PB_SmartKnobConfig config = {
         .position = 0,
+        .sub_position_unit = 0,
+        .position_nonce = 0,
         .min_position = 0,
         .max_position = 1,
         .position_width_radians = 60 * _PI / 180,
         .detent_strength_unit = 0,
     };
+    int32_t current_position = 0;
+    float latest_sub_position_unit = 0;
 
     float idle_check_velocity_ewma = 0;
     uint32_t last_idle_start = 0;
@@ -118,44 +122,60 @@ void MotorTask::run() {
                     break;
                 case CommandType::CONFIG: {
                     // Check new config for validity
-                    if (command.data.config.detent_strength_unit < 0) {
+                    PB_SmartKnobConfig& new_config = command.data.config;
+                    if (new_config.detent_strength_unit < 0) {
                         log("Ignoring invalid config: detent_strength_unit cannot be negative");
                         break;
                     }
-                    if (command.data.config.endstop_strength_unit < 0) {
+                    if (new_config.endstop_strength_unit < 0) {
                         log("Ignoring invalid config: endstop_strength_unit cannot be negative");
                         break;
                     }
-                    if (command.data.config.snap_point < 0.5) {
+                    if (new_config.snap_point < 0.5) {
                         log("Ignoring invalid config: snap_point must be >= 0.5 for stability");
                         break;
                     }
-                    if (command.data.config.detent_positions_count > COUNT_OF(command.data.config.detent_positions)) {
+                    if (new_config.detent_positions_count > COUNT_OF(new_config.detent_positions)) {
                         log("Ignoring invalid config: detent_positions_count is too large");
                         break;
                     }
-                    if (command.data.config.snap_point_bias < 0) {
+                    if (new_config.snap_point_bias < 0) {
                         log("Ignoring invalid config: snap_point_bias cannot be negative or there is risk of instability");
                         break;
                     }
 
                     // Change haptic input mode
-                    PB_SmartKnobConfig newConfig = command.data.config;
-                    if (newConfig.position == INT32_MIN) {
-                        // INT32_MIN indicates no change to position, so restore from latest_config
-                        log("maintaining position");
-                        newConfig.position = config.position;
+                    bool position_updated = false;
+                    if (new_config.position != config.position
+                            || new_config.sub_position_unit != config.sub_position_unit
+                            || new_config.position_nonce != config.position_nonce) {
+                        log("applying position change");
+                        current_position = new_config.position;
+                        position_updated = true;
                     }
-                    if (newConfig.position != config.position
-                            || newConfig.position_width_radians != config.position_width_radians) {
-                        // Only adjust the detent center if the position or width has changed
+
+                    if (new_config.min_position <= new_config.max_position) {
+                        // Only check bounds if min/max indicate bounds are active (min >= max)
+                        if (current_position < new_config.min_position) {
+                            current_position = new_config.min_position;
+                            log("adjusting position to min");
+                        } else if (current_position > new_config.max_position) {
+                            current_position = new_config.max_position;
+                            log("adjusting position to max");
+                        }
+                    }
+
+                    if (position_updated || new_config.position_width_radians != config.position_width_radians) {
                         log("adjusting detent center");
-                        current_detent_center = motor.shaft_angle;
+                        float new_sub_position = position_updated ? new_config.sub_position_unit : latest_sub_position_unit;
                         #if SK_INVERT_ROTATION
-                            current_detent_center = -motor.shaft_angle;
+                            float shaft_angle = -motor.shaft_angle;
+                        #else
+                            float shaft_angle = motor.shaft_angle;
                         #endif
+                        current_detent_center = shaft_angle + new_sub_position * new_config.position_width_radians;
                     }
-                    config = newConfig;
+                    config = new_config;
                     log("Got new config");
 
                     // Update derivative factor of torque controller based on detent width.
@@ -221,26 +241,28 @@ void MotorTask::run() {
 
         float snap_point_radians = config.position_width_radians * config.snap_point;
         float bias_radians = config.position_width_radians * config.snap_point_bias;
-        float snap_point_radians_decrease = snap_point_radians + (config.position <= 0 ? bias_radians : -bias_radians);
-        float snap_point_radians_increase = -snap_point_radians + (config.position >= 0 ? -bias_radians : bias_radians); 
+        float snap_point_radians_decrease = snap_point_radians + (current_position <= 0 ? bias_radians : -bias_radians);
+        float snap_point_radians_increase = -snap_point_radians + (current_position >= 0 ? -bias_radians : bias_radians); 
 
         int32_t num_positions = config.max_position - config.min_position + 1;
-        if (angle_to_detent_center > snap_point_radians_decrease && (num_positions <= 0 || config.position > config.min_position)) {
+        if (angle_to_detent_center > snap_point_radians_decrease && (num_positions <= 0 || current_position > config.min_position)) {
             current_detent_center += config.position_width_radians;
             angle_to_detent_center -= config.position_width_radians;
-            config.position--;
-        } else if (angle_to_detent_center < snap_point_radians_increase && (num_positions <= 0 || config.position < config.max_position)) {
+            current_position--;
+        } else if (angle_to_detent_center < snap_point_radians_increase && (num_positions <= 0 || current_position < config.max_position)) {
             current_detent_center -= config.position_width_radians;
             angle_to_detent_center += config.position_width_radians;
-            config.position++;
+            current_position++;
         }
+
+        latest_sub_position_unit = -angle_to_detent_center / config.position_width_radians;
 
         float dead_zone_adjustment = CLAMP(
             angle_to_detent_center,
             fmaxf(-config.position_width_radians*DEAD_ZONE_DETENT_PERCENT, -DEAD_ZONE_RAD),
             fminf(config.position_width_radians*DEAD_ZONE_DETENT_PERCENT, DEAD_ZONE_RAD));
 
-        bool out_of_bounds = num_positions > 0 && ((angle_to_detent_center > 0 && config.position == config.min_position) || (angle_to_detent_center < 0 && config.position == config.max_position));
+        bool out_of_bounds = num_positions > 0 && ((angle_to_detent_center > 0 && current_position == config.min_position) || (angle_to_detent_center < 0 && current_position == config.max_position));
         motor.PID_velocity.limit = 10; //out_of_bounds ? 10 : 3;
         motor.PID_velocity.P = out_of_bounds ? config.endstop_strength_unit * 4 : config.detent_strength_unit * 4;
 
@@ -254,7 +276,7 @@ void MotorTask::run() {
             if (!out_of_bounds && config.detent_positions_count > 0) {
                 bool in_detent = false;
                 for (uint8_t i = 0; i < config.detent_positions_count; i++) {
-                    if (config.detent_positions[i] == config.position) {
+                    if (config.detent_positions[i] == current_position) {
                         in_detent = true;
                         break;
                     }
@@ -273,8 +295,8 @@ void MotorTask::run() {
         // Publish current status to other registered tasks periodically
         if (millis() - last_publish > 5) {
             publish({
-                .current_position = config.position,
-                .sub_position_unit = -angle_to_detent_center / config.position_width_radians,
+                .current_position = current_position,
+                .sub_position_unit = latest_sub_position_unit,
                 .has_config = true,
                 .config = config,
             });

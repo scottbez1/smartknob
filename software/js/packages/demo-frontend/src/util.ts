@@ -18,8 +18,6 @@ export type NoUndefinedField<T> = {
     [P in keyof T]-?: NoUndefinedField<NonNullable<T[P]>>
 }
 
-export const INT32_MIN = -2147483648
-
 export function findNClosest(numbers: number[], target: number, n: number): number[] {
     // First, we sort the numbers in ascending order based on their absolute difference
     // from the target number. This means that the numbers that are closest to the target

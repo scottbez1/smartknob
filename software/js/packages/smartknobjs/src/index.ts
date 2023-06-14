@@ -1,8 +1,10 @@
 import SerialPort = require('serialport')
-import {decode, encode} from 'cobs'
+import {decode as cobsDecode, encode as cobsEncode} from 'cobs'
 import * as CRC32 from 'crc-32'
 
 import {PB} from 'smartknobjs-proto'
+
+const PROTOBUF_PROTOCOL_VERSION = 1
 
 export type MessageCallback = (message: PB.FromSmartKnob) => void
 
@@ -83,7 +85,7 @@ export class SmartKnob {
         // Iterate 0-delimited packets
         while ((i = this.buffer.indexOf(0)) != -1) {
             const raw_buffer = this.buffer.slice(0, i)
-            const packet = decode(raw_buffer) as Buffer
+            const packet = cobsDecode(raw_buffer) as Buffer
             this.buffer = this.buffer.slice(i + 1)
             if (packet.length <= 4) {
                 console.debug(`Received short packet ${this.buffer.slice(0, i)}`)
@@ -109,6 +111,13 @@ export class SmartKnob {
                 return
             }
 
+            if (message.protocolVersion !== PROTOBUF_PROTOCOL_VERSION) {
+                console.warn(
+                    `Invalid protocol version. Expected ${PROTOBUF_PROTOCOL_VERSION}, received ${message.protocolVersion}`,
+                )
+                return
+            }
+
             if (message.payload === 'ack') {
                 const nonce = message.ack?.nonce ?? undefined
                 if (nonce === undefined) {
@@ -126,6 +135,7 @@ export class SmartKnob {
         if (this.port === null) {
             return
         }
+        message.protocolVersion = PROTOBUF_PROTOCOL_VERSION
         message.nonce = this.lastNonce++
 
         // Encode before enqueueing to ensure messages don't change once they're queued
@@ -173,7 +183,7 @@ export class SmartKnob {
         const crcBuffer = Buffer.from([crc & 0xff, (crc >>> 8) & 0xff, (crc >>> 16) & 0xff, (crc >>> 24) & 0xff])
         const packet = Buffer.concat([payload, crcBuffer])
 
-        const encodedDelimitedPacket = Buffer.concat([encode(packet), Buffer.from([0])])
+        const encodedDelimitedPacket = Buffer.concat([cobsEncode(packet), Buffer.from([0])])
 
         this.retryTimeout = setTimeout(() => {
             this.retryTimeout = null

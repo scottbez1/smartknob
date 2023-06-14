@@ -27,6 +27,8 @@ Adafruit_VEML7700 veml = Adafruit_VEML7700();
 
 static PB_SmartKnobConfig configs[] = {
     // int32_t position;
+    // float sub_position_unit;
+    // uint8_t position_nonce;
     // int32_t min_position;
     // int32_t max_position;
     // float position_width_radians;
@@ -39,6 +41,8 @@ static PB_SmartKnobConfig configs[] = {
     // float snap_point_bias;
 
     {
+        0,
+        0,
         0,
         0,
         -1, // max position < min position indicates no bounds
@@ -54,6 +58,8 @@ static PB_SmartKnobConfig configs[] = {
     {
         0,
         0,
+        1,
+        0,
         10,
         10 * PI / 180,
         0,
@@ -66,6 +72,8 @@ static PB_SmartKnobConfig configs[] = {
     },
     {
         0,
+        0,
+        2,
         0,
         72,
         10 * PI / 180,
@@ -80,6 +88,8 @@ static PB_SmartKnobConfig configs[] = {
     {
         0,
         0,
+        3,
+        0,
         1,
         60 * PI / 180,
         1,
@@ -92,6 +102,8 @@ static PB_SmartKnobConfig configs[] = {
     },
     {
         0,
+        0,
+        4,
         0,
         0,
         60 * PI / 180,
@@ -106,6 +118,8 @@ static PB_SmartKnobConfig configs[] = {
     {
         127,
         0,
+        5,
+        0,
         255,
         1 * PI / 180,
         0,
@@ -118,6 +132,8 @@ static PB_SmartKnobConfig configs[] = {
     },
     {
         127,
+        0,
+        5,
         0,
         255,
         1 * PI / 180,
@@ -132,6 +148,8 @@ static PB_SmartKnobConfig configs[] = {
     {
         0,
         0,
+        6,
+        0,
         31,
         8.225806452 * PI / 180,
         2,
@@ -144,6 +162,8 @@ static PB_SmartKnobConfig configs[] = {
     },
     {
         0,
+        0,
+        6,
         0,
         31,
         8.225806452 * PI / 180,
@@ -158,6 +178,8 @@ static PB_SmartKnobConfig configs[] = {
     {
         0,
         0,
+        7,
+        0,
         31,
         7 * PI / 180,
         2.5,
@@ -170,6 +192,8 @@ static PB_SmartKnobConfig configs[] = {
     },
     {
         0,
+        0,
+        8,
         -6,
         6,
         60 * PI / 180,
