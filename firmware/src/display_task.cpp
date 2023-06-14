@@ -62,7 +62,7 @@ void DisplayTask::run() {
         }
 
         spr_.setFreeFont(&Roboto_Light_60);
-        spr_.drawString(String() + state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2 - VALUE_OFFSET, 1);
+        spr_.drawNumber(state.current_position, TFT_WIDTH / 2, TFT_HEIGHT / 2 - VALUE_OFFSET, 1);
         spr_.setFreeFont(&DESCRIPTION_FONT);
         int32_t line_y = TFT_HEIGHT / 2 + DESCRIPTION_Y_OFFSET;
         char* start = state.config.text;
