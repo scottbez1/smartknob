@@ -61,8 +61,6 @@ View the latest auto-generated (untested) [Base PCB Interactive BOM](https://sma
 
 A few miscellaneous notes in the meantime:
 
- - This can _probably_ be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish
- - If you wanted a simpler build, you could omit the LCD and just merge the knob + glass from the model into a single STL to get a closed-top knob
  - There's limited space inside the LCD mount for wiring, and 8 wires need to fit through the hole in the center. I used 30 AWG wire-wrapping wire. Enamel-coated wire would probably work too.
  - Strain gauges are BF350-3AA, and glued in place with CA glue (I'll include video of this process in the future, but essentially I used kapton tape to pick up the strain gauge and hold it in place during curing). This has to be done after reflow soldering, and would be hard to remove/fix in case of a mistake, so MAKE SURE TO PRACTICE GLUING strain gauges to other items before attempting on the PCB!
  - The TMC6300 is _tiny_ and has a bottom pad, so I would seriously consider getting a stencil along with the PCB order. Even with the stencil I needed to manually clean up some bridging afterward; I _highly_ recommend Chip Quik NC191 gel flux, available on [Amazon](https://amzn.to/3MGDSr5) (or use this [non-affiliate link](https://www.amazon.com/Smooth-Flow-No-Clean-syringe-plunger/dp/B08KJPG3NZ) instead) or from your electronics distributor of choice. Flux is also very helpful when soldering the LCD ribbon cable to to screen PCB.
@@ -137,6 +135,22 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
+#### Printed parts
+You will need six printed parts, these can be exported from the CAD model by opening it in Fusion 360: https://a360.co/3BzkU0n
+
+The parts can _probably_ be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish. 
+
+If you wanted a simpler build, you could omit the LCD and just merge the knob + glass from the model into a single STL to get a closed-top knob.
+
+Export and print the following 6 parts:
+* `Enclosure`
+* `Knob` (RotorAssembly->KnobAssembly->Knob)
+* `ScreenPlatform`
+* `RotorSpacer` (RotorAssembly->RotorSpacer)
+* `MountBase`
+* `BackPlate`
+
+⚠️ If you opt to go for MJF Nylon printing from JLCPCB, their system may complain about `< 0.8mm wall thickness detected` on the `MountBase`, `ScreenPlatform` and `RotorSpacer` parts. This appears to be a false positive, possibly on some of the print tapers. You should be able to ignore this, as all print orders at JLCPCB are subject to a final manual review, and they will contact you by email if there are any job-stopping issues or risks with your prints.
 
 ## NanoFOC (3rd party)
 If you're looking to tinker with FOC/haptic feedback, but don't want to build a full SmartKnob View yourself, I can
