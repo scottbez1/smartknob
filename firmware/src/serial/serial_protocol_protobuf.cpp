@@ -37,7 +37,7 @@ void SerialProtocolProtobuf::handleState(const PB_SmartKnobState& state) {
 
 void SerialProtocolProtobuf::ack(uint32_t nonce) {
     pb_tx_buffer_ = {};
-    pb_tx_buffer_.which_payload = PB_FromSmartKnob_ack_tag;\
+    pb_tx_buffer_.which_payload = PB_FromSmartKnob_ack_tag;
     pb_tx_buffer_.payload.ack.nonce = nonce;
     sendPbTxBuffer();
 }
