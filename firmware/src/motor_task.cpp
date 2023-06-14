@@ -338,12 +338,16 @@ void MotorTask::calibrate() {
     // TODO: dig into SimpleFOC calibration and find/fix the issue
 
     log("\n\n\nStarting calibration, please DO NOT TOUCH MOTOR until complete!");
+    delay(1000);
 
     motor.controller = MotionControlType::angle_openloop;
     motor.pole_pairs = 1;
     motor.initFOC(0, Direction::CW);
 
     float a = 0;
+
+    motor.voltage_limit = FOC_VOLTAGE_LIMIT;
+    motor.move(a);
 
     // #### Determine direction motor rotates relative to angle sensor
     for (uint8_t i = 0; i < 200; i++) {
@@ -371,7 +375,12 @@ void MotorTask::calibrate() {
 
     log("");
 
-    // TODO: check for no motor movement!
+    float movement_angle = fabsf(end_sensor - start_sensor);
+    if (movement_angle < radians(30) || movement_angle > radians(180)) {
+        snprintf(buf_, sizeof(buf_), "ERROR! Unexpected sensor change: start=%.2f end=%.2f", start_sensor, end_sensor);
+        log(buf_);
+        return;
+    }
 
     log("Sensor measures positive for positive motor rotation:");
     if (end_sensor > start_sensor) {
@@ -430,6 +439,12 @@ void MotorTask::calibrate() {
     float electrical_per_mechanical = electrical_revolutions * _2PI / (end_sensor - start_sensor);
     snprintf(buf_, sizeof(buf_), "Electrical angle / mechanical angle (i.e. pole pairs) = %.2f", electrical_per_mechanical);
     log(buf_);
+
+    if (electrical_per_mechanical < 3 || electrical_per_mechanical > 12) {
+        snprintf(buf_, sizeof(buf_), "ERROR! Unexpected calculated pole pairs: %.2f", electrical_per_mechanical);
+        log(buf_);
+        return;
+    }
 
     int measured_pole_pairs = (int)round(electrical_per_mechanical);
     snprintf(buf_, sizeof(buf_), "Pole pairs set to %d", measured_pole_pairs);
