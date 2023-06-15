@@ -70,3 +70,14 @@ message SmartKnobConfig {
 
 message RequestState {}
 
+message PersistentConfiguration {
+    uint32 version = 1;
+    MotorCalibration motor = 2;
+}
+
+message MotorCalibration {
+    bool calibrated = 1;
+    float zero_electrical_offset = 2;
+    bool direction_cw = 3;
+    uint32 pole_pairs = 4;
+}
