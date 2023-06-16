@@ -6,9 +6,11 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import {PB} from 'smartknobjs-proto'
 import {VideoInfo} from './types'
-import {Card, CardContent} from '@mui/material'
+import {Button, Card, CardContent} from '@mui/material'
 import {exhaustiveCheck, findNClosest, lerp, NoUndefinedField} from './util'
 import {groupBy, parseInt} from 'lodash'
+import {DelimiterChunkedStream} from './streams/delimiter-transform'
+import {ProtoDecoderStream} from './streams/proto-decoder'
 
 const socket = io()
 
@@ -337,6 +339,50 @@ export const App: React.FC<AppProps> = ({info}) => {
             socket.off('state')
         }
     }, [])
+
+    const [, setPort] = useState<SerialPort | null>(null)
+
+    const connectToSerial = async () => {
+        try {
+            if (navigator.serial) {
+                const serialPort = await navigator.serial.requestPort({
+                    filters: [
+                        {
+                            usbVendorId: 0x1a86,
+                            usbProductId: 0x7523,
+                        },
+                        {
+                            usbVendorId: 0x303a,
+                            usbProductId: 0x1001,
+                        },
+                    ],
+                })
+                await serialPort.open({baudRate: 921600})
+                setPort(serialPort)
+
+                const pbDecoder = new ProtoDecoderStream()
+                serialPort.readable?.pipeThrough(new DelimiterChunkedStream(0)).pipeTo(pbDecoder.writable)
+                const reader = pbDecoder.readable.getReader()
+
+                // eslint-disable-next-line no-constant-condition
+                while (true) {
+                    const {value, done} = await reader.read()
+                    if (done) {
+                        // Allow the serial port to be closed later.
+                        reader.releaseLock()
+                        break
+                    }
+                    // value is a string.
+                    console.log(value.smartknobState)
+                }
+            } else {
+                console.error('Web Serial API is not supported in this browser.')
+            }
+        } catch (error) {
+            console.error('Error connecting to serial port:', error)
+        }
+    }
+
     return (
         <>
             <Container component="main" maxWidth="md">
@@ -345,6 +391,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         <Typography component="h1" variant="h5">
                             Video Playback Control Demo
                         </Typography>
+                        <Button onClick={connectToSerial}>Web serial!</Button>
                         {isConnected || (
                             <Typography component="h6" variant="h6">
                                 [Not connected]
