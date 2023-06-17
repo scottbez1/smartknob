@@ -4,7 +4,6 @@
 #include <SimpleFOC.h>
 #include <vector>
 
-#include "configuration.h"
 #include "logger.h"
 #include "proto_gen/smartknob.pb.h"
 #include "task.h"
@@ -34,7 +33,7 @@ class MotorTask : public Task<MotorTask> {
     friend class Task<MotorTask>; // Allow base Task to invoke protected run()
 
     public:
-        MotorTask(const uint8_t task_core, Configuration& configuration);
+        MotorTask(const uint8_t task_core);
         ~MotorTask();
 
         void setConfig(const PB_SmartKnobConfig& config);
@@ -48,7 +47,6 @@ class MotorTask : public Task<MotorTask> {
         void run();
 
     private:
-        Configuration& configuration_;
         QueueHandle_t queue_;
         Logger* logger_;
         std::vector<QueueHandle_t> listeners_;
