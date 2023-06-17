@@ -136,7 +136,7 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
 #### Printed parts
-You will need six printed parts, these can be exported from the CAD model by opening it in Fusion 360: https://a360.co/3BzkU0n
+You will need six printed parts. The current stable designs can be found as STL assets in the [v185 mechanical release](https://github.com/scottbez1/smartknob/releases/tag/releases%2Fmechanical%2Fv185-dummy-tag) or you can export the latest untested designs from the CAD model by opening it in Fusion 360: https://a360.co/3BzkU0n
 
 The parts can _probably_ be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish. 
 
