@@ -5,9 +5,10 @@ export function encode(buf: Uint8Array) {
     let code_ptr = 0
     let code = 0x01
 
-    const finish = () => {
+    const finish = (incllast?: boolean) => {
         dest[code_ptr] = code
         code_ptr = dest.length
+        incllast !== false && dest.push(0x00)
         code = 0x01
     }
 
@@ -22,9 +23,9 @@ export function encode(buf: Uint8Array) {
             }
         }
     }
-    finish()
+    finish(false)
 
-    return new Uint8Array(dest)
+    return Uint8Array.from(dest)
 }
 
 export function decode(buf: Uint8Array) {
@@ -38,5 +39,5 @@ export function decode(buf: Uint8Array) {
             dest.push(0)
         }
     }
-    return new Uint8Array(dest)
+    return Uint8Array.from(dest)
 }

@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import io from 'socket.io-client'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -9,10 +8,7 @@ import {VideoInfo} from './types'
 import {Button, Card, CardContent} from '@mui/material'
 import {exhaustiveCheck, findNClosest, lerp, NoUndefinedField} from './util'
 import {groupBy, parseInt} from 'lodash'
-import {DelimiterChunkedStream} from './streams/delimiter-transform'
-import {ProtoDecoderStream} from './streams/proto-decoder'
-
-const socket = io()
+import {SmartKnob} from './smartknob-wrapper'
 
 const MIN_ZOOM = 0.01
 const MAX_ZOOM = 60
@@ -42,8 +38,7 @@ export type AppProps = {
     info: VideoInfo
 }
 export const App: React.FC<AppProps> = ({info}) => {
-    const [isConnected, setIsConnected] = useState(socket.connected)
-
+    const [smartKnob, setSmartKnob] = useState<SmartKnob | null>(null)
     const [smartKnobState, setSmartKnobState] = useState<NoUndefinedField<PB.ISmartKnobState>>(
         PB.SmartKnobState.toObject(PB.SmartKnobState.create({config: PB.SmartKnobConfig.create()}), {
             defaults: true,
@@ -67,7 +62,8 @@ export const App: React.FC<AppProps> = ({info}) => {
     })
     useEffect(() => {
         console.log('send config', smartKnobConfig)
-        socket.emit('set_config', smartKnobConfig)
+        // socket.emit('set_config', smartKnobConfig)
+        smartKnob?.sendConfig(PB.SmartKnobConfig.create(smartKnobConfig))
     }, [
         smartKnobConfig.position,
         smartKnobConfig.subPositionUnit,
@@ -316,32 +312,6 @@ export const App: React.FC<AppProps> = ({info}) => {
         }
     }, [smartKnobState.config.text, isPlaying])
 
-    // Socket.io subscription
-    useEffect(() => {
-        socket.on('connect', () => {
-            setIsConnected(true)
-        })
-
-        socket.on('disconnect', () => {
-            setIsConnected(false)
-        })
-
-        socket.on('state', (input: {pb: PB.SmartKnobState}) => {
-            const {pb: state} = input
-            const stateObj = PB.SmartKnobState.toObject(state, {
-                defaults: true,
-            }) as NoUndefinedField<PB.ISmartKnobState>
-            setSmartKnobState(stateObj)
-        })
-        return () => {
-            socket.off('connect')
-            socket.off('disconnect')
-            socket.off('state')
-        }
-    }, [])
-
-    const [, setPort] = useState<SerialPort | null>(null)
-
     const connectToSerial = async () => {
         try {
             if (navigator.serial) {
@@ -357,29 +327,25 @@ export const App: React.FC<AppProps> = ({info}) => {
                         },
                     ],
                 })
-                await serialPort.open({baudRate: 921600})
-                setPort(serialPort)
-
-                const pbDecoder = new ProtoDecoderStream()
-                serialPort.readable?.pipeThrough(new DelimiterChunkedStream(0)).pipeTo(pbDecoder.writable)
-                const reader = pbDecoder.readable.getReader()
-
-                // eslint-disable-next-line no-constant-condition
-                while (true) {
-                    const {value, done} = await reader.read()
-                    if (done) {
-                        // Allow the serial port to be closed later.
-                        reader.releaseLock()
-                        break
+                const smartKnob = new SmartKnob(serialPort, (message) => {
+                    if (message.payload === 'smartknobState' && message.smartknobState !== null) {
+                        const state = PB.SmartKnobState.create(message.smartknobState)
+                        const stateObj = PB.SmartKnobState.toObject(state, {
+                            defaults: true,
+                        }) as NoUndefinedField<PB.ISmartKnobState>
+                        setSmartKnobState(stateObj)
+                    } else if (message.payload === 'log' && message.log !== null) {
+                        console.log('LOG from smartknob', message.log?.msg)
                     }
-                    // value is a string.
-                    console.log(value.smartknobState)
-                }
+                })
+                setSmartKnob(smartKnob)
+                await smartKnob.openAndLoop()
             } else {
                 console.error('Web Serial API is not supported in this browser.')
             }
         } catch (error) {
-            console.error('Error connecting to serial port:', error)
+            console.error('Error with serial port:', error)
+            setSmartKnob(null)
         }
     }
 
@@ -392,11 +358,11 @@ export const App: React.FC<AppProps> = ({info}) => {
                             Video Playback Control Demo
                         </Typography>
                         <Button onClick={connectToSerial}>Web serial!</Button>
-                        {isConnected || (
+                        {/* {isConnected || (
                             <Typography component="h6" variant="h6">
                                 [Not connected]
                             </Typography>
-                        )}
+                        )} */}
                         <ToggleButtonGroup
                             color="primary"
                             value={smartKnobConfig.text}
