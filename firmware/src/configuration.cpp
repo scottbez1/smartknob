@@ -21,8 +21,8 @@ Configuration::~Configuration() {
 
 bool Configuration::loadFromDisk() {
     SemaphoreGuard lock(mutex_);
-    if (!SPIFFS.begin(true)) {
-        log("Failed to mount SPIFFS");
+    SPIFFSGuard spiffs(logger_);
+    if (!spiffs.ok_) {
         return false;
     }
 
@@ -77,6 +77,10 @@ bool Configuration::saveToDisk() {
         return false;
     }
 
+    SPIFFSGuard spiffs(logger_);
+    if (!spiffs.ok_) {
+        return false;
+    }
     File f = SPIFFS.open(CONFIG_PATH, FILE_WRITE);
     if (!f) {
         log("Failed to read config file");

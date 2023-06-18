@@ -31,3 +31,28 @@ class Configuration {
 
         void log(const char* msg);
 };
+class SPIFFSGuard {
+    public:
+        SPIFFSGuard(Logger* logger) : logger_(logger) {
+            if (!SPIFFS.begin(true)) {
+                if (logger != nullptr) {
+                    logger->log("Failed to mount SPIFFS");
+                }
+                return;
+            }
+            ok_ = true;
+        }
+        ~SPIFFSGuard() {
+            if (ok_) {
+                SPIFFS.end();
+                logger_->log("Unmounted SPIFFS");
+            }
+        }
+        SPIFFSGuard(SPIFFSGuard const&)=delete;
+        SPIFFSGuard& operator=(SPIFFSGuard const&)=delete;
+
+        bool ok_ = false;
+
+    private:
+        Logger* logger_;
+};
