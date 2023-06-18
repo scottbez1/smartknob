@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SPIFFS.h>
+#include <FFat.h>
 #include <PacketSerial.h>
 
 #include "proto_gen/smartknob.pb.h"
@@ -31,27 +31,32 @@ class Configuration {
 
         void log(const char* msg);
 };
-class SPIFFSGuard {
+class FatGuard {
     public:
-        SPIFFSGuard(Logger* logger) : logger_(logger) {
-            if (!SPIFFS.begin(true)) {
-                if (logger != nullptr) {
-                    logger->log("Failed to mount SPIFFS");
+        FatGuard(Logger* logger) : logger_(logger) {
+            if (!FFat.begin(true)) {
+                if (logger_ != nullptr) {
+                    logger_->log("Failed to mount FFat");
                 }
                 return;
             }
-            ok_ = true;
+            if (logger_ != nullptr) {
+                logger_->log("Mounted FFat");
+            }
+            mounted_ = true;
         }
-        ~SPIFFSGuard() {
-            if (ok_) {
-                SPIFFS.end();
-                logger_->log("Unmounted SPIFFS");
+        ~FatGuard() {
+            if (mounted_) {
+                FFat.end();
+                if (logger_ != nullptr) {
+                    logger_->log("Unmounted FFat");
+                }
             }
         }
-        SPIFFSGuard(SPIFFSGuard const&)=delete;
-        SPIFFSGuard& operator=(SPIFFSGuard const&)=delete;
+        FatGuard(FatGuard const&)=delete;
+        FatGuard& operator=(FatGuard const&)=delete;
 
-        bool ok_ = false;
+        bool mounted_ = false;
 
     private:
         Logger* logger_;
