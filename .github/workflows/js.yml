@@ -6,11 +6,13 @@ on:
     paths:
       - 'software/js'
       - 'proto'
+      - '.github/workflows/js.yml'
   pull_request:
     branches: [ "master" ]
     paths:
       - 'software/js'
       - 'proto'
+      - '.github/workflows/js.yml'
   workflow_dispatch:
 
 permissions:

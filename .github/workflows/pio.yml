@@ -7,12 +7,14 @@ on:
       - 'proto'
       - 'thirdparty/nanopb'
       - 'platformio.ini'
+      - '.github/workflows/pio.yml'
   pull_request:
     paths:
       - 'firmware'
       - 'proto'
       - 'thirdparty/nanopb'
       - 'platformio.ini'
+      - '.github/workflows/pio.yml'
 
 jobs:
   pio-build:
