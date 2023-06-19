@@ -40,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: './packages/example-webserial-timeline/build'
+          path: './software/js/packages/example-webserial-timeline/build'
 
   # Deployment job
   deploy:
