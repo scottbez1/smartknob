@@ -1,5 +1,5 @@
 {
-    "name": "example",
+    "name": "example-cli",
     "version": "0.1.0",
     "description": "SmartKnob Interface Example",
     "main": "dist/index.js",
