@@ -31,8 +31,10 @@ jobs:
           node-version: 18
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        working-directory: software/js
+        run: npm ci
       - name: Build
+        working-directory: software/js
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v3
