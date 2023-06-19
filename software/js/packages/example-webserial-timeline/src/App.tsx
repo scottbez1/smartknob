@@ -8,8 +8,8 @@ import {VideoInfo} from './types'
 import {Button, CardActions, Paper} from '@mui/material'
 import {exhaustiveCheck, findNClosest, lerp, NoUndefinedField} from './util'
 import {groupBy, parseInt} from 'lodash'
-import {SmartKnob} from './smartknob-wrapper'
 import _ from 'lodash'
+import {SmartKnobWebSerial} from 'smartknobjs-webserial'
 
 const MIN_ZOOM = 0.01
 const MAX_ZOOM = 60
@@ -39,7 +39,7 @@ export type AppProps = {
     info: VideoInfo
 }
 export const App: React.FC<AppProps> = ({info}) => {
-    const [smartKnob, setSmartKnob] = useState<SmartKnob | null>(null)
+    const [smartKnob, setSmartKnob] = useState<SmartKnobWebSerial | null>(null)
     const [smartKnobState, setSmartKnobState] = useState<NoUndefinedField<PB.ISmartKnobState>>(
         PB.SmartKnobState.toObject(PB.SmartKnobState.create({config: PB.SmartKnobConfig.create()}), {
             defaults: true,
@@ -341,7 +341,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                 serialPort.addEventListener('disconnect', () => {
                     setSmartKnob(null)
                 })
-                const smartKnob = new SmartKnob(serialPort, (message) => {
+                const smartKnob = new SmartKnobWebSerial(serialPort, (message) => {
                     if (message.payload === 'smartknobState' && message.smartknobState !== null) {
                         const state = PB.SmartKnobState.create(message.smartknobState)
                         const stateObj = PB.SmartKnobState.toObject(state, {

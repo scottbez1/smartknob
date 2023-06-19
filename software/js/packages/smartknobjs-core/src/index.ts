@@ -1,96 +1,67 @@
-import {encode as cobsEncode} from './streams/cobs'
+import {encode as cobsEncode, decode as cobsDecode} from './cobs'
 import * as CRC32 from 'crc-32'
 
 import {PB} from 'smartknobjs-proto'
-import {ProtoDecoderStream} from './streams/proto-decoder'
-import {DelimiterChunkedStream} from './streams/delimiter-transform'
 
 const PROTOBUF_PROTOCOL_VERSION = 1
 
 export type MessageCallback = (message: PB.FromSmartKnob) => void
+export type SendPacket = (packet: Uint8Array) => void
 
 type QueueEntry = {
     nonce: number
     encodedToSmartknobPayload: Uint8Array
 }
 
-export class SmartKnob {
-    private static readonly RETRY_MILLIS = 250
-    private static readonly BAUD = 921600
+export {cobsEncode, cobsDecode}
 
-    private port: SerialPort | null
+export class SmartKnobCore {
+    private static readonly RETRY_MILLIS = 250
+    public static readonly BAUD = 921600
+
     private onMessage: MessageCallback
+    private sendPacket: SendPacket
 
     private outgoingQueue: QueueEntry[] = []
 
     private lastNonce = 1
-    private retryTimeout: NodeJS.Timeout | null = null
-    private writer: WritableStreamDefaultWriter<Uint8Array> | undefined = undefined
+    private retryTimeout: ReturnType<typeof setTimeout> | null = null
+    protected portAvailable = false
 
-    constructor(port: SerialPort, onMessage: MessageCallback) {
-        this.onMessage = onMessage
-        this.port = port
+    constructor(onMessage: MessageCallback, sendPacket: SendPacket) {
         this.lastNonce = Math.floor(Math.random() * (2 ^ (32 - 1)))
-        port.addEventListener('disconnect', () => {
-            console.log('shutting down on disconnect')
-            this.port = null
-            if (this.retryTimeout !== null) {
-                clearTimeout(this.retryTimeout)
-            }
-        })
-    }
-
-    public async openAndLoop() {
-        if (this.port === null) {
-            return
-        }
-        await this.port.open({baudRate: 921600})
-        if (this.port.readable === null || this.port.writable === null) {
-            throw new Error('Port missing readable or writable!')
-        }
-
-        const pbDecoder = new ProtoDecoderStream()
-        this.port.readable.pipeThrough(new DelimiterChunkedStream(0)).pipeTo(pbDecoder.writable)
-        const reader = pbDecoder.readable.getReader()
-        try {
-            this.writer = this.port.writable.getWriter()
-            try {
-                // eslint-disable-next-line no-constant-condition
-                while (true) {
-                    const {value, done} = await reader.read()
-                    if (done) {
-                        break
-                    }
-                    if (value.payload === 'ack') {
-                        const nonce = value.ack?.nonce ?? undefined
-                        if (nonce === undefined) {
-                            console.warn('Received ack without nonce')
-                        } else {
-                            this.handleAck(nonce)
-                        }
-                    }
-                    this.onMessage(value)
-                }
-            } finally {
-                console.log('Releasing writer')
-                this.writer.releaseLock()
-            }
-        } finally {
-            console.log('Releasing reader')
-            reader.releaseLock()
-        }
+        this.onMessage = onMessage
+        this.sendPacket = sendPacket
     }
 
     public sendConfig(config: PB.SmartKnobConfig): void {
-        this.sendMessage(
+        this.enqueueMessage(
             PB.ToSmartknob.create({
                 smartknobConfig: config,
             }),
         )
     }
 
-    private sendMessage(message: PB.ToSmartknob) {
-        if (this.port === null) {
+    protected handleMessage(message: PB.FromSmartKnob): void {
+        if (message.protocolVersion !== PROTOBUF_PROTOCOL_VERSION) {
+            console.warn(
+                `Invalid protocol version. Expected ${PROTOBUF_PROTOCOL_VERSION}, received ${message.protocolVersion}`,
+            )
+            return
+        }
+        if (message.payload === 'ack') {
+            const nonce = message.ack?.nonce ?? undefined
+            if (nonce === undefined) {
+                console.warn('Received ack without nonce')
+            } else {
+                this.handleAck(nonce)
+            }
+        }
+        this.onMessage(message)
+    }
+
+    private enqueueMessage(message: PB.ToSmartknob) {
+        if (!this.portAvailable) {
             return
         }
         message.protocolVersion = PROTOBUF_PROTOCOL_VERSION
@@ -124,7 +95,7 @@ export class SmartKnob {
     }
 
     private serviceQueue(): void {
-        if (this.port === null) {
+        if (!this.portAvailable) {
             return
         }
         if (this.retryTimeout !== null) {
@@ -153,7 +124,7 @@ export class SmartKnob {
             this.retryTimeout = null
             console.log(`Retrying ToSmartknob...`)
             this.serviceQueue()
-        }, SmartKnob.RETRY_MILLIS)
+        }, SmartKnobCore.RETRY_MILLIS)
 
         console.debug(
             `Sent ${payload.length} byte payload with CRC ${(crc >>> 0).toString(16)} (${
@@ -161,12 +132,6 @@ export class SmartKnob {
             } bytes encoded)`,
             encodedDelimitedPacket,
         )
-        this.writer?.write(encodedDelimitedPacket).catch((e) => {
-            console.error('Error writing serial', e)
-            if (this.retryTimeout !== null) {
-                clearTimeout(this.retryTimeout)
-                this.retryTimeout = null
-            }
-        })
+        this.sendPacket(encodedDelimitedPacket)
     }
 }

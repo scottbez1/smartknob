@@ -14,11 +14,14 @@
   },
   "author": "",
   "license": "Apache-2.0",
+  "//": "NOTE: Workspaces listed in dependency order; intentionally not alphabetical!",
   "workspaces": [
+    "packages/smartknobjs-proto",
+    "packages/smartknobjs-core",
+    "packages/smartknobjs-node",
+    "packages/smartknobjs-webserial",
     "packages/example-cli",
-    "packages/example-webserial-timeline",
-    "packages/smartknobjs",
-    "packages/smartknobjs-proto"
+    "packages/example-webserial-timeline"
   ],
   "devDependencies": {
     "eslint-config-prettier": "^8.5.0"

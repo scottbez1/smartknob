@@ -1,5 +1,5 @@
 import SerialPort = require('serialport')
-import {SmartKnob} from 'smartknobjs'
+import {SmartKnobNode} from 'smartknobjs-node'
 import {PB} from 'smartknobjs-proto'
 
 const main = async () => {
@@ -26,15 +26,18 @@ const main = async () => {
     const portInfo = matchingPorts[0]
 
     let lastLoggedState: PB.ISmartKnobState | undefined
-    const smartknob = new SmartKnob(portInfo.path, (message: PB.FromSmartKnob) => {
+    const smartknob = new SmartKnobNode(portInfo.path, (message: PB.FromSmartKnob) => {
         if (message.payload === 'log' && message.log) {
             console.log('LOG', message.log.msg)
         } else if (message.payload === 'smartknobState' && message.smartknobState) {
             // Only log if it's a significant change (major position change, or at least 5 degrees)
-            const radianChange = (message.smartknobState.subPositionUnit ?? 0) * (message.smartknobState.config?.positionWidthRadians ?? 0) - (lastLoggedState?.subPositionUnit ?? 0) * (lastLoggedState?.config?.positionWidthRadians ?? 0)
+            const radianChange =
+                (message.smartknobState.subPositionUnit ?? 0) *
+                    (message.smartknobState.config?.positionWidthRadians ?? 0) -
+                (lastLoggedState?.subPositionUnit ?? 0) * (lastLoggedState?.config?.positionWidthRadians ?? 0)
             if (
                 message.smartknobState.currentPosition !== lastLoggedState?.currentPosition ||
-                Math.abs(radianChange)*180/Math.PI > 5
+                (Math.abs(radianChange) * 180) / Math.PI > 5
             ) {
                 console.log(
                     `State:\n${JSON.stringify(
@@ -53,7 +56,7 @@ const main = async () => {
             endstopStrengthUnit: 1,
             position: 0,
             subPositionUnit: 0,
-            positionNonce: Math.floor(Math.random()*255), // Pick a random nonce to force a position reset on start
+            positionNonce: Math.floor(Math.random() * 255), // Pick a random nonce to force a position reset on start
             minPosition: 0,
             maxPosition: 4,
             positionWidthRadians: (10 * Math.PI) / 180,

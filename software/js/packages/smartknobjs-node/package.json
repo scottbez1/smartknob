@@ -1,24 +1,23 @@
 {
-    "name": "example-cli",
-    "version": "0.1.0",
-    "description": "SmartKnob Interface Example",
+    "name": "smartknobjs-node",
+    "version": "1.0.0",
+    "description": "SmartKnob Interface Library for Node.js",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
         "format": "prettier --write \"**/*.+(js|ts|json)\"",
-        "lint": "eslint --ext .js,.ts .",
-        "main": "ts-node src/index.ts"
+        "lint": "eslint --ext .js,.ts ."
     },
     "author": "",
     "license": "Apache-2.0",
     "dependencies": {
+        "crc-32": "^1.2.0",
         "serialport": "^9.2.4",
-        "smartknobjs-proto": "^1.0.0",
-        "smartknobjs-webserial": "^1.0.0"
+        "smartknobjs-core": "^1.0.0",
+        "smartknobjs-proto": "^1.0.0"
     },
     "devDependencies": {
-        "@types/serialport": "^8.0.2",
         "@typescript-eslint/eslint-plugin": "^5.40.1",
         "@typescript-eslint/parser": "^5.40.1",
         "eslint": "^8.25.0",

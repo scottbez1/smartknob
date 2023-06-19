@@ -1,8 +1,6 @@
-import {decode as cobsDecode} from './cobs'
+import {cobsDecode} from 'smartknobjs-core'
 import * as CRC32 from 'crc-32'
 import {PB} from 'smartknobjs-proto'
-
-const PROTOBUF_PROTOCOL_VERSION = 1
 
 class ProtoDecoder implements Transformer<Uint8Array, PB.FromSmartKnob> {
     transform(chunk: Uint8Array, controller: TransformStreamDefaultController<PB.FromSmartKnob>) {
@@ -29,13 +27,6 @@ class ProtoDecoder implements Transformer<Uint8Array, PB.FromSmartKnob> {
             message = PB.FromSmartKnob.decode(payload)
         } catch (err) {
             console.warn(`Invalid protobuf message ${payload}`)
-            return
-        }
-
-        if (message.protocolVersion !== PROTOBUF_PROTOCOL_VERSION) {
-            console.warn(
-                `Invalid protocol version. Expected ${PROTOBUF_PROTOCOL_VERSION}, received ${message.protocolVersion}`,
-            )
             return
         }
         controller.enqueue(message)

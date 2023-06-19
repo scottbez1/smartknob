@@ -1,7 +1,7 @@
 {
-    "name": "smartknobjs",
+    "name": "smartknobjs-webserial",
     "version": "1.0.0",
-    "description": "SmartKnob Interface Library",
+    "description": "SmartKnob Interface Library for Web Serial",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
@@ -12,15 +12,14 @@
     "author": "",
     "license": "Apache-2.0",
     "dependencies": {
-        "cobs": "^0.2.1",
         "crc-32": "^1.2.0",
-        "serialport": "^9.2.4",
+        "smartknobjs-core": "^1.0.0",
         "smartknobjs-proto": "^1.0.0"
     },
     "devDependencies": {
-        "@types/serialport": "^8.0.2",
         "@typescript-eslint/eslint-plugin": "^5.40.1",
         "@typescript-eslint/parser": "^5.40.1",
+        "@types/w3c-web-serial": "^1.0.3",
         "eslint": "^8.25.0",
         "prettier": "^2.4.1",
         "ts-node": "^10.2.1",
