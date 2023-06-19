@@ -9,20 +9,18 @@
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "demo": "concurrently \"npm -w demo-frontend start\" \"npm -w demo-backend start\"",
-    "example": "npm -w example run main"
+    "example": "npm -w example run main",
+    "webserial-jog-demo": "npm -w webserial-jog-demo run start"
   },
   "author": "",
   "license": "Apache-2.0",
   "workspaces": [
-    "packages/smartknobjs-proto",
+    "packages/example",
     "packages/smartknobjs",
-    "packages/demo-backend",
-    "packages/demo-frontend",
-    "packages/example"
+    "packages/smartknobjs-proto",
+    "packages/webserial-jog-demo"
   ],
   "devDependencies": {
-    "concurrently": "^7.6.0",
     "eslint-config-prettier": "^8.5.0"
   }
 }

@@ -18,7 +18,7 @@ export class SmartKnob {
     private static readonly RETRY_MILLIS = 250
     private static readonly BAUD = 921600
 
-    private port: SerialPort
+    private port: SerialPort | null
     private onMessage: MessageCallback
 
     private outgoingQueue: QueueEntry[] = []
@@ -31,9 +31,19 @@ export class SmartKnob {
         this.onMessage = onMessage
         this.port = port
         this.lastNonce = Math.floor(Math.random() * (2 ^ (32 - 1)))
+        port.addEventListener('disconnect', () => {
+            console.log('shutting down on disconnect')
+            this.port = null
+            if (this.retryTimeout !== null) {
+                clearTimeout(this.retryTimeout)
+            }
+        })
     }
 
     public async openAndLoop() {
+        if (this.port === null) {
+            return
+        }
         await this.port.open({baudRate: 921600})
         if (this.port.readable === null || this.port.writable === null) {
             throw new Error('Port missing readable or writable!')
@@ -62,11 +72,11 @@ export class SmartKnob {
                     this.onMessage(value)
                 }
             } finally {
-                console.debug('Releasing writer')
+                console.log('Releasing writer')
                 this.writer.releaseLock()
             }
         } finally {
-            console.debug('Releasing reader')
+            console.log('Releasing reader')
             reader.releaseLock()
         }
     }
@@ -101,7 +111,6 @@ export class SmartKnob {
     }
 
     private handleAck(nonce: number): void {
-        console.log('ack', nonce)
         if (this.outgoingQueue.length > 0 && nonce === this.outgoingQueue[0].nonce) {
             if (this.retryTimeout !== null) {
                 clearTimeout(this.retryTimeout)
@@ -110,7 +119,7 @@ export class SmartKnob {
             this.outgoingQueue.shift()
             this.serviceQueue()
         } else {
-            console.debug(`Ignoring unexpected ack for nonce ${nonce}`)
+            console.log(`Ignoring unexpected ack for nonce ${nonce}`)
         }
     }
 
@@ -154,7 +163,7 @@ export class SmartKnob {
         )
         this.writer?.write(encodedDelimitedPacket).catch((e) => {
             console.error('Error writing serial', e)
-            if (this.retryTimeout) {
+            if (this.retryTimeout !== null) {
                 clearTimeout(this.retryTimeout)
                 this.retryTimeout = null
             }

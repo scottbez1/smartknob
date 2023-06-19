@@ -5,10 +5,11 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import {PB} from 'smartknobjs-proto'
 import {VideoInfo} from './types'
-import {Button, Card, CardContent} from '@mui/material'
+import {Button, CardActions, Paper} from '@mui/material'
 import {exhaustiveCheck, findNClosest, lerp, NoUndefinedField} from './util'
 import {groupBy, parseInt} from 'lodash'
 import {SmartKnob} from './smartknob-wrapper'
+import _ from 'lodash'
 
 const MIN_ZOOM = 0.01
 const MAX_ZOOM = 60
@@ -62,9 +63,9 @@ export const App: React.FC<AppProps> = ({info}) => {
     })
     useEffect(() => {
         console.log('send config', smartKnobConfig)
-        // socket.emit('set_config', smartKnobConfig)
         smartKnob?.sendConfig(PB.SmartKnobConfig.create(smartKnobConfig))
     }, [
+        smartKnob,
         smartKnobConfig.position,
         smartKnobConfig.subPositionUnit,
         smartKnobConfig.positionNonce,
@@ -83,7 +84,7 @@ export const App: React.FC<AppProps> = ({info}) => {
         currentFrame: 0,
     })
     const [interfaceState, setInterfaceState] = useState<InterfaceState>({
-        zoomTimelinePixelsPerFrame: 0.1,
+        zoomTimelinePixelsPerFrame: 0.3,
     })
 
     const totalPositions = Math.ceil(
@@ -102,10 +103,17 @@ export const App: React.FC<AppProps> = ({info}) => {
         const position = (playbackState.currentFrame * smartKnobConfig.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION
         return Math.round(position)
     }, [playbackState.currentFrame, smartKnobConfig.zoomTimelinePixelsPerFrame])
-    const nClosestMemo = useMemo(() => {
-        return findNClosest(Object.keys(detentPositions).map(parseInt), scrollPositionWholeMemo, 5).sort(
+    const [nClosest, setNClosest] = useState<Array<number>>([])
+    useEffect(() => {
+        const calculated = findNClosest(Object.keys(detentPositions).map(parseInt), scrollPositionWholeMemo, 5).sort(
             (a, b) => a - b,
         )
+        setNClosest((cur) => {
+            if (_.isEqual(cur, calculated)) {
+                return cur
+            }
+            return calculated
+        })
     }, [scrollPositionWholeMemo])
 
     const changeMode = useCallback(
@@ -117,11 +125,11 @@ export const App: React.FC<AppProps> = ({info}) => {
                     const positionWhole = Math.round(position)
                     const subPositionUnit = position - positionWhole
                     return {
-                        position,
+                        position: positionWhole,
                         subPositionUnit,
                         positionNonce: (curConfig.positionNonce + 1) % 256,
                         minPosition: 0,
-                        maxPosition: Math.trunc(
+                        maxPosition: Math.round(
                             ((info.totalFrames - 1) * curConfig.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
                         ),
                         positionWidthRadians: (8 * Math.PI) / 180,
@@ -138,7 +146,7 @@ export const App: React.FC<AppProps> = ({info}) => {
             } else if (newMode === Mode.Frames) {
                 setSmartKnobConfig((curConfig) => {
                     return {
-                        position: playbackState.currentFrame,
+                        position: Math.floor(playbackState.currentFrame),
                         subPositionUnit: 0,
                         positionNonce: (curConfig.positionNonce + 1) % 256,
                         minPosition: 0,
@@ -162,10 +170,10 @@ export const App: React.FC<AppProps> = ({info}) => {
                         positionNonce: (curConfig.positionNonce + 1) % 256,
                         minPosition: playbackState.currentFrame === 0 ? 0 : -6,
                         maxPosition: playbackState.currentFrame === info.totalFrames - 1 ? 0 : 6,
-                        positionWidthRadians: (60 * Math.PI) / 180,
+                        positionWidthRadians: (30 * Math.PI) / 180,
                         detentStrengthUnit: 1,
                         endstopStrengthUnit: 1,
-                        snapPoint: 0.55,
+                        snapPoint: 0.5,
                         text: Mode.Speed,
                         detentPositions: [],
                         snapPointBias: 0.4,
@@ -179,6 +187,9 @@ export const App: React.FC<AppProps> = ({info}) => {
         },
         [detentPositions, info.totalFrames, playbackState],
     )
+    useEffect(() => {
+        changeMode(Mode.Scroll)
+    }, [])
 
     useEffect(() => {
         if (smartKnobState.config.text === '') {
@@ -220,7 +231,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         subPositionUnit,
                         positionNonce: (curConfig.positionNonce + 1) % 256,
                         minPosition: 0,
-                        maxPosition: Math.trunc(
+                        maxPosition: Math.round(
                             ((info.totalFrames - 1) * interfaceState.zoomTimelinePixelsPerFrame) / PIXELS_PER_POSITION,
                         ),
                         zoomTimelinePixelsPerFrame: interfaceState.zoomTimelinePixelsPerFrame,
@@ -229,7 +240,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                 return {
                     ...curConfig,
                     ...positionInfo,
-                    detentPositions: nClosestMemo,
+                    detentPositions: nClosest,
                 }
             })
         } else if (currentMode === Mode.Frames) {
@@ -266,7 +277,7 @@ export const App: React.FC<AppProps> = ({info}) => {
         }
     }, [
         detentPositions,
-        nClosestMemo,
+        nClosest,
         info.totalFrames,
         smartKnobState.config.text,
         smartKnobState.currentPosition,
@@ -327,6 +338,9 @@ export const App: React.FC<AppProps> = ({info}) => {
                         },
                     ],
                 })
+                serialPort.addEventListener('disconnect', () => {
+                    setSmartKnob(null)
+                })
                 const smartKnob = new SmartKnob(serialPort, (message) => {
                     if (message.payload === 'smartknobState' && message.smartknobState !== null) {
                         const state = PB.SmartKnobState.create(message.smartknobState)
@@ -342,6 +356,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                 await smartKnob.openAndLoop()
             } else {
                 console.error('Web Serial API is not supported in this browser.')
+                setSmartKnob(null)
             }
         } catch (error) {
             console.error('Error with serial port:', error)
@@ -351,66 +366,64 @@ export const App: React.FC<AppProps> = ({info}) => {
 
     return (
         <>
-            <Container component="main" maxWidth="md">
-                <Card>
-                    <CardContent>
-                        <Typography component="h1" variant="h5">
-                            Video Playback Control Demo
-                        </Typography>
-                        <Button onClick={connectToSerial}>Web serial!</Button>
-                        {/* {isConnected || (
-                            <Typography component="h6" variant="h6">
-                                [Not connected]
+            <Container component="main" maxWidth="lg">
+                <Paper variant="outlined" sx={{my: {xs: 3, md: 6}, p: {xs: 2, md: 3}}}>
+                    <Typography component="h1" variant="h5">
+                        Video Playback Control Demo
+                    </Typography>
+                    {smartKnob !== null ? (
+                        <>
+                            <ToggleButtonGroup
+                                color="primary"
+                                value={smartKnobConfig.text}
+                                exclusive
+                                onChange={(e, value: Mode | null) => {
+                                    if (value === null) {
+                                        return
+                                    }
+                                    changeMode(value)
+                                }}
+                                aria-label="Mode"
+                            >
+                                {Object.keys(Mode).map((mode) => (
+                                    <ToggleButton value={mode} key={mode}>
+                                        {mode}
+                                    </ToggleButton>
+                                ))}
+                            </ToggleButtonGroup>
+                            <Typography>
+                                Frame {Math.trunc(playbackState.currentFrame)} / {info.totalFrames - 1}
+                                <br />
+                                Speed {playbackState.speed}
                             </Typography>
-                        )} */}
-                        <ToggleButtonGroup
-                            color="primary"
-                            value={smartKnobConfig.text}
-                            exclusive
-                            onChange={(e, value: Mode | null) => {
-                                if (value === null) {
-                                    return
-                                }
-                                changeMode(value)
-                            }}
-                            aria-label="Mode"
-                        >
-                            {Object.keys(Mode).map((mode) => (
-                                <ToggleButton value={mode} key={mode}>
-                                    {mode}
-                                </ToggleButton>
-                            ))}
-                        </ToggleButtonGroup>
-                        <Typography>
-                            Frame {Math.trunc(playbackState.currentFrame)} / {info.totalFrames - 1}
-                            <br />
-                            Speed {playbackState.speed}
-                        </Typography>
-                    </CardContent>
-                </Card>
-                <Timeline
-                    info={info}
-                    currentFrame={playbackState.currentFrame}
-                    zoomTimelinePixelsPerFrame={interfaceState.zoomTimelinePixelsPerFrame}
-                    adjustZoom={(factor) => {
-                        setInterfaceState((cur) => {
-                            const newZoom = Math.min(
-                                Math.max(cur.zoomTimelinePixelsPerFrame * factor, MIN_ZOOM),
-                                MAX_ZOOM,
-                            )
-                            console.log(factor, newZoom)
-                            return {
-                                ...cur,
-                                zoomTimelinePixelsPerFrame: newZoom,
-                            }
-                        })
-                    }}
-                />
-                <Card>
-                    <CardContent>
-                        <div>{JSON.stringify(smartKnobConfig)}</div>
-                    </CardContent>
-                </Card>
+                            <Timeline
+                                info={info}
+                                currentFrame={playbackState.currentFrame}
+                                zoomTimelinePixelsPerFrame={interfaceState.zoomTimelinePixelsPerFrame}
+                                adjustZoom={(factor) => {
+                                    setInterfaceState((cur) => {
+                                        const newZoom = Math.min(
+                                            Math.max(cur.zoomTimelinePixelsPerFrame * factor, MIN_ZOOM),
+                                            MAX_ZOOM,
+                                        )
+                                        console.log(factor, newZoom)
+                                        return {
+                                            ...cur,
+                                            zoomTimelinePixelsPerFrame: newZoom,
+                                        }
+                                    })
+                                }}
+                            />
+                        </>
+                    ) : (
+                        <CardActions>
+                            <Button onClick={connectToSerial} variant="contained">
+                                Connect via Web Serial
+                            </Button>
+                        </CardActions>
+                    )}
+                    <pre>{JSON.stringify(smartKnobConfig, undefined, 2)}</pre>
+                </Paper>
             </Container>
         </>
     )
