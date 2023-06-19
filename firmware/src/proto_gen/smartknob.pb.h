@@ -73,6 +73,19 @@ typedef struct _PB_ToSmartknob {
     } payload;
 } PB_ToSmartknob;
 
+typedef struct _PB_MotorCalibration {
+    bool calibrated;
+    float zero_electrical_offset;
+    bool direction_cw;
+    uint32_t pole_pairs;
+} PB_MotorCalibration;
+
+typedef struct _PB_PersistentConfiguration {
+    uint32_t version;
+    bool has_motor;
+    PB_MotorCalibration motor;
+} PB_PersistentConfiguration;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,6 +99,8 @@ extern "C" {
 #define PB_SmartKnobState_init_default           {0, 0, false, PB_SmartKnobConfig_init_default}
 #define PB_SmartKnobConfig_init_default          {0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, {0, 0, 0, 0, 0}, 0}
 #define PB_RequestState_init_default             {0}
+#define PB_PersistentConfiguration_init_default  {0, false, PB_MotorCalibration_init_default}
+#define PB_MotorCalibration_init_default         {0, 0, 0, 0}
 #define PB_FromSmartKnob_init_zero               {0, 0, {PB_Ack_init_zero}}
 #define PB_ToSmartknob_init_zero                 {0, 0, 0, {PB_RequestState_init_zero}}
 #define PB_Ack_init_zero                         {0}
@@ -93,6 +108,8 @@ extern "C" {
 #define PB_SmartKnobState_init_zero              {0, 0, false, PB_SmartKnobConfig_init_zero}
 #define PB_SmartKnobConfig_init_zero             {0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, {0, 0, 0, 0, 0}, 0}
 #define PB_RequestState_init_zero                {0}
+#define PB_PersistentConfiguration_init_zero     {0, false, PB_MotorCalibration_init_zero}
+#define PB_MotorCalibration_init_zero            {0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define PB_Ack_nonce_tag                         1
@@ -120,6 +137,12 @@ extern "C" {
 #define PB_ToSmartknob_nonce_tag                 2
 #define PB_ToSmartknob_request_state_tag         3
 #define PB_ToSmartknob_smartknob_config_tag      4
+#define PB_MotorCalibration_calibrated_tag       1
+#define PB_MotorCalibration_zero_electrical_offset_tag 2
+#define PB_MotorCalibration_direction_cw_tag     3
+#define PB_MotorCalibration_pole_pairs_tag       4
+#define PB_PersistentConfiguration_version_tag   1
+#define PB_PersistentConfiguration_motor_tag     2
 
 /* Struct field encoding specification for nanopb */
 #define PB_FromSmartKnob_FIELDLIST(X, a) \
@@ -182,6 +205,21 @@ X(a, STATIC,   SINGULAR, FLOAT,    snap_point_bias,  12)
 #define PB_RequestState_CALLBACK NULL
 #define PB_RequestState_DEFAULT NULL
 
+#define PB_PersistentConfiguration_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   version,           1) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  motor,             2)
+#define PB_PersistentConfiguration_CALLBACK NULL
+#define PB_PersistentConfiguration_DEFAULT NULL
+#define PB_PersistentConfiguration_motor_MSGTYPE PB_MotorCalibration
+
+#define PB_MotorCalibration_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, BOOL,     calibrated,        1) \
+X(a, STATIC,   SINGULAR, FLOAT,    zero_electrical_offset,   2) \
+X(a, STATIC,   SINGULAR, BOOL,     direction_cw,      3) \
+X(a, STATIC,   SINGULAR, UINT32,   pole_pairs,        4)
+#define PB_MotorCalibration_CALLBACK NULL
+#define PB_MotorCalibration_DEFAULT NULL
+
 extern const pb_msgdesc_t PB_FromSmartKnob_msg;
 extern const pb_msgdesc_t PB_ToSmartknob_msg;
 extern const pb_msgdesc_t PB_Ack_msg;
@@ -189,6 +227,8 @@ extern const pb_msgdesc_t PB_Log_msg;
 extern const pb_msgdesc_t PB_SmartKnobState_msg;
 extern const pb_msgdesc_t PB_SmartKnobConfig_msg;
 extern const pb_msgdesc_t PB_RequestState_msg;
+extern const pb_msgdesc_t PB_PersistentConfiguration_msg;
+extern const pb_msgdesc_t PB_MotorCalibration_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define PB_FromSmartKnob_fields &PB_FromSmartKnob_msg
@@ -198,11 +238,15 @@ extern const pb_msgdesc_t PB_RequestState_msg;
 #define PB_SmartKnobState_fields &PB_SmartKnobState_msg
 #define PB_SmartKnobConfig_fields &PB_SmartKnobConfig_msg
 #define PB_RequestState_fields &PB_RequestState_msg
+#define PB_PersistentConfiguration_fields &PB_PersistentConfiguration_msg
+#define PB_MotorCalibration_fields &PB_MotorCalibration_msg
 
 /* Maximum encoded size of messages (where known) */
 #define PB_Ack_size                              6
 #define PB_FromSmartKnob_size                    264
 #define PB_Log_size                              258
+#define PB_MotorCalibration_size                 15
+#define PB_PersistentConfiguration_size          23
 #define PB_RequestState_size                     0
 #define PB_SmartKnobConfig_size                  173
 #define PB_SmartKnobState_size                   192
