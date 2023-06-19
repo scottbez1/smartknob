@@ -2,7 +2,15 @@ name: Export Electronics
 
 on:
   push:
+    paths:
+      - 'electronics'
+      - 'util'
+      - 'scripts'
   pull_request:
+    paths:
+      - 'electronics'
+      - 'util'
+      - 'scripts'
 
 jobs:
   export-electronics:

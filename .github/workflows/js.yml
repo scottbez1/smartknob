@@ -3,8 +3,14 @@ name: JS
 on:
   push:
     branches: [ "master", "dev/webserial" ]
+    paths:
+      - 'software/js'
+      - 'proto'
   pull_request:
     branches: [ "master" ]
+    paths:
+      - 'software/js'
+      - 'proto'
   workflow_dispatch:
 
 permissions:
@@ -34,7 +40,7 @@ jobs:
         run: npm ci
       - name: Build
         working-directory: software/js
-        run: npm run build
+        run: PUBLIC_URL="/smartknob" npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact

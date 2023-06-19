@@ -2,7 +2,17 @@ name: PlatformIO CI
 
 on:
   push:
+    paths:
+      - 'firmware'
+      - 'proto'
+      - 'thirdparty/nanopb'
+      - 'platformio.ini'
   pull_request:
+    paths:
+      - 'firmware'
+      - 'proto'
+      - 'thirdparty/nanopb'
+      - 'platformio.ini'
 
 jobs:
   pio-build:
