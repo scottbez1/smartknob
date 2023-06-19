@@ -415,12 +415,16 @@ export const App: React.FC<AppProps> = ({info}) => {
                                 }}
                             />
                         </>
-                    ) : (
+                    ) : navigator.serial ? (
                         <CardActions>
                             <Button onClick={connectToSerial} variant="contained">
                                 Connect via Web Serial
                             </Button>
                         </CardActions>
+                    ) : (
+                        <Typography>
+                            Sorry, Web Serial API isn't available in your browser. Try the latest version of Chrome.
+                        </Typography>
                     )}
                     <pre>{JSON.stringify(smartKnobConfig, undefined, 2)}</pre>
                 </Paper>
