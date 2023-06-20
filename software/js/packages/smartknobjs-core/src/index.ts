@@ -6,7 +6,7 @@ import {PB} from 'smartknobjs-proto'
 const PROTOBUF_PROTOCOL_VERSION = 1
 
 export type MessageCallback = (message: PB.FromSmartKnob) => void
-export type SendPacket = (packet: Uint8Array) => void
+export type SendBytes = (packet: Uint8Array) => void
 
 type QueueEntry = {
     nonce: number
@@ -18,20 +18,34 @@ export {cobsEncode, cobsDecode}
 export class SmartKnobCore {
     private static readonly RETRY_MILLIS = 250
     public static readonly BAUD = 921600
+    public static readonly USB_DEVICE_FILTERS = [
+        // CH340
+        {
+            usbVendorId: 0x1a86,
+            usbProductId: 0x7523,
+        },
+        // ESP32-S3
+        {
+            usbVendorId: 0x303a,
+            usbProductId: 0x1001,
+        },
+    ]
 
     private onMessage: MessageCallback
-    private sendPacket: SendPacket
+    private sendBytes: SendBytes
 
-    private outgoingQueue: QueueEntry[] = []
+    private readonly outgoingQueue: QueueEntry[] = []
 
     private lastNonce = 1
     private retryTimeout: ReturnType<typeof setTimeout> | null = null
     protected portAvailable = false
 
-    constructor(onMessage: MessageCallback, sendPacket: SendPacket) {
+    private buffer = new Uint8Array()
+
+    constructor(onMessage: MessageCallback, sendBytes: SendBytes) {
         this.lastNonce = Math.floor(Math.random() * (2 ^ (32 - 1)))
         this.onMessage = onMessage
-        this.sendPacket = sendPacket
+        this.sendBytes = sendBytes
     }
 
     public sendConfig(config: PB.SmartKnobConfig): void {
@@ -42,22 +56,54 @@ export class SmartKnobCore {
         )
     }
 
-    protected handleMessage(message: PB.FromSmartKnob): void {
-        if (message.protocolVersion !== PROTOBUF_PROTOCOL_VERSION) {
-            console.warn(
-                `Invalid protocol version. Expected ${PROTOBUF_PROTOCOL_VERSION}, received ${message.protocolVersion}`,
-            )
-            return
-        }
-        if (message.payload === 'ack') {
-            const nonce = message.ack?.nonce ?? undefined
-            if (nonce === undefined) {
-                console.warn('Received ack without nonce')
-            } else {
-                this.handleAck(nonce)
+    protected onReceivedData(data: Uint8Array) {
+        this.buffer = Uint8Array.from([...this.buffer, ...data])
+
+        let i: number
+        // Iterate 0-delimited packets
+        while ((i = this.buffer.indexOf(0)) != -1) {
+            const raw_buffer = this.buffer.subarray(0, i)
+            const packet = cobsDecode(raw_buffer)
+            this.buffer = this.buffer.slice(i + 1)
+            if (packet.length <= 4) {
+                console.debug(`Received short packet ${this.buffer.slice(0, i)}`)
+                continue
             }
+            const payload = packet.slice(0, packet.length - 4)
+
+            // Validate CRC32
+            const crc_buf = packet.slice(packet.length - 4, packet.length)
+            const provided_crc = crc_buf[0] | (crc_buf[1] << 8) | (crc_buf[2] << 16) | (crc_buf[3] << 24)
+            const crc = CRC32.buf(payload)
+            if (crc !== provided_crc) {
+                console.debug(`Bad CRC. Expected ${crc} but received ${provided_crc}`)
+                console.debug(raw_buffer.toString())
+                continue
+            }
+
+            let message: PB.FromSmartKnob
+            try {
+                message = PB.FromSmartKnob.decode(payload)
+            } catch (err) {
+                console.warn(`Invalid protobuf message ${payload}`)
+                return
+            }
+            if (message.protocolVersion !== PROTOBUF_PROTOCOL_VERSION) {
+                console.warn(
+                    `Invalid protocol version. Expected ${PROTOBUF_PROTOCOL_VERSION}, received ${message.protocolVersion}`,
+                )
+                return
+            }
+            if (message.payload === 'ack') {
+                const nonce = message.ack?.nonce ?? undefined
+                if (nonce === undefined) {
+                    console.warn('Received ack without nonce')
+                } else {
+                    this.handleAck(nonce)
+                }
+            }
+            this.onMessage(message)
         }
-        this.onMessage(message)
     }
 
     private enqueueMessage(message: PB.ToSmartknob) {
@@ -132,6 +178,6 @@ export class SmartKnobCore {
             } bytes encoded)`,
             encodedDelimitedPacket,
         )
-        this.sendPacket(encodedDelimitedPacket)
+        this.sendBytes(encodedDelimitedPacket)
     }
 }

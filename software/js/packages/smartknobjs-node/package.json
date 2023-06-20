@@ -12,7 +12,6 @@
     "author": "",
     "license": "Apache-2.0",
     "dependencies": {
-        "crc-32": "^1.2.0",
         "serialport": "^9.2.4",
         "smartknobjs-core": "^1.0.0",
         "smartknobjs-proto": "^1.0.0"

@@ -1,6 +1,3 @@
-import {ProtoDecoderStream} from './streams/proto-decoder'
-import {DelimiterChunkedStream} from './streams/delimiter-transform'
-
 import {MessageCallback, SmartKnobCore} from 'smartknobjs-core'
 
 export class SmartKnobWebSerial extends SmartKnobCore {
@@ -34,12 +31,7 @@ export class SmartKnobWebSerial extends SmartKnobCore {
             throw new Error('Port missing readable or writable!')
         }
 
-        // TODO: even though stream transformers are clean, this should probably be converted back to
-        // raw byte-array processing within smartknobjs-core to avoid leaking cobs/crc/pb decoding
-        // from the core abstraction
-        const pbDecoder = new ProtoDecoderStream()
-        this.port.readable.pipeThrough(new DelimiterChunkedStream(0)).pipeTo(pbDecoder.writable)
-        const reader = pbDecoder.readable.getReader()
+        const reader = this.port.readable.getReader()
         try {
             this.writer = this.port.writable.getWriter()
             try {
@@ -50,7 +42,7 @@ export class SmartKnobWebSerial extends SmartKnobCore {
                         break
                     }
                     if (value !== undefined) {
-                        this.handleMessage(value)
+                        this.onReceivedData(value)
                     }
                 }
             } finally {

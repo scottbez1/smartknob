@@ -327,16 +327,7 @@ export const App: React.FC<AppProps> = ({info}) => {
         try {
             if (navigator.serial) {
                 const serialPort = await navigator.serial.requestPort({
-                    filters: [
-                        {
-                            usbVendorId: 0x1a86,
-                            usbProductId: 0x7523,
-                        },
-                        {
-                            usbVendorId: 0x303a,
-                            usbProductId: 0x1001,
-                        },
-                    ],
+                    filters: SmartKnobWebSerial.USB_DEVICE_FILTERS,
                 })
                 serialPort.addEventListener('disconnect', () => {
                     setSmartKnob(null)

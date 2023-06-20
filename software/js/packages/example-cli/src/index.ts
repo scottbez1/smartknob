@@ -6,12 +6,9 @@ const main = async () => {
     const ports = await SerialPort.list()
 
     const matchingPorts = ports.filter((portInfo) => {
-        // Implement a check for your device's vendor+product+serial
-        // (this is more robust than the alternative of just hardcoding a "path" like "/dev/ttyUSB0")
-        return (
-            portInfo.vendorId?.toLowerCase() === '1a86'.toLowerCase() &&
-            portInfo.productId?.toLowerCase() === '7523'.toLowerCase()
-            // && portInfo.serialNumber === 'DEADBEEF'
+        return SmartKnobNode.USB_DEVICE_FILTERS.some(
+            (f) =>
+                f.usbVendorId.toString(16) === portInfo.vendorId && f.usbProductId.toString(16) === portInfo.productId,
         )
     })
 
@@ -19,7 +16,9 @@ const main = async () => {
         console.error(`No smartknob usb serial port found! ${JSON.stringify(ports, undefined, 4)}`)
         return
     } else if (matchingPorts.length > 1) {
-        console.error(`Multiple smartknob usb serial ports found: ${JSON.stringify(matchingPorts, undefined, 4)}`)
+        console.error(
+            `Multiple possible smartknob usb serial ports found: ${JSON.stringify(matchingPorts, undefined, 4)}`,
+        )
         return
     }
 
