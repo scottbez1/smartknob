@@ -2,13 +2,11 @@ name: JS
 
 on:
   push:
-    branches: [ "master", "dev/webserial" ]
     paths:
       - 'software/js'
       - 'proto'
       - '.github/workflows/js.yml'
   pull_request:
-    branches: [ "master" ]
     paths:
       - 'software/js'
       - 'proto'
@@ -55,6 +53,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    if: github.repository == 'scottbez1/smartknob' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: build
     steps:
