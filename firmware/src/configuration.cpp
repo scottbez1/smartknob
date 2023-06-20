@@ -1,4 +1,4 @@
-#include <SPIFFS.h>
+#include <FFat.h>
 
 #include "pb_decode.h"
 #include "pb_encode.h"
@@ -21,12 +21,12 @@ Configuration::~Configuration() {
 
 bool Configuration::loadFromDisk() {
     SemaphoreGuard lock(mutex_);
-    if (!SPIFFS.begin(true)) {
-        log("Failed to mount SPIFFS");
+    FatGuard fatGuard(logger_);
+    if (!fatGuard.mounted_) {
         return false;
     }
 
-    File f = SPIFFS.open(CONFIG_PATH);
+    File f = FFat.open(CONFIG_PATH);
     if (!f) {
         log("Failed to read config file");
         return false;
@@ -77,7 +77,11 @@ bool Configuration::saveToDisk() {
         return false;
     }
 
-    File f = SPIFFS.open(CONFIG_PATH, FILE_WRITE);
+    FatGuard fatGuard(logger_);
+    if (!fatGuard.mounted_) {
+        return false;
+    }
+    File f = FFat.open(CONFIG_PATH, FILE_WRITE);
     if (!f) {
         log("Failed to read config file");
         return false;

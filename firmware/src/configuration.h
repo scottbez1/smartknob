@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SPIFFS.h>
+#include <FFat.h>
 #include <PacketSerial.h>
 
 #include "proto_gen/smartknob.pb.h"
@@ -30,4 +30,34 @@ class Configuration {
         uint8_t buffer_[PB_PersistentConfiguration_size];
 
         void log(const char* msg);
+};
+class FatGuard {
+    public:
+        FatGuard(Logger* logger) : logger_(logger) {
+            if (!FFat.begin(true)) {
+                if (logger_ != nullptr) {
+                    logger_->log("Failed to mount FFat");
+                }
+                return;
+            }
+            if (logger_ != nullptr) {
+                logger_->log("Mounted FFat");
+            }
+            mounted_ = true;
+        }
+        ~FatGuard() {
+            if (mounted_) {
+                FFat.end();
+                if (logger_ != nullptr) {
+                    logger_->log("Unmounted FFat");
+                }
+            }
+        }
+        FatGuard(FatGuard const&)=delete;
+        FatGuard& operator=(FatGuard const&)=delete;
+
+        bool mounted_ = false;
+
+    private:
+        Logger* logger_;
 };

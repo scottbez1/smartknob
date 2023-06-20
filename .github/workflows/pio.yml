@@ -52,4 +52,11 @@ jobs:
       if: always() && steps.pio_install.outcome == 'success'
       run: |
         pio run \
-          -e view \
+          -e view
+
+    - name: Build Firmware (nanofoc)
+      # Run regardless of other build step failures, as long as setup steps completed
+      if: always() && steps.pio_install.outcome == 'success'
+      run: |
+        pio run \
+          -e nanofoc
