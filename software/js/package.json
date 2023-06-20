@@ -10,6 +10,7 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "example-cli": "npm -w example-cli run main",
+    "example-webserial-basic": "npm -w example-webserial-basic run start",
     "example-webserial-timeline": "npm -w example-webserial-timeline run start"
   },
   "author": "",
@@ -21,6 +22,7 @@
     "packages/smartknobjs-node",
     "packages/smartknobjs-webserial",
     "packages/example-cli",
+    "packages/example-webserial-basic",
     "packages/example-webserial-timeline"
   ],
   "devDependencies": {
