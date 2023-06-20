@@ -9,4 +9,8 @@
     "editor.formatOnType": false,
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
+    "files.associations": {
+        "cstddef": "cpp",
+        "limits": "cpp"
+    },
 }
