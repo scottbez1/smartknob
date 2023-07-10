@@ -3,15 +3,15 @@ name: Export Electronics
 on:
   push:
     paths:
-      - 'electronics'
-      - 'util'
-      - 'scripts'
+      - 'electronics/**'
+      - 'util/**'
+      - 'scripts/**'
       - '.github/workflows/electronics.yml'
   pull_request:
     paths:
-      - 'electronics'
-      - 'util'
-      - 'scripts'
+      - 'electronics/**'
+      - 'util/**'
+      - 'scripts/**'
       - '.github/workflows/electronics.yml'
 
 jobs:

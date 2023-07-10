@@ -3,13 +3,13 @@ name: JS
 on:
   push:
     paths:
-      - 'software/js'
-      - 'proto'
+      - 'software/js/**'
+      - 'proto/**'
       - '.github/workflows/js.yml'
   pull_request:
     paths:
-      - 'software/js'
-      - 'proto'
+      - 'software/js/**'
+      - 'proto/**'
       - '.github/workflows/js.yml'
   workflow_dispatch:
 
