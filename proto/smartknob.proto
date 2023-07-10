@@ -73,6 +73,7 @@ message RequestState {}
 message PersistentConfiguration {
     uint32 version = 1;
     MotorCalibration motor = 2;
+    StrainCalibration strain = 3;
 }
 
 message MotorCalibration {
@@ -80,4 +81,9 @@ message MotorCalibration {
     float zero_electrical_offset = 2;
     bool direction_cw = 3;
     uint32 pole_pairs = 4;
+}
+
+message StrainCalibration {
+    int32 idle_value = 1;
+    int32 press_delta = 2; 
 }

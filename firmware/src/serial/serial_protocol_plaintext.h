@@ -7,6 +7,7 @@
 #include "uart_stream.h"
 
 typedef std::function<void(void)> DemoConfigChangeCallback;
+typedef std::function<void(void)> StrainCalibrationCallback;
 
 class SerialProtocolPlaintext : public SerialProtocol {
     public:
@@ -16,11 +17,12 @@ class SerialProtocolPlaintext : public SerialProtocol {
         void loop() override;
         void handleState(const PB_SmartKnobState& state) override;
 
-        void init(DemoConfigChangeCallback cb);
+        void init(DemoConfigChangeCallback demo_config_change_callback, StrainCalibrationCallback strain_calibration_callback);
     
     private:
         Stream& stream_;
         MotorTask& motor_task_;
         PB_SmartKnobState latest_state_ = {};
         DemoConfigChangeCallback demo_config_change_callback_;
+        StrainCalibrationCallback strain_calibration_callback_;
 };

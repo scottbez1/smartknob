@@ -7,3 +7,5 @@ template <typename T> T CLAMP(const T& value, const T& low, const T& high)
 }
 
 #define COUNT_OF(A) (sizeof(A) / sizeof(A[0]))
+
+float lerp(const float value, const float inMin, const float inMax, const float min, const float max);

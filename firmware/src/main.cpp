@@ -32,6 +32,8 @@ void setup() {
   config.setLogger(&interface_task);
   config.loadFromDisk();
 
+  interface_task.setConfiguration(&config);
+
   motor_task.setLogger(&interface_task);
   motor_task.begin();
 

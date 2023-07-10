@@ -40,6 +40,7 @@ bool Configuration::loadFromDisk() {
         char buf[200];
         snprintf(buf, sizeof(buf), "Decoding failed: %s", PB_GET_ERROR(&stream));
         log(buf);
+        pb_buffer_ = {};
         return false;
     }
 
@@ -47,6 +48,7 @@ bool Configuration::loadFromDisk() {
         char buf[200];
         snprintf(buf, sizeof(buf), "Invalid config version. Expected %u, received %u", PERSISTENT_CONFIGURATION_VERSION, pb_buffer_.version);
         log(buf);
+        pb_buffer_ = {};
         return false;
     }
     loaded_ = true;
@@ -114,6 +116,15 @@ bool Configuration::setMotorCalibrationAndSave(PB_MotorCalibration& motor_calibr
         SemaphoreGuard lock(mutex_);
         pb_buffer_.motor = motor_calibration;
         pb_buffer_.has_motor = true;
+    }
+    return saveToDisk();
+}
+
+bool Configuration::setStrainCalibrationAndSave(PB_StrainCalibration& strain_calibration) {
+    {
+        SemaphoreGuard lock(mutex_);
+        pb_buffer_.strain = strain_calibration;
+        pb_buffer_.has_strain = true;
     }
     return saveToDisk();
 }
