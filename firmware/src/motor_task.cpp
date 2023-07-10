@@ -295,8 +295,6 @@ void MotorTask::run() {
             last_publish = millis();
         }
 
-        motor.monitor();
-
         delay(1);
     }
 }

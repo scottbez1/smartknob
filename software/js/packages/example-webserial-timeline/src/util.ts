@@ -1,5 +1,5 @@
 export const exhaustiveCheck = (x: never): never => {
-    throw new Error("Didn't expect to get here", x)
+    throw new Error(`Unexpected value: ${x}`, x)
 }
 
 export const isSome = <T>(v: T | null | undefined): v is T => {

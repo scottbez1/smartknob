@@ -44,7 +44,13 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
         uint8_t strain_calibration_step_ = 0;
         int32_t strain_reading_ = 0;
 
+        SerialProtocol* current_protocol_ = nullptr;
+        bool remote_controlled_ = false;
         int current_config_ = 0;
+        uint8_t press_count_ = 1;
+
+        PB_SmartKnobState latest_state_ = {};
+        PB_SmartKnobConfig latest_config_ = {};
 
         QueueHandle_t log_queue_;
         QueueHandle_t knob_state_queue_;
@@ -53,4 +59,6 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
 
         void changeConfig(bool next);
         void updateHardware();
+        void publishState();
+        void applyConfig(PB_SmartKnobConfig& config, bool from_remote);
 };

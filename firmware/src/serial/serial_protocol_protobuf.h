@@ -4,21 +4,22 @@
 
 #include "../proto_gen/smartknob.pb.h"
 
+#include "interface_callbacks.h"
 #include "motor_task.h"
 #include "serial_protocol.h"
 #include "uart_stream.h"
 
 class SerialProtocolProtobuf : public SerialProtocol {
     public:
-        SerialProtocolProtobuf(Stream& stream, MotorTask& motor_task);
-        ~SerialProtocolProtobuf(){}
+        SerialProtocolProtobuf(Stream& stream, ConfigCallback config_callback);
+        ~SerialProtocolProtobuf(){};
         void log(const char* msg) override;
         void loop() override;
         void handleState(const PB_SmartKnobState& state) override;
     
     private:
         Stream& stream_;
-        MotorTask& motor_task_;
+        ConfigCallback config_callback_;
         
         PB_FromSmartKnob pb_tx_buffer_;
         PB_ToSmartknob pb_rx_buffer_;

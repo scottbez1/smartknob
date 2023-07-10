@@ -21,6 +21,7 @@ const defaultConfig: Config = {
     text: 'Hello from\nweb serial!',
     detentPositions: [],
     snapPointBias: 0,
+    ledHue: 0,
 }
 
 export type AppProps = object
@@ -125,6 +126,7 @@ export const App: React.FC<AppProps> = () => {
                                         text: pendingSmartKnobConfig.text,
                                         detentPositions: [],
                                         snapPointBias: parseFloat(pendingSmartKnobConfig.snapPointBias) || 0,
+                                        ledHue: 0,
                                     })
                                 }}
                             >

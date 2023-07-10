@@ -40,6 +40,7 @@ static PB_SmartKnobConfig configs[] = {
     // pb_size_t detent_positions_count;
     // int32_t detent_positions[5];
     // float snap_point_bias;
+    // int8_t led_hue;
 
     {
         0,
@@ -55,6 +56,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         {},
         0,
+        200,
     },
     {
         0,
@@ -69,6 +71,7 @@ static PB_SmartKnobConfig configs[] = {
         "Bounded 0-10\nNo detents",
         0,
         {},
+        0,
         0,
     },
     {
@@ -85,6 +88,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         {},
         0,
+        73,
     },
     {
         0,
@@ -100,6 +104,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         {},
         0,
+        157,
     },
     {
         0,
@@ -115,6 +120,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         {},
         0,
+        45,
     },
     {
         127,
@@ -130,6 +136,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         {},
         0,
+        219,
     },
     {
         127,
@@ -145,6 +152,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         {},
         0,
+        25,
     },
     {
         0,
@@ -160,6 +168,7 @@ static PB_SmartKnobConfig configs[] = {
         0,
         {},
         0,
+        200,
     },
     {
         0,
@@ -174,6 +183,7 @@ static PB_SmartKnobConfig configs[] = {
         "Coarse values\nWeak detents",
         0,
         {},
+        0,
         0,
     },
     {
@@ -190,6 +200,7 @@ static PB_SmartKnobConfig configs[] = {
         4,
         {2, 10, 21, 22},
         0,
+        73,
     },
     {
         0,
@@ -204,7 +215,8 @@ static PB_SmartKnobConfig configs[] = {
         "Return-to-center\nwith detents",
         0,
         {},
-        0.4
+        0.4,
+        157,
     },
 };
 
@@ -213,11 +225,16 @@ InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, Dis
         stream_(),
         motor_task_(motor_task),
         display_task_(display_task),
-        plaintext_protocol_(stream_, motor_task_),
-        proto_protocol_(stream_, motor_task_) {
+        plaintext_protocol_(stream_, [this] () {
+            motor_task_.runCalibration();
+        }),
+        proto_protocol_(stream_, [this] (PB_SmartKnobConfig& config) {
+            applyConfig(config, true);
+        }) {
     #if SK_DISPLAY
         assert(display_task != nullptr);
     #endif
+
 
     log_queue_ = xQueueCreate(10, sizeof(std::string *));
     assert(log_queue_ != NULL);
@@ -257,7 +274,7 @@ void InterfaceTask::run() {
         }
     #endif
 
-    motor_task_.setConfig(configs[0]);
+    applyConfig(configs[0], false);
     motor_task_.addListener(knob_state_queue_);
 
     plaintext_protocol_.init([this] () {
@@ -291,15 +308,15 @@ void InterfaceTask::run() {
     });
 
     // Start in legacy protocol mode
-    SerialProtocol* current_protocol = &plaintext_protocol_;
+    current_protocol_ = &plaintext_protocol_;
 
-    ProtocolChangeCallback protocol_change_callback = [this, &current_protocol] (uint8_t protocol) {
+    ProtocolChangeCallback protocol_change_callback = [this] (uint8_t protocol) {
         switch (protocol) {
             case SERIAL_PROTOCOL_LEGACY:
-                current_protocol = &plaintext_protocol_;
+                current_protocol_ = &plaintext_protocol_;
                 break;
             case SERIAL_PROTOCOL_PROTO:
-                current_protocol = &proto_protocol_;
+                current_protocol_ = &proto_protocol_;
                 break;
             default:
                 log("Unknown protocol requested");
@@ -312,16 +329,15 @@ void InterfaceTask::run() {
 
     // Interface loop:
     while (1) {
-        PB_SmartKnobState state;
-        if (xQueueReceive(knob_state_queue_, &state, 0) == pdTRUE) {
-            current_protocol->handleState(state);
+        if (xQueueReceive(knob_state_queue_, &latest_state_, 0) == pdTRUE) {
+            publishState();
         }
 
-        current_protocol->loop();
+        current_protocol_->loop();
 
         std::string* log_string;
         while (xQueueReceive(log_queue_, &log_string, 0) == pdTRUE) {
-            current_protocol->log(log_string->c_str());
+            current_protocol_->log(log_string->c_str());
             delete log_string;
         }
 
@@ -360,7 +376,7 @@ void InterfaceTask::changeConfig(bool next) {
     
     snprintf(buf_, sizeof(buf_), "Changing config to %d -- %s", current_config_, configs[current_config_].text);
     log(buf_);
-    motor_task_.setConfig(configs[current_config_]);
+    applyConfig(configs[current_config_], false);
 }
 
 void InterfaceTask::updateHardware() {
@@ -380,6 +396,7 @@ void InterfaceTask::updateHardware() {
         }
     #endif
 
+    static bool pressed;
     #if SK_STRAIN
         if (scale.wait_ready_timeout(100)) {
             strain_reading_ = scale.read();
@@ -396,23 +413,26 @@ void InterfaceTask::updateHardware() {
 
                 // Ignore readings that are way out of expected bounds
                 if (-1 < press_value_unit && press_value_unit < 2) {
-                    static bool pressed;
-                    static uint8_t press_count;
-                    if (!pressed && press_value_unit > 0.75) {
-                        press_count++;
-                        if (press_count > 2) {
+                    static uint8_t press_readings;
+                    if (!pressed && press_value_unit > 1) {
+                        press_readings++;
+                        if (press_readings > 2) {
                             motor_task_.playHaptic(true);
                             pressed = true;
-                            changeConfig(true);
+                            press_count_++;
+                            publishState();
+                            if (!remote_controlled_) {
+                                changeConfig(true);
+                            }
                         }
-                    } else if (pressed && press_value_unit < 0.25) {
-                        press_count++;
-                        if (press_count > 2) {
+                    } else if (pressed && press_value_unit < 0.5) {
+                        press_readings++;
+                        if (press_readings > 2) {
                             motor_task_.playHaptic(false);
                             pressed = false;
                         }
                     } else {
-                        press_count = 0;
+                        press_readings = 0;
                     }
                 }
             }
@@ -440,7 +460,7 @@ void InterfaceTask::updateHardware() {
 
     #if SK_LEDS
         for (uint8_t i = 0; i < NUM_LEDS; i++) {
-            leds[i].setHSV(200 * CLAMP(press_value_unit, (float)0, (float)1), 255, brightness >> 8);
+            leds[i].setHSV(latest_config_.led_hue, 255 - 180*CLAMP(press_value_unit, (float)0, (float)1) - 75*pressed, brightness >> 8);
 
             // Gamma adjustment
             leds[i].r = dim8_video(leds[i].r);
@@ -454,4 +474,16 @@ void InterfaceTask::updateHardware() {
 void InterfaceTask::setConfiguration(Configuration* configuration) {
     SemaphoreGuard lock(mutex_);
     configuration_ = configuration;
+}
+
+void InterfaceTask::publishState() {
+    // Apply local state before publishing to serial
+    latest_state_.press_nonce = press_count_;
+    current_protocol_->handleState(latest_state_);
+}
+
+void InterfaceTask::applyConfig(PB_SmartKnobConfig& config, bool from_remote) {
+    remote_controlled_ = from_remote;
+    latest_config_ = config;
+    motor_task_.setConfig(config);
 }

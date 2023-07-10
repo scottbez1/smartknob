@@ -17,9 +17,9 @@ const MAX_ZOOM = 60
 const PIXELS_PER_POSITION = 5
 
 enum Mode {
-    Scroll = 'Scroll',
-    Frames = 'Frames',
-    Speed = 'Speed',
+    Scroll = 'SKDEMO_Scroll',
+    Frames = 'SKDEMO_Frames',
+    Speed = 'SKDEMO_Speed',
 }
 
 type PlaybackState = {
@@ -58,6 +58,7 @@ export const App: React.FC<AppProps> = ({info}) => {
         text: Mode.Scroll,
         detentPositions: [],
         snapPointBias: 0,
+        ledHue: 0,
 
         zoomTimelinePixelsPerFrame: 0.1,
     })
@@ -78,6 +79,7 @@ export const App: React.FC<AppProps> = ({info}) => {
         smartKnobConfig.text,
         smartKnobConfig.detentPositions,
         smartKnobConfig.snapPointBias,
+        smartKnobConfig.ledHue,
     ])
     const [playbackState, setPlaybackState] = useState<PlaybackState>({
         speed: 0,
@@ -139,6 +141,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         text: Mode.Scroll,
                         detentPositions: findNClosest(Object.keys(detentPositions).map(parseInt), position, 5),
                         snapPointBias: 0,
+                        ledHue: 0,
 
                         zoomTimelinePixelsPerFrame: curConfig.zoomTimelinePixelsPerFrame,
                     }
@@ -158,6 +161,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         text: Mode.Frames,
                         detentPositions: [],
                         snapPointBias: 0,
+                        ledHue: (120 * 255) / 360,
 
                         zoomTimelinePixelsPerFrame: curConfig.zoomTimelinePixelsPerFrame,
                     }
@@ -177,6 +181,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                         text: Mode.Speed,
                         detentPositions: [],
                         snapPointBias: 0.4,
+                        ledHue: (240 * 255) / 360,
 
                         zoomTimelinePixelsPerFrame: curConfig.zoomTimelinePixelsPerFrame,
                     }
@@ -187,6 +192,21 @@ export const App: React.FC<AppProps> = ({info}) => {
         },
         [detentPositions, info.totalFrames, playbackState],
     )
+    const nextMode = useCallback(() => {
+        const curMode = smartKnobConfig.text as unknown as Mode
+        console.log('nextMode', curMode)
+        if (curMode === Mode.Scroll) {
+            changeMode(Mode.Frames)
+        } else if (curMode === Mode.Frames) {
+            changeMode(Mode.Speed)
+        } else if (curMode === Mode.Speed) {
+            changeMode(Mode.Scroll)
+        } else {
+            exhaustiveCheck(curMode)
+        }
+    }, [smartKnobConfig.text, changeMode])
+
+    // Initialize to Scroll mode
     useEffect(() => {
         changeMode(Mode.Scroll)
     }, [])
@@ -288,6 +308,21 @@ export const App: React.FC<AppProps> = ({info}) => {
         interfaceState.zoomTimelinePixelsPerFrame,
     ])
 
+    // Change mode when pressed
+    const receivedPressNonceRef = useRef<boolean>(false)
+    const previousPressNonceRef = useRef<number>(0)
+    useEffect(() => {
+        if (previousPressNonceRef.current !== smartKnobState.pressNonce) {
+            if (!receivedPressNonceRef.current) {
+                // Ignore first nonce change
+                receivedPressNonceRef.current = true
+            } else {
+                nextMode()
+            }
+        }
+        previousPressNonceRef.current = smartKnobState.pressNonce
+    }, [smartKnobState.pressNonce, nextMode])
+
     const refreshInterval = 20
     const updateFrame = useCallback(() => {
         const fps = info.frameRate * playbackState.speed
@@ -326,6 +361,9 @@ export const App: React.FC<AppProps> = ({info}) => {
     const connectToSerial = async () => {
         try {
             if (navigator.serial) {
+                previousPressNonceRef.current = 0
+                receivedPressNonceRef.current = false
+
                 const serialPort = await navigator.serial.requestPort({
                     filters: SmartKnobWebSerial.USB_DEVICE_FILTERS,
                 })
@@ -376,9 +414,9 @@ export const App: React.FC<AppProps> = ({info}) => {
                                 }}
                                 aria-label="Mode"
                             >
-                                {Object.keys(Mode).map((mode) => (
-                                    <ToggleButton value={mode} key={mode}>
-                                        {mode}
+                                {Object.entries(Mode).map((mode_entry) => (
+                                    <ToggleButton value={mode_entry[1]} key={mode_entry[1]}>
+                                        {mode_entry[0]}
                                     </ToggleButton>
                                 ))}
                             </ToggleButtonGroup>
