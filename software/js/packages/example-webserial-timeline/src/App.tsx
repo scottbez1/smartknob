@@ -455,7 +455,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                             Sorry, Web Serial API isn't available in your browser. Try the latest version of Chrome.
                         </Typography>
                     )}
-                    <pre>{JSON.stringify(smartKnobConfig, undefined, 2)}</pre>
+                    {/* <pre>{JSON.stringify(smartKnobConfig, undefined, 2)}</pre> */}
                 </Paper>
             </Container>
         </>
@@ -513,7 +513,7 @@ export const Timeline: React.FC<TimelineProps> = ({info, currentFrame, zoomTimel
                 style={{
                     position: 'relative',
                     display: 'inline-block',
-                    height: '80px',
+                    height: '120px',
                     width: `${zoomTimelinePixelsPerFrame * info.totalFrames}px`,
                     backgroundColor: '#dde',
                 }}
@@ -529,7 +529,7 @@ export const Timeline: React.FC<TimelineProps> = ({info, currentFrame, zoomTimel
                                 position: 'relative',
                                 display: 'inline-block',
                                 top: '10px',
-                                height: '60px',
+                                height: '100px',
                                 width: `${widthPixels}px`,
                                 backgroundImage: gradients[i % gradients.length],
                             }}

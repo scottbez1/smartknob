@@ -9,7 +9,13 @@ import CssBaseline from '@mui/material/CssBaseline'
 import {createTheme, ThemeProvider} from '@mui/material/styles'
 import {VideoInfo} from './types'
 
-const theme = createTheme()
+// const theme = createTheme()
+
+const theme = createTheme({
+    palette: {
+        mode: 'dark',
+    },
+})
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
