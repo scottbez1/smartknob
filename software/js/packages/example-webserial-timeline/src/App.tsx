@@ -10,6 +10,7 @@ import {exhaustiveCheck, findNClosest, lerp, NoUndefinedField} from './util'
 import {groupBy, parseInt} from 'lodash'
 import _ from 'lodash'
 import {SmartKnobWebSerial} from 'smartknobjs-webserial'
+import './index.css'
 
 const MIN_ZOOM = 0.01
 const MAX_ZOOM = 60
@@ -395,11 +396,11 @@ export const App: React.FC<AppProps> = ({info}) => {
 
     return (
         <>
-            <Container component="main" maxWidth="lg">
-                <Paper variant="outlined" sx={{my: {xs: 3, md: 6}, p: {xs: 2, md: 3}}}>
-                    <Typography component="h1" variant="h5">
-                        Video Playback Control Demo
-                    </Typography>
+            <Container component="main" maxWidth="xl">
+                <Typography component="h1" variant="h5" sx={{textAlign: 'center', fontSize: '2.5em'}}>
+                    SMARTKNOB VIDEO PLAYBACK DEMO
+                </Typography>
+                <Paper sx={{my: {xs: 3, md: 6}, p: {xs: 2, md: 3}}}>
                     {smartKnob !== null ? (
                         <>
                             <ToggleButtonGroup
@@ -413,6 +414,7 @@ export const App: React.FC<AppProps> = ({info}) => {
                                     changeMode(value)
                                 }}
                                 aria-label="Mode"
+                                sx={{marginTop: '2%', marginBottom: '2%'}}
                             >
                                 {Object.entries(Mode).map((mode_entry) => (
                                     <ToggleButton value={mode_entry[1]} key={mode_entry[1]}>
@@ -420,10 +422,14 @@ export const App: React.FC<AppProps> = ({info}) => {
                                     </ToggleButton>
                                 ))}
                             </ToggleButtonGroup>
-                            <Typography>
+                            <Typography sx={{marginBottom: '2%'}}>
                                 Frame {Math.trunc(playbackState.currentFrame)} / {info.totalFrames - 1}
                                 <br />
-                                Speed {playbackState.speed}
+                                {smartKnobConfig.text === 'SKDEMO_Speed' ? (
+                                    <div> Speed {playbackState.speed} </div>
+                                ) : (
+                                    <div>&nbsp; </div>
+                                )}
                             </Typography>
                             <Timeline
                                 info={info}
@@ -513,9 +519,11 @@ export const Timeline: React.FC<TimelineProps> = ({info, currentFrame, zoomTimel
                 style={{
                     position: 'relative',
                     display: 'inline-block',
-                    height: '120px',
+                    height: '140px',
+                    marginBottom: '3%',
+                    marginTop: '1%',
                     width: `${zoomTimelinePixelsPerFrame * info.totalFrames}px`,
-                    backgroundColor: '#dde',
+                    backgroundColor: 'white',
                 }}
             >
                 {[...info.boundaryFrames, info.totalFrames].map((f, i, a) => {
@@ -529,7 +537,7 @@ export const Timeline: React.FC<TimelineProps> = ({info, currentFrame, zoomTimel
                                 position: 'relative',
                                 display: 'inline-block',
                                 top: '10px',
-                                height: '100px',
+                                height: '120px',
                                 width: `${widthPixels}px`,
                                 backgroundImage: gradients[i % gradients.length],
                             }}
@@ -546,7 +554,7 @@ export const Timeline: React.FC<TimelineProps> = ({info, currentFrame, zoomTimel
                         width: `${Math.max(zoomTimelinePixelsPerFrame, 1)}px`,
                         height: '100%',
                         backgroundColor: 'rgba(255, 0, 0, 0.4)',
-                        borderLeft: '1px solid red',
+                        borderLeft: '2px solid red',
                     }}
                 ></div>
             </div>
