@@ -62,15 +62,14 @@ View the latest auto-generated (untested) [Base PCB Interactive BOM](https://sma
 A few miscellaneous notes in the meantime:
 
  - There's limited space inside the LCD mount for wiring, and 8 wires need to fit through the hole in the center. I used 30 AWG wire-wrapping wire. Enamel-coated wire would probably work too.
- - Strain gauges are BF350-3AA, and glued in place with CA glue (I'll include video of this process in the future, but essentially I used kapton tape to pick up the strain gauge and hold it in place during curing). This has to be done after reflow soldering, and would be hard to remove/fix in case of a mistake, so MAKE SURE TO PRACTICE GLUING strain gauges to other items before attempting on the PCB!
+ - Older versions of the design (as seen in the videos) used glued-on BF350-3AA strain gauges to detect presses; in v0.5 these were replaced with footprints for SMD resistors, which exhibit similar properties when stretched/compressed and are much easier to assemble. 
  - The TMC6300 is _tiny_ and has a bottom pad, so I would seriously consider getting a stencil along with the PCB order. Even with the stencil I needed to manually clean up some bridging afterward; I _highly_ recommend Chip Quik NC191 gel flux, available on [Amazon](https://amzn.to/3MGDSr5) (or use this [non-affiliate link](https://www.amazon.com/Smooth-Flow-No-Clean-syringe-plunger/dp/B08KJPG3NZ) instead) or from your electronics distributor of choice. Flux is also very helpful when soldering the LCD ribbon cable to to screen PCB.
- - For breadboard prototyping, the [TMC6300-BOB](https://www.trinamic.com/support/eval-kits/details/tmc6300-bob/) is awesome and way easier to work with than the bare chip if you just want to play around with low current BLDC motors
+ - For breadboard prototyping, the [TMC6300-BOB](https://www.trinamic.com/support/eval-kits/details/tmc6300-bob/) or SparkFun's [TMC6300 driver board](https://www.sparkfun.com/products/21867) are awesome and way easier to work with than the bare chip if you just want to play around with low current BLDC motors
  - For AliExpress purchases: I highly recommend **only** using AliExpress Standard Shipping (purchasing in the US). I have had multiple purchases take months or never get delivered when purchased with Cainiao or other low cost shipping options, whereas AliExpress Standard is very reliable and generally faster in my experience.
  - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly. I would not recommend ordering these parts yourself until the [stable release v1.0 milestone](https://github.com/scottbez1/smartknob/milestone/1) is complete, as there are some mechanical interference issues in the current revision.
 
 Future plans:
- - consider switch to using an ESP32-S3-MINI-1 module (once Arduino core support is complete), as that would allow for direct USB HID support (for joystick/macro-pad type input to a computer)
- - Bluetooth HID support?
+ - consider switch to using an ESP32-S3-MINI-1 module
  - get wifi configured and working (probably MQTT?). Currently memory is an issue with the full display framebuffer sprite. PSRAM might fix this (requires newer ESP-IDF & unreleased Arduino core, and from a brief test I got horrible performance with PSRAM enabled), or the next item might help reduce memory:
  - migrate to LVGL, for better display rendering and easy support for menus, etc. Shouldn't require a full 240x240x24b framebuffer in memory, freeing some for wifi, etc.
  - Home Assistant integration, or other real-world applications
@@ -116,7 +115,7 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
     <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-back-3d.png" width="300" />
 </a>
 
-Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design.
+Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design. (The PCB silkscreen mentions 0.6mm thickness - this is the thickness of the **VHB tape** for adhering the LCD; the PCB should be 1.2mm thick)
 
 There are few enough components on the Screen PCB that I chose to hand-solder them rather than reflow with solder paste
 and a stencil, but if you order a stencil, see the note above about selecting a "Customized size" to be easier to
