@@ -40,7 +40,7 @@ void SerialProtocolPlaintext::loop() {
                 demo_config_change_callback_();
             }
         } else if (b == 'C') {
-            motor_task_.runCalibration();
+            motor_calibration_callback_();
         } else if (b == 'S') {
             if (strain_calibration_callback_) {
                 strain_calibration_callback_();

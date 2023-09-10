@@ -41,6 +41,9 @@ message SmartKnobState {
     int32 current_position = 1;
     float sub_position_unit = 2;
     SmartKnobConfig config = 3;
+
+    /** Value that changes each time the knob is pressed */
+    uint32 press_nonce = 4 [(nanopb).int_size = IS_8];
 }
 
 
@@ -66,6 +69,12 @@ message SmartKnobConfig {
     string text = 10 [(nanopb).max_length = 50];
     repeated int32 detent_positions = 11 [(nanopb).max_count = 5];
     float snap_point_bias = 12;
+
+    /**
+     * Hue (0-255) for all 8 ring LEDs, if supported. Note: this will likely be replaced
+     * with more configurability in a future protocol version.
+     */
+    int32 led_hue = 13 [(nanopb).int_size = IS_16];
 }
 
 message RequestState {}

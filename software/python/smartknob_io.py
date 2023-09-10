@@ -34,6 +34,7 @@ sys.path.append(os.path.join(software_root, 'proto_gen'))
 from proto_gen import smartknob_pb2
 
 SMARTKNOB_BAUD = 921600
+PROTOBUF_PROTOCOL_VERSION = 1
 
 
 class Smartknob(object):
@@ -92,6 +93,8 @@ class Smartknob(object):
         message = smartknob_pb2.FromSmartKnob()
         message.ParseFromString(payload)
         self._logger.debug(message)
+        if message.protocol_version != PROTOBUF_PROTOCOL_VERSION:
+            self._logger.warn(f'Invalid protocol version. Expected {PROTOBUF_PROTOCOL_VERSION}, received {message.protocol_version}')
 
         payload_type = message.WhichOneof('payload')
 
@@ -145,6 +148,7 @@ class Smartknob(object):
         nonce = self._next_nonce
         self._next_nonce += 1
 
+        message.protocol_version = PROTOBUF_PROTOCOL_VERSION
         message.nonce = nonce
 
         payload = bytearray(message.SerializeToString())

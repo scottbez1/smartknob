@@ -6,12 +6,7 @@ export class SmartKnobWebSerial extends SmartKnobCore {
 
     constructor(port: SerialPort, onMessage: MessageCallback) {
         super(onMessage, (packet: Uint8Array) => {
-            this.writer?.write(packet).catch((e) => {
-                console.error('Error writing serial', e)
-                this.port?.close()
-                this.port = null
-                this.portAvailable = false
-            })
+            this.writer?.write(packet).catch(this.onError)
         })
         this.port = port
         this.portAvailable = true
@@ -33,7 +28,9 @@ export class SmartKnobWebSerial extends SmartKnobCore {
 
         const reader = this.port.readable.getReader()
         try {
-            this.writer = this.port.writable.getWriter()
+            const writer = this.port.writable.getWriter()
+            writer.write(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])).catch(this.onError)
+            this.writer = writer
             try {
                 // eslint-disable-next-line no-constant-condition
                 while (true) {
@@ -47,11 +44,19 @@ export class SmartKnobWebSerial extends SmartKnobCore {
                 }
             } finally {
                 console.log('Releasing writer')
-                this.writer?.releaseLock()
+                writer?.releaseLock()
             }
         } finally {
             console.log('Releasing reader')
             reader.releaseLock()
         }
+    }
+
+    private onError(e: unknown) {
+        console.error('Error writing serial', e)
+        this.port?.close()
+        this.port = null
+        this.portAvailable = false
+        this.writer = undefined
     }
 }
