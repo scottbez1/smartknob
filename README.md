@@ -25,14 +25,14 @@ Features:
  - 240x240 round LCD ("GC9A01"), protected by 39.5mm watch glass on rotor
  - BLDC gimbal motor, with a hollow shaft for mechanically & electrically connecting the LCD
  - Powered by ESP32-PICO-V3-02 (Lilygo TMicro32 Plus module)
- - PCB flexure and strain gauges used for press detection (haptic feedback provided via the motor)
+ - PCB flexure and SMD resistors used as strain gauges for press detection (haptic feedback provided via the motor)
  - 8 side-firing RGB LEDs (SK6812-SIDE-A) illuminate ring around the knob
  - USB-C (2.0) connector for 5V power and serial data/programming (CH340)
  - VEML7700 ambient light sensor for automatic backlight & LED intensity adjustment
  - Versatile back plate for mounting - use either 4x screws, or 2x 3M medium Command strips (with cutouts for accessing removal tabs after installation)
  - Front cover snaps on for easy access to the PCB
 
-**Current status:** Not recommended for general use (mechanical and electrical revisions may be needed depending on motor/electronics availability)
+**Current status:** Not recommended for general use, but may be a fun project for an advanced electronics hobbyist.
 
 ### Demo video
 
@@ -66,7 +66,7 @@ A few miscellaneous notes in the meantime:
  - The TMC6300 is _tiny_ and has a bottom pad, so I would seriously consider getting a stencil along with the PCB order. Even with the stencil I needed to manually clean up some bridging afterward; I _highly_ recommend Chip Quik NC191 gel flux, available on [Amazon](https://amzn.to/3MGDSr5) (or use this [non-affiliate link](https://www.amazon.com/Smooth-Flow-No-Clean-syringe-plunger/dp/B08KJPG3NZ) instead) or from your electronics distributor of choice. Flux is also very helpful when soldering the LCD ribbon cable to to screen PCB.
  - For breadboard prototyping, the [TMC6300-BOB](https://www.trinamic.com/support/eval-kits/details/tmc6300-bob/) or SparkFun's [TMC6300 driver board](https://www.sparkfun.com/products/21867) are awesome and way easier to work with than the bare chip if you just want to play around with low current BLDC motors
  - For AliExpress purchases: I highly recommend **only** using AliExpress Standard Shipping (purchasing in the US). I have had multiple purchases take months or never get delivered when purchased with Cainiao or other low cost shipping options, whereas AliExpress Standard is very reliable and generally faster in my experience.
- - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly. I would not recommend ordering these parts yourself until the [stable release v1.0 milestone](https://github.com/scottbez1/smartknob/milestone/1) is complete, as there are some mechanical interference issues in the current revision.
+ - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly.
 
 Future plans:
  - consider switch to using an ESP32-S3-MINI-1 module
@@ -75,6 +75,14 @@ Future plans:
  - Home Assistant integration, or other real-world applications
  - ???
  - [Profit](https://github.com/sponsors/scottbez1/) 😉
+
+ #### Already built one?
+Check out the [firmware/software documentation](https://paper.dropbox.com/doc/SmartKnob-firmware-and-software--B_oWj~L1dXqHgAqqYmhwwuqzAg-VUb9nq7btuhnHw5KlgJIH)
+for tips on getting it programmed and hooking it up to your own software integrations.
+
+If you've already uploaded the standard firmware and gone through the calibration process (see guide linked above if you don't know what this means),
+go to https://scottbez1.github.io/smartknob/ to try out an interactive web-based demo that uses Web Serial to talk to a SmartKnob that's plugged into your
+computer's USB port!
 
 
 #### Base PCB
@@ -165,15 +173,31 @@ environment in PlatformIO rather than the `view` environment when uploading.
 
 # Frequently Asked Questions (FAQ)
 
-**How much does it cost?**
+### Can I use this cheap gimbal BLDC motor I found on AliExpress?
+
+I can't stop you, but I will caution that **you probably won't be super happy with it** depending on your intended application.
+
+Nearly every off-the-shelf BLDC gimbal motor that the community has tested (which is pretty much ALL the cheap ones you'll find on AliExpress, trust me) has
+_moderate to severge cogging_. That means the motor wants to snap to certain positions by itself even when unpowered. This means you won't be able to get
+completely smooth rotation when virtual detents are turned off, and the motor's cogging may interfere with or overpower the virtual detents, particularly if
+you set them to lower strength or make then very fine-grained.
+
+The recommended motor is definitely the best (i.e. lowest cogging) off-the-shelf motor we've come across so far, and is the only readily-available motor
+that I would consider "good" for this application.
+
+If you've found another motor that is completely smooth when unpowered, we'd LOVE to hear about it in the discord; if you're wondering about some cheap motor
+you saw online, either just order one and try it for yourself, or ask about it in discord but don't be surprised (or offended) if the response you get is
+something terse like "nope, no good".
+
+### How much does it cost?
 
 I wish I could tell you now, but I don't actually know off the top of my head. Check back soon - I've only built a few so far, which was the result of a bunch of tinkering and prototyping over an extended period, so I don't have all the expenses tallied up yet. Probably less than $200 in parts? But some items have gotten more expensive, and you may be limited by minimum order quantities or shipping charges from multiple separate suppliers.
 
-**Does it work with XYZ?**
+### Does it work with XYZ?
 
 Not yet, regardless of whatever "XYZ" you're thinking of. So far I've only implemented enough firmware for the demo shown in the video, so you can't actually use it for anything productive yet. The basic detent configuration API is there, but not much else. Lots of firmware work remains to be done. If you build one, I'd love your help adding support for "XYZ" though!
 
-**Can I buy one as a kit or already assembled?**
+### Can I buy one as a kit or already assembled?
 
 Probably not? Or at least, I don't have any immediate plans to sell them myself. It's not that I don't want you to be happy, but hardware is a hard business and I just work on this stuff in my free time.
 
