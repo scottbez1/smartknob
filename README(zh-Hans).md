@@ -1,10 +1,13 @@
 ﻿# SmartKnob
+
+[English version](README.md)
+
 SmartKnob 是一款可软件配置限位及虚拟齿槽强度的开源输入设备。
 
 利用无刷云台电机及与其配对的磁性编码器，SmartKnob 可以提供反馈闭环扭矩控制，使其
 能够动态创建、调整限位位置和旋转时的齿槽强度（刻度感）。
 
-加入 [Discord 社区](https://discord.gg/5jyhjcbTnR)，与大家一起讨论，展示自己的成品，或者回答他人的问题！
+加入 [Discord 社群](https://discord.gg/5jyhjcbTnR)，与大家一起讨论，展示自己的成品，或者回答他人的问题！
 
 [![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml/badge.svg?branch=master)](https://github.com/scottbez1/smartknob/actions/workflows/electronics.yml)
 [![Build Status](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml/badge.svg?branch=master)](https://github.com/scottbez1/smartknob/actions/workflows/pio.yml)
