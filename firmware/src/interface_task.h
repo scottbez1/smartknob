@@ -26,10 +26,10 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
         void run();
 
     private:
-    #ifdef CONFIG_IDF_TARGET_ESP32S3
-        HWCDC stream_;
-    #else
+    #if DLOGS_STREAM == 0
         UartStream stream_;
+    #elif DLOGS_STREAM == 1
+        HWCDC stream_;
     #endif
         MotorTask& motor_task_;
         DisplayTask* display_task_;

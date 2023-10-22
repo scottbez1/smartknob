@@ -35,9 +35,15 @@ void DisplayTask::run() {
     tft_.setRotation(SK_DISPLAY_ROTATION);
     tft_.fillScreen(TFT_DARKGREEN);
 
+  #ifdef CONFIG_IDF_TARGET_ESP32S3
+    ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 8);
+    ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
+    ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT8_MAX);
+  #else
     ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
     ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
     ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT16_MAX);
+  #endif
 
     spr_.setColorDepth(8);
 

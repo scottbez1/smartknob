@@ -262,7 +262,7 @@ void InterfaceTask::run() {
         Wire.setClock(400000);
     #endif
     #if SK_STRAIN
-        scale.begin(38, 2);
+        scale.begin(STRAIN_DO, STRAIN_SCK);
     #endif
 
     #if SK_ALS
