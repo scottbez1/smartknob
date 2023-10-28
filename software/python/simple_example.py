@@ -19,14 +19,24 @@ def _run_example():
 
     p = ask_for_serial_port()
     with smartknob_context(p) as s:
+        # Initialize with an empty state object
         last_state = smartknob_pb2.SmartKnobState()
-        def log_state(message):
+
+        # Callback function to handle state updates
+        def log_state(new_state):
             nonlocal last_state
-            if last_state.config.SerializeToString(deterministic=True) != message.config.SerializeToString(deterministic=True):
-                logging.info('State: ' + str(message))
-                last_state = message
+
+            # We'll log the state if it's changed substantially since the last state we recieved
+            config_changed = last_state.config.SerializeToString(deterministic=True) != new_state.config.SerializeToString(deterministic=True)
+            position_changed = last_state.current_position != new_state.current_position
+            sub_position_large_change = abs(last_state.sub_position_unit * last_state.config.position_width_radians - new_state.sub_position_unit * new_state.config.position_width_radians) > math.radians(5)
+            press_nonce_changed = last_state.press_nonce != new_state.press_nonce
+            if config_changed or position_changed or sub_position_large_change or press_nonce_changed:
+                logging.info('State: ' + str(new_state))
+                last_state = new_state
+
+        # Register our state handler function
         s.add_handler('smartknob_state', log_state)
-        s.request_state()
 
         # Run forever, set config when enter is pressed
         while True:

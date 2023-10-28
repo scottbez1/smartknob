@@ -128,6 +128,9 @@ void SerialProtocolProtobuf::handlePacket(const uint8_t* buffer, size_t size) {
             config_callback_(pb_rx_buffer_.payload.smartknob_config);
             break;
         }
+        case PB_ToSmartknob_request_state_tag:
+            state_requested_ = true;
+            break;
         default: {
             char buf[200];
             snprintf(buf, sizeof(buf), "Unknown payload type: %d", pb_rx_buffer_.which_payload);
