@@ -12,6 +12,10 @@
 #include "serial/uart_stream.h"
 #include "task.h"
 
+#ifndef SK_FORCE_UART_STREAM
+    #define SK_FORCE_UART_STREAM 0
+#endif
+
 class InterfaceTask : public Task<InterfaceTask>, public Logger {
     friend class Task<InterfaceTask>; // Allow base Task to invoke protected run()
 
@@ -26,10 +30,10 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
         void run();
 
     private:
-    #if DLOGS_STREAM == 0
-        UartStream stream_;
-    #elif DLOGS_STREAM == 1
+    #if defined(CONFIG_IDF_TARGET_ESP32S3) && !SK_FORCE_UART_STREAM
         HWCDC stream_;
+    #else
+        UartStream stream_;
     #endif
         MotorTask& motor_task_;
         DisplayTask* display_task_;
