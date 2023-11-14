@@ -35,9 +35,9 @@ void DisplayTask::run() {
     tft_.setRotation(SK_DISPLAY_ROTATION);
     tft_.fillScreen(TFT_DARKGREEN);
 
-    ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, 16);
+    ledcSetup(LEDC_CHANNEL_LCD_BACKLIGHT, 5000, SK_BACKLIGHT_BIT_DEPTH);
     ledcAttachPin(PIN_LCD_BACKLIGHT, LEDC_CHANNEL_LCD_BACKLIGHT);
-    ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, UINT16_MAX);
+    ledcWrite(LEDC_CHANNEL_LCD_BACKLIGHT, (1 << SK_BACKLIGHT_BIT_DEPTH) - 1);
 
     spr_.setColorDepth(8);
 
@@ -201,7 +201,7 @@ QueueHandle_t DisplayTask::getKnobStateQueue() {
 
 void DisplayTask::setBrightness(uint16_t brightness) {
   SemaphoreGuard lock(mutex_);
-  brightness_ = brightness;
+  brightness_ = brightness >> (16 - SK_BACKLIGHT_BIT_DEPTH);
 }
 
 void DisplayTask::setLogger(Logger* logger) {
