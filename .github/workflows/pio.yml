@@ -60,3 +60,10 @@ jobs:
       run: |
         pio run \
           -e nanofoc
+
+    - name: Build Firmware (brushknight_esp32s3)
+      # Run regardless of other build step failures, as long as setup steps completed
+      if: always() && steps.pio_install.outcome == 'success'
+      run: |
+        pio run \
+          -e brushknight_esp32s3
