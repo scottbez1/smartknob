@@ -13,9 +13,10 @@
     "author": "",
     "license": "Apache-2.0",
     "dependencies": {
-        "serialport": "^9.2.4",
-        "smartknobjs-proto": "^1.0.0",
-        "smartknobjs-webserial": "^1.0.0"
+        "serialport": "^12",
+        "smartknobjs-proto": "file:../smartknobjs-proto",
+        "smartknobjs-node": "file:../smartknobjs-node",
+        "smartknobjs-webserial": "file:../smartknobjs-webserial"
     },
     "devDependencies": {
         "@types/serialport": "^8.0.2",
