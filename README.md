@@ -51,6 +51,17 @@ Features:
 
 Latest Fusion 360 Model: https://a360.co/3BzkU0n
 
+
+#### DEMO: video editor timeline control
+
+If you edit audio/video, imagine having a jog wheel where you could _feel_ the clip boundaries as you scrolled through the timeline. Then switch to playback speed control, with a wheel that's spring-loaded to return to "paused," with snaps at 1x, 2x, 4x, etc. The SmartKnob can do this; it just needs some software integrations to be written. Check out a demo using a SmartKnob prototype to control a mock video timeline:
+
+<a href="https://www.youtube.com/watch?v=J9192DfZplk">
+    <img src="https://img.youtube.com/vi/J9192DfZplk/maxresdefault.jpg" width="480" />
+</a>
+
+(you can actually try this demo yourself if you've already built a SmartKnob; plug it in over USB and go to https://scottbez1.github.io/smartknob/)
+
 ### Build your own?
 
 While this is a "DIY" open-source project, it is not yet a mature plug-and-play project. If you intend to build your own, note that it requires advanced soldering experience to build - very small-pitch surface-mount soldering is required (reflow or hot air recommended), and assembly is quite time-consuming and delicate. Please go into it with the expectation that you will almost certainly need to be able to troubleshoot some hardware and firmware issues yourself - I recommend reviewing/understanding the schematics and basic firmware before jumping in!
@@ -76,14 +87,13 @@ Future plans:
  - ???
  - [Profit](https://github.com/sponsors/scottbez1/) 😉
 
- #### Already built one?
+#### Already built one?
 Check out the [firmware/software documentation](https://paper.dropbox.com/doc/SmartKnob-firmware-and-software--B_oWj~L1dXqHgAqqYmhwwuqzAg-VUb9nq7btuhnHw5KlgJIH)
 for tips on getting it programmed and hooking it up to your own software integrations.
 
 If you've already uploaded the standard firmware and gone through the calibration process (see guide linked above if you don't know what this means),
 go to https://scottbez1.github.io/smartknob/ to try out an interactive web-based demo that uses Web Serial to talk to a SmartKnob that's plugged into your
 computer's USB port!
-
 
 #### Base PCB
 
