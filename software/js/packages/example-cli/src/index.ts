@@ -1,4 +1,4 @@
-import SerialPort = require('serialport')
+import {SerialPort} from 'serialport'
 import {SmartKnobNode} from 'smartknobjs-node'
 import {PB} from 'smartknobjs-proto'
 

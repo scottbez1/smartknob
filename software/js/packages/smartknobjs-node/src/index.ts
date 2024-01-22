@@ -1,4 +1,4 @@
-import SerialPort = require('serialport')
+import {SerialPort} from 'serialport'
 import {MessageCallback, SmartKnobCore} from 'smartknobjs-core'
 
 export class SmartKnobNode extends SmartKnobCore {
@@ -8,7 +8,8 @@ export class SmartKnobNode extends SmartKnobCore {
         super(onMessage, (packet: Uint8Array) => {
             this.port?.write(Buffer.from(packet))
         })
-        this.port = new SerialPort(serialPath, {
+        this.port = new SerialPort({
+            path: serialPath,
             baudRate: SmartKnobCore.BAUD,
         })
         this.port.on('data', (data) => {
