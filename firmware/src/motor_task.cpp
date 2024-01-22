@@ -79,7 +79,9 @@ void MotorTask::run() {
 
     PB_PersistentConfiguration c = configuration_.get();
     motor.pole_pairs = c.motor.calibrated ? c.motor.pole_pairs : 7;
-    motor.initFOC(c.motor.zero_electrical_offset, c.motor.direction_cw ? Direction::CW : Direction::CCW);
+    motor.zero_electric_angle = c.motor.zero_electrical_offset;
+    motor.sensor_direction = c.motor.direction_cw ? Direction::CW : Direction::CCW;
+    motor.initFOC();
 
     motor.monitor_downsample = 0; // disable monitor at first - optional
 
@@ -354,7 +356,9 @@ void MotorTask::calibrate() {
 
     motor.controller = MotionControlType::angle_openloop;
     motor.pole_pairs = 1;
-    motor.initFOC(0, Direction::CW);
+    motor.zero_electric_angle = 0;
+    motor.sensor_direction = Direction::CW;
+    motor.initFOC();
 
     float a = 0;
 
@@ -397,10 +401,14 @@ void MotorTask::calibrate() {
     log("Sensor measures positive for positive motor rotation:");
     if (end_sensor > start_sensor) {
         log("YES, Direction=CW");
-        motor.initFOC(0, Direction::CW);
+        motor.zero_electric_angle = 0;
+        motor.sensor_direction = Direction::CW;
+        motor.initFOC();
     } else {
         log("NO, Direction=CCW");
-        motor.initFOC(0, Direction::CCW);
+        motor.zero_electric_angle = 0;
+        motor.sensor_direction = Direction::CCW;
+        motor.initFOC();
     }
     snprintf(buf_, sizeof(buf_), "  (start was %.1f, end was %.1f)", start_sensor, end_sensor);
     log(buf_);
