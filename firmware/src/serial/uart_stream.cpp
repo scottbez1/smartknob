@@ -31,8 +31,12 @@ void UartStream::begin() {
     conf.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
     conf.rx_flow_ctrl_thresh = 0;
     conf.use_ref_tick        = false;
-    assert(uart_param_config(uart_port_, &conf) == ESP_OK);
-    assert(uart_driver_install(uart_port_, 32000, 32000, 0, NULL, 0) == ESP_OK);
+
+    esp_err_t ret = uart_param_config(uart_port_, &conf);
+    assert(ret == ESP_OK);
+
+    ret = uart_driver_install(uart_port_, 32000, 32000, 0, NULL, 0);
+    assert(ret == ESP_OK);
 }
 
 int UartStream::peek() {
@@ -41,7 +45,10 @@ int UartStream::peek() {
 
 int UartStream::available() {
     size_t size = 0;
-    assert(uart_get_buffered_data_len(uart_port_, &size) == ESP_OK);
+
+    esp_err_t ret = uart_get_buffered_data_len(uart_port_, &size);
+    assert(ret == ESP_OK);
+
     return size;
 }
 
