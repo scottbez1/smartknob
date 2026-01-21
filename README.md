@@ -1,3 +1,4 @@
+Edited By Komal
 # SmartKnob
 SmartKnob is an open-source input device with software-configurable endstops and virtual detents.
 
