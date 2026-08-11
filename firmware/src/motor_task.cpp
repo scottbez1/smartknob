@@ -193,15 +193,26 @@ void MotorTask::run() {
                     break;
                 }
                 case CommandType::HAPTIC: {
-                    // Play a hardcoded haptic "click"
-                    float strength = command.data.haptic.press ? 5 : 1.5;
+                    // Play a haptic "click": a kick one way, then the other to stop the
+                    // shaft dead. Amplitude saturates at motor.voltage_limit, so a
+                    // heavier click comes from driving the kick for longer.
+                    float strength = command.data.haptic.strength > 0
+                            ? command.data.haptic.strength
+                            : (command.data.haptic.press ? 5 : 1.5);
+                    uint8_t duration_ms = command.data.haptic.duration_ms > 0
+                            ? command.data.haptic.duration_ms
+                            : 3;
+                    // The brake only has to arrest the shaft. Stretching it as far as
+                    // the kick puts the reversal outside the window where the two fuse,
+                    // and it gets felt as a second click.
+                    uint8_t brake_ms = min((uint8_t)3, duration_ms);
                     motor.move(strength);
-                    for (uint8_t i = 0; i < 3; i++) {
+                    for (uint8_t i = 0; i < duration_ms; i++) {
                         motor.loopFOC();
                         delay(1);
                     }
                     motor.move(-strength);
-                    for (uint8_t i = 0; i < 3; i++) {
+                    for (uint8_t i = 0; i < brake_ms; i++) {
                         motor.loopFOC();
                         delay(1);
                     }
@@ -310,12 +321,14 @@ void MotorTask::setConfig(const PB_SmartKnobConfig& config) {
 }
 
 
-void MotorTask::playHaptic(bool press) {
+void MotorTask::playHaptic(bool press, float strength, uint8_t duration_ms) {
     Command command = {
         .command_type = CommandType::HAPTIC,
         .data = {
             .haptic = {
                 .press = press,
+                .strength = strength,
+                .duration_ms = duration_ms,
             },
         }
     };

@@ -1,0 +1,21 @@
+# Dependencies for `python -m smartknob_deck` on Windows.
+#
+# Install with:
+#     py -m pip install -r requirements.txt
+#
+# The first three are the SmartKnob serial protocol (same as Pipfile). The rest
+# are the Windows backends: pycaw/comtypes for volume, screen-brightness-control
+# (plus WMI for laptop panels) for brightness.
+#
+# Note: the Pipfile pegs protobuf==3.20.3 for the other tools in this repo.
+# smartknob_deck sets PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python at import
+# time, so the checked-in *_pb2.py files load under either version.
+
+pyserial==3.5
+cobs==1.2.2
+protobuf==7.35.1
+
+pycaw==20251023
+comtypes==1.4.16
+screen-brightness-control==0.27.2
+WMI==1.5.1

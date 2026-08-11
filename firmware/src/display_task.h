@@ -8,6 +8,7 @@
 #include "logger.h"
 #include "proto_gen/smartknob.pb.h"
 #include "task.h"
+#include "ui/ui_state.h"
 
 class DisplayTask : public Task<DisplayTask> {
     friend class Task<DisplayTask>; // Allow base Task to invoke protected run()
@@ -21,6 +22,9 @@ class DisplayTask : public Task<DisplayTask> {
         void setBrightness(uint16_t brightness);
         void setLogger(Logger* logger);
 
+        /** Called from the interface task whenever the menu/app state changes. */
+        void setUiState(const UiState& ui_state);
+
     protected:
         void run();
 
@@ -33,6 +37,7 @@ class DisplayTask : public Task<DisplayTask> {
         QueueHandle_t knob_state_queue_;
 
         PB_SmartKnobState state_;
+        UiState ui_state_;
         SemaphoreHandle_t mutex_;
         uint16_t brightness_;
         Logger* logger_;
