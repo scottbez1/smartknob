@@ -11,6 +11,8 @@
 #include "serial/serial_protocol_protobuf.h"
 #include "serial/uart_stream.h"
 #include "task.h"
+#include "ui/apps.h"
+#include "ui/ui_state.h"
 
 #ifndef SK_FORCE_UART_STREAM
     #define SK_FORCE_UART_STREAM 0
@@ -50,8 +52,24 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
 
         SerialProtocol* current_protocol_ = nullptr;
         bool remote_controlled_ = false;
-        int current_config_ = 0;
         uint8_t press_count_ = 1;
+
+        /** How long the knob must be held on an app page to return to the menu. */
+        static const uint32_t HOLD_TO_EXIT_MS = 600;
+
+        UiState ui_state_ = {};
+        uint8_t menu_selection_ = 0;
+        /** Last value of each app, so reopening one resumes where it was left. */
+        int32_t app_position_[APP_SLOTS] = {};
+        /** Position remembered by a MUTE press, restored by the next press. */
+        int32_t muted_position_ = 0;
+        /** Nonce for locally-applied configs, so the motor honours our position. */
+        uint8_t local_nonce_ = 1;
+
+        bool knob_pressed_ = false;
+        uint32_t press_started_ms_ = 0;
+        /** Set once a hold has fired, to keep the release from also acting. */
+        bool hold_consumed_ = false;
 
         PB_SmartKnobState latest_state_ = {};
         PB_SmartKnobConfig latest_config_ = {};
@@ -61,7 +79,13 @@ class InterfaceTask : public Task<InterfaceTask>, public Logger {
         SerialProtocolPlaintext plaintext_protocol_;
         SerialProtocolProtobuf proto_protocol_;
 
-        void changeConfig(bool next);
+        void openMenu();
+        void openApp(uint8_t index);
+        /** Short press: open the highlighted app, or run the app's press action. */
+        void handlePress();
+        /** Hold, or 'B' over serial: back out to the menu. */
+        void handleBack();
+        void publishUiState();
         void updateHardware();
         void publishState();
         void applyConfig(PB_SmartKnobConfig& config, bool from_remote);

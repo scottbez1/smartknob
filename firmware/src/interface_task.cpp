@@ -26,200 +26,6 @@ HX711 scale;
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
 #endif
 
-static PB_SmartKnobConfig configs[] = {
-    // int32_t position;
-    // float sub_position_unit;
-    // uint8_t position_nonce;
-    // int32_t min_position;
-    // int32_t max_position;
-    // float position_width_radians;
-    // float detent_strength_unit;
-    // float endstop_strength_unit;
-    // float snap_point;
-    // char text[51];
-    // pb_size_t detent_positions_count;
-    // int32_t detent_positions[5];
-    // float snap_point_bias;
-    // int8_t led_hue;
-
-    {
-        0,
-        0,
-        0,
-        0,
-        -1, // max position < min position indicates no bounds
-        10 * PI / 180,
-        0,
-        1,
-        1.1,
-        "Unbounded\nNo detents",
-        0,
-        {},
-        0,
-        200,
-    },
-    {
-        0,
-        0,
-        1,
-        0,
-        10,
-        10 * PI / 180,
-        0,
-        1,
-        1.1,
-        "Bounded 0-10\nNo detents",
-        0,
-        {},
-        0,
-        0,
-    },
-    {
-        0,
-        0,
-        2,
-        0,
-        72,
-        10 * PI / 180,
-        0,
-        1,
-        1.1,
-        "Multi-rev\nNo detents",
-        0,
-        {},
-        0,
-        73,
-    },
-    {
-        0,
-        0,
-        3,
-        0,
-        1,
-        60 * PI / 180,
-        1,
-        1,
-        0.55, // Note the snap point is slightly past the midpoint (0.5); compare to normal detents which use a snap point *past* the next value (i.e. > 1)
-        "On/off\nStrong detent",
-        0,
-        {},
-        0,
-        157,
-    },
-    {
-        0,
-        0,
-        4,
-        0,
-        0,
-        60 * PI / 180,
-        0.01,
-        0.6,
-        1.1,
-        "Return-to-center",
-        0,
-        {},
-        0,
-        45,
-    },
-    {
-        127,
-        0,
-        5,
-        0,
-        255,
-        1 * PI / 180,
-        0,
-        1,
-        1.1,
-        "Fine values\nNo detents",
-        0,
-        {},
-        0,
-        219,
-    },
-    {
-        127,
-        0,
-        5,
-        0,
-        255,
-        1 * PI / 180,
-        1,
-        1,
-        1.1,
-        "Fine values\nWith detents",
-        0,
-        {},
-        0,
-        25,
-    },
-    {
-        0,
-        0,
-        6,
-        0,
-        31,
-        8.225806452 * PI / 180,
-        2,
-        1,
-        1.1,
-        "Coarse values\nStrong detents",
-        0,
-        {},
-        0,
-        200,
-    },
-    {
-        0,
-        0,
-        6,
-        0,
-        31,
-        8.225806452 * PI / 180,
-        0.2,
-        1,
-        1.1,
-        "Coarse values\nWeak detents",
-        0,
-        {},
-        0,
-        0,
-    },
-    {
-        0,
-        0,
-        7,
-        0,
-        31,
-        7 * PI / 180,
-        2.5,
-        1,
-        0.7,
-        "Magnetic detents",
-        4,
-        {2, 10, 21, 22},
-        0,
-        73,
-    },
-    {
-        0,
-        0,
-        8,
-        -6,
-        6,
-        60 * PI / 180,
-        1,
-        1,
-        0.55,
-        "Return-to-center\nwith detents",
-        0,
-        {},
-        0.4,
-        157,
-    },
-};
-
 InterfaceTask::InterfaceTask(const uint8_t task_core, MotorTask& motor_task, DisplayTask* display_task) : 
         Task("Interface", 3400, 1, task_core),
         stream_(),
@@ -274,11 +80,16 @@ void InterfaceTask::run() {
         }
     #endif
 
-    applyConfig(configs[0], false);
+    // app_position_ is sized from APP_SLOTS, but APP_COUNT is only known at link time.
+    assert(APP_COUNT > 0 && APP_COUNT <= APP_SLOTS);
+
     motor_task_.addListener(knob_state_queue_);
+    openMenu();
 
     plaintext_protocol_.init([this] () {
-        changeConfig(true);
+        handlePress();
+    }, [this] () {
+        handleBack();
     }, [this] () {
         if (!configuration_loaded_) {
             return;
@@ -331,6 +142,12 @@ void InterfaceTask::run() {
     while (1) {
         if (xQueueReceive(knob_state_queue_, &latest_state_, 0) == pdTRUE) {
             publishState();
+
+            if (ui_state_.mode == UiMode::MENU) {
+                menu_selection_ = (uint8_t)CLAMP(latest_state_.current_position, (int32_t)0, (int32_t)(APP_COUNT - 1));
+            } else if (ui_state_.mode == UiMode::APP) {
+                app_position_[ui_state_.app_index] = latest_state_.current_position;
+            }
         }
 
         current_protocol_->loop();
@@ -363,20 +180,109 @@ void InterfaceTask::log(const char* msg) {
     xQueueSendToBack(log_queue_, &msg_str, 0);
 }
 
-void InterfaceTask::changeConfig(bool next) {
-    if (next) {
-        current_config_ = (current_config_ + 1) % COUNT_OF(configs);
-    } else {
-        if (current_config_ == 0) {
-            current_config_ = COUNT_OF(configs) - 1;
-        } else {
-            current_config_ --;
-        }
+void InterfaceTask::openMenu() {
+    ui_state_.mode = UiMode::MENU;
+    ui_state_.hold_progress = 0;
+    ui_state_.mode_nonce++;
+    publishUiState();
+
+    PB_SmartKnobConfig config = menuConfig(menu_selection_);
+    config.position_nonce = local_nonce_++;
+    applyConfig(config, false);
+}
+
+void InterfaceTask::openApp(uint8_t index) {
+    const AppDescriptor& app = APPS[index];
+
+    bool entering = ui_state_.mode != UiMode::APP || ui_state_.app_index != index;
+
+    ui_state_.mode = UiMode::APP;
+    ui_state_.app_index = index;
+    ui_state_.hold_progress = 0;
+    if (entering) {
+        // Only a real page change animates; in-app value changes must not restart it.
+        ui_state_.mode_nonce++;
     }
-    
-    snprintf(buf_, sizeof(buf_), "Changing config to %d -- %s", current_config_, configs[current_config_].text);
+    publishUiState();
+
+    PB_SmartKnobConfig config = app.config;
+    config.position = app_position_[index];
+    config.sub_position_unit = 0;
+    config.position_nonce = local_nonce_++;
+    applyConfig(config, false);
+
+    snprintf(buf_, sizeof(buf_), "Opening %s", app.name);
     log(buf_);
-    applyConfig(configs[current_config_], false);
+}
+
+void InterfaceTask::handlePress() {
+    if (remote_controlled_) {
+        // The host owns the screen; it sees press_nonce and decides what to do.
+        // Still ripple, so the tap gets acknowledged locally either way.
+        ui_state_.press_nonce++;
+        publishUiState();
+        return;
+    }
+
+    if (ui_state_.mode == UiMode::MENU) {
+        openApp(menu_selection_);
+        return;
+    }
+
+    // Inside an app, a short press runs that app's own action.
+    uint8_t index = ui_state_.app_index;
+    const AppDescriptor& app = APPS[index];
+    int32_t current = app_position_[index];
+    bool changed = false;
+
+    switch (app.press_action) {
+        case PressAction::TOGGLE:
+            app_position_[index] = current != app.config.min_position
+                    ? app.config.min_position
+                    : app.config.max_position;
+            changed = true;
+            break;
+        case PressAction::CYCLE:
+            app_position_[index] = current >= app.config.max_position
+                    ? app.config.min_position
+                    : current + 1;
+            changed = true;
+            break;
+        case PressAction::MUTE:
+            if (current != app.config.min_position) {
+                muted_position_ = current;
+                app_position_[index] = app.config.min_position;
+            } else {
+                app_position_[index] = muted_position_;
+            }
+            changed = true;
+            break;
+        case PressAction::NONE:
+            break;
+    }
+
+    ui_state_.press_nonce++;
+    if (changed) {
+        // Re-send the config to snap the motor to the new position.
+        openApp(index);
+    } else {
+        publishUiState();
+    }
+}
+
+void InterfaceTask::handleBack() {
+    if (ui_state_.mode == UiMode::MENU) {
+        return;
+    }
+    remote_controlled_ = false;
+    motor_task_.playHaptic(false);
+    openMenu();
+}
+
+void InterfaceTask::publishUiState() {
+    #if SK_DISPLAY
+        display_task_->setUiState(ui_state_);
+    #endif
 }
 
 void InterfaceTask::updateHardware() {
@@ -396,7 +302,6 @@ void InterfaceTask::updateHardware() {
         }
     #endif
 
-    static bool pressed;
     #if SK_STRAIN
         if (scale.wait_ready_timeout(100)) {
             strain_reading_ = scale.read();
@@ -414,25 +319,43 @@ void InterfaceTask::updateHardware() {
                 // Ignore readings that are way out of expected bounds
                 if (-1 < press_value_unit && press_value_unit < 2) {
                     static uint8_t press_readings;
-                    if (!pressed && press_value_unit > 1) {
+                    if (!knob_pressed_ && press_value_unit > 1) {
                         press_readings++;
                         if (press_readings > 2) {
                             motor_task_.playHaptic(true);
-                            pressed = true;
+                            knob_pressed_ = true;
+                            press_started_ms_ = millis();
+                            hold_consumed_ = false;
                             press_count_++;
                             publishState();
-                            if (!remote_controlled_) {
-                                changeConfig(true);
-                            }
                         }
-                    } else if (pressed && press_value_unit < 0.5) {
+                    } else if (knob_pressed_ && press_value_unit < 0.5) {
                         press_readings++;
                         if (press_readings > 2) {
                             motor_task_.playHaptic(false);
-                            pressed = false;
+                            knob_pressed_ = false;
+                            // A hold already acted, so the release must not.
+                            if (!hold_consumed_) {
+                                handlePress();
+                            }
+                            ui_state_.hold_progress = 0;
+                            publishUiState();
                         }
                     } else {
                         press_readings = 0;
+                    }
+
+                    if (knob_pressed_ && !hold_consumed_) {
+                        float progress = (float)(millis() - press_started_ms_) / HOLD_TO_EXIT_MS;
+                        bool can_exit = ui_state_.mode != UiMode::MENU;
+                        ui_state_.hold_progress = can_exit ? CLAMP(progress, (float)0, (float)1) : 0;
+                        if (can_exit && progress >= 1) {
+                            hold_consumed_ = true;
+                            ui_state_.hold_progress = 0;
+                            handleBack();
+                        } else {
+                            publishUiState();
+                        }
                     }
                 }
             }
@@ -460,7 +383,7 @@ void InterfaceTask::updateHardware() {
 
     #if SK_LEDS
         for (uint8_t i = 0; i < NUM_LEDS; i++) {
-            leds[i].setHSV(latest_config_.led_hue, 255 - 180*CLAMP(press_value_unit, (float)0, (float)1) - 75*pressed, brightness >> 8);
+            leds[i].setHSV(latest_config_.led_hue, 255 - 180*CLAMP(press_value_unit, (float)0, (float)1) - 75*knob_pressed_, brightness >> 8);
 
             // Gamma adjustment
             leds[i].r = dim8_video(leds[i].r);
@@ -483,6 +406,14 @@ void InterfaceTask::publishState() {
 }
 
 void InterfaceTask::applyConfig(PB_SmartKnobConfig& config, bool from_remote) {
+    if (from_remote && ui_state_.mode != UiMode::REMOTE) {
+        // A host took over: give it its own page instead of leaving the menu
+        // carousel to follow a position that no longer selects an app.
+        ui_state_.mode = UiMode::REMOTE;
+        ui_state_.hold_progress = 0;
+        ui_state_.mode_nonce++;
+        publishUiState();
+    }
     remote_controlled_ = from_remote;
     latest_config_ = config;
     motor_task_.setConfig(config);
